@@ -1,5 +1,6 @@
 import { integer, jsonb, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
+
 export const workshopSchema = pgTable("workshop", {
     id: uuid("id").defaultRandom().primaryKey(),
     name: varchar("name").notNull(),

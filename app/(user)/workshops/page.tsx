@@ -1,6 +1,5 @@
-import { getWorkshops } from "@/app/actions/workshopActions";
-import Link from "next/link";
-import { Calendar, Clock, IndianRupee } from "lucide-react";
+import { getWorkshops } from "@/actions/workshopActions";
+import WorkshopFAQ from "@/components/ui/AccordionStudio";
 import { WorkshowListCard } from "@/components/workshop/WorkshowListCard";
 
 export const metadata = {
@@ -38,6 +37,16 @@ export default async function WorkshopsPage() {
             ))}
           </div>
         )}
+      </div>
+      {/* FAQs */}
+      <div className=" container">
+        <div className="text-center mb-10 mt-16">
+          <h2 className="text-3xl font-bold text-gray-900">Frequently Asked Questions</h2>
+          <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">
+            Here are some common questions about our workshops.
+          </p>
+        </div>
+        <WorkshopFAQ />
       </div>
     </div>
   );

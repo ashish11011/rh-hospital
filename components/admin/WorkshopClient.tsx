@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { deleteWorkshop } from "@/app/actions/workshopActions";
-import { WorkshopFormDialog } from "./WorkshopFormDialog";
+import { deleteWorkshop } from "@/actions/workshopActions";
 import { Trash2, Pencil } from "lucide-react";
+import { WorkshopFormDialog } from "./WorkshopFormDialog";
 
 export function WorkshopClient({ workshops }: { workshops: any[] }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);

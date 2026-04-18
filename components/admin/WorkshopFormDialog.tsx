@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import RichTextEditor from "@/components/RichTextEditor";
-import { getPresignedUrl } from "@/app/actions/uploadAction";
-import { createWorkshop, updateWorkshop } from "@/app/actions/workshopActions";
+import { getPresignedUrl } from "@/actions/uploadAction";
+import { createWorkshop, updateWorkshop } from "@/actions/workshopActions";
 import { Plus, Pencil } from "lucide-react";
 
 export function WorkshopFormDialog({

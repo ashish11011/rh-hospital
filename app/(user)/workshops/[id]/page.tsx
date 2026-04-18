@@ -1,4 +1,4 @@
-import { getWorkshopById } from "@/app/actions/workshopActions";
+import { getWorkshopById } from "@/actions/workshopActions";
 import { notFound } from "next/navigation";
 import { Calendar, Clock, IndianRupee, MapPin, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -84,7 +84,7 @@ export default async function WorkshopDetailsPage({ params }: { params: { id: st
 
           {/* Sidebar / Registration Details */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-8 bg-gray-50 ">
+            <Card className="sticky top-24 bg-gray-50 ">
               <CardHeader>
                 <CardTitle className="">Workshop Details</CardTitle>
               </CardHeader>
@@ -129,7 +129,7 @@ export default async function WorkshopDetailsPage({ params }: { params: { id: st
                 </div>
 
                 <div className="space-y-3">
-                  <WorkshopRegistrationDialog />
+                  <WorkshopRegistrationDialog workshopId={ws.id} priceOnline={ws.onlinePrice} priceOffline={ws.offlinePrice} />
                   <p className="text-xs text-center text-gray-500">
                     Secure your spot before seats run out!
                   </p>

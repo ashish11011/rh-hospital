@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 
 export async function getWorkshops() {
   try {
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     return await db.select().from(workshop).orderBy(desc(workshop.startTime));
   } catch (error) {
     console.error("Fetch Workshops error:", error);

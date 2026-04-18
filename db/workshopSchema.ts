@@ -26,6 +26,7 @@ export const workshopRegistrationSchema = pgTable("workshop_registration", {
     instituteName: varchar("institute_name").notNull(),
     city: varchar("city"),
     modeOfAttandnace: modeOfAttandaceEnum("mode_of_attandnace").notNull().default("online"),
+    // add payment status and default as pending
 });
 
 export const workshopPaymentSchema = pgTable("workshop_payment", {

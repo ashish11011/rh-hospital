@@ -11,9 +11,13 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export function ModeOfAttendanceRadio({
+    priceOnline,
+    priceOffline,
     value,
     onChange,
 }: {
+    priceOnline: number;
+    priceOffline: number;
     value: string;
     onChange: (val: string) => void;
 }) {
@@ -28,7 +32,8 @@ export function ModeOfAttendanceRadio({
                     <FieldContent>
                         <FieldTitle>Online</FieldTitle>
                         <FieldDescription>
-                            Attend remotely via internet.
+                            <p>Attend remotely via internet.</p>
+                            <p>Rs. {priceOnline}</p>
                         </FieldDescription>
                     </FieldContent>
                     <RadioGroupItem value="online" id="online-mode" />
@@ -40,7 +45,8 @@ export function ModeOfAttendanceRadio({
                     <FieldContent>
                         <FieldTitle>Offline</FieldTitle>
                         <FieldDescription>
-                            Attend physically at location.
+                            <p>Attend physically at location.</p>
+                            <p>Rs. {priceOffline}</p>
                         </FieldDescription>
                     </FieldContent>
                     <RadioGroupItem value="offline" id="offline-mode" />

@@ -1,5 +1,5 @@
 export default function Header() {
-    return <div className=" w-full bg-primary">
+    return <div className=" w-full hidden md:block bg-primary">
         <div className="container mx-auto">
             <div className="flex items-center justify-end py-2">
 

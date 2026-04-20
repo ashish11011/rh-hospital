@@ -4,7 +4,7 @@ import Link from "next/link"
 export default function Page() {
     return (
         <>
-            dashboard
+            <p className=" text-sm">dashboard</p>
         </>
     )
 }

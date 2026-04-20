@@ -21,7 +21,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <div className=" space-x-4">
                 {
                     LINKS.map((link) => (
-                        <Link key={link.name} href={link.href}>{link.name}</Link>
+                        <Link className=' underline' key={link.name} href={link.href}>{link.name}</Link>
                     ))
                 }
             </div>

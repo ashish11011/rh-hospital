@@ -1,7 +1,7 @@
 // Footer.tsx
 
 import { IconBrandFacebook, IconBrandLinkedin, IconBrandYoutube } from "@tabler/icons-react";
-import { X } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 
 
 const footerLinks = [
@@ -40,7 +40,7 @@ export default function Footer() {
         <footer className="bg-primary text-white py-6 md:py-10">
             {/* Top CTA */}
             <div className=" container">
-                <div className="text-xl md:text-2xl font-semibold mb-6">
+                <div className="text-lg md:text-2xl font-semibold mb-6">
                     Your Health, Its Our Priority
                 </div>
 
@@ -51,7 +51,7 @@ export default function Footer() {
                             className="bg-white text-gray-800 rounded-lg px-4 py-3 flex justify-between items-center shadow-sm"
                         >
                             <span>{item}</span>
-                            <span>➜</span>
+                            <ArrowRight className="size-5" />
                         </div>
                     ))}
                 </div>

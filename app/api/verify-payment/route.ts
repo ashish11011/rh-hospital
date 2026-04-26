@@ -6,7 +6,7 @@ import { paymentClient } from "@/lib/paymentClient";
 export async function POST(req: NextRequest) {
     const body = await req.json();
 
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = body;
+    const { razorpay_payment_id } = body;
     const payment = await paymentClient.payments.fetch(razorpay_payment_id);
     console.log(payment);
     if (payment.status === "captured") {
@@ -14,7 +14,4 @@ export async function POST(req: NextRequest) {
     } else {
         return NextResponse.json({ success: false, status: payment.status }, { status: 400 });
     }
-
 }
-// db changes
-// trigger email

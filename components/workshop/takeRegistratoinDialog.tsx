@@ -81,27 +81,19 @@ export function WorkshopRegistration({
 
         try {
             const res = await axios.post("/api/workshop/register", form);
+            const responseData = res.data.data;
             console.log(JSON.stringify(res));
-            if (res.status === 200) {
-                setForm({
-                    workshopId: workshopId,
-                    email: "",
-                    name: "",
-                    mobileNumber: "",
-                    designation: "",
-                    instituteName: "",
-                    city: "",
-                    modeOfAttandnace: "online",
-                });
-            }
+            // if (res.status === 200) {
+
+            // }
 
             const options = {
                 key: "rzp_test_SdJzsB1BH8Arbm", // Replace with your Razorpay key_id
-                amount: res.data.data.amount, // Use dynamic amount
-                currency: "INR",
-                name: "Acme Corp",
-                description: "Test Transaction",
-                order_id: res.data.data.id, // Use backend order_id
+                amount: responseData.amount, // Use dynamic amount
+                currency: responseData.currency,
+                name: form.name,
+                description: "Registration for workshop",
+                order_id: responseData.id, // Use backend order_id
                 handler: async function (response: any) {
                     console.log("Client res-> ", response)
                     const res = await fetch("/api/verify-payment", {
@@ -114,19 +106,19 @@ export function WorkshopRegistration({
 
                     const data = await res.json();
 
-                    if (data.success) {
-                        window.location.href = "/success";
-                    } else {
-                        window.location.href = "/failure";
+                    if (data.status == 200) {
+                        toast.success("Payment successful, your registration is confirmed")
+                    } else if (data.status == 400) {
+                        toast.error("Payment failed")
                     }
                 },
                 prefill: {
-                    name: "Gaurav Kumar",
-                    email: "gaurav.kumar@example.com",
-                    contact: "9999999999",
+                    name: form.name,
+                    email: form.email,
+                    contact: form.mobileNumber,
                 },
                 theme: {
-                    color: "#F37254",
+                    color: "#2e7d32",
                 },
             };
 
@@ -134,10 +126,21 @@ export function WorkshopRegistration({
             rzp.open();
 
 
+            // clear the form after successfull payment
+            setForm({
+                workshopId: workshopId,
+                email: "",
+                name: "",
+                mobileNumber: "",
+                designation: "",
+                instituteName: "",
+                city: "",
+                modeOfAttandnace: "online",
+            });
+
         } catch (error) {
             console.log(error);
         }
-
         setLoading(false);
     };
 

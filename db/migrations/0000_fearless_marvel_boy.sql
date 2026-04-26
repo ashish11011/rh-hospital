@@ -30,16 +30,29 @@ CREATE TABLE "payment" (
 	"order_type" "item" DEFAULT 'workshop' NOT NULL,
 	"order_id" uuid NOT NULL,
 	"currency" varchar DEFAULT 'INR' NOT NULL,
+	"gateway_payment_event_id" varchar,
 	"modeOf_payment" varchar,
+	"geteway_payment_id" varchar,
+	"gateway_invoice_id" varchar,
 	"gateway_order_id" varchar NOT NULL,
-	"amount" varchar NOT NULL,
-	"transaction_id" varchar NOT NULL,
-	"transaction_date" varchar NOT NULL,
+	"amount" integer DEFAULT 0 NOT NULL,
+	"amount_due" integer DEFAULT 0 NOT NULL,
+	"amount_paid" integer DEFAULT 0 NOT NULL,
+	"transaction_id" varchar,
+	"transaction_date" timestamp DEFAULT now(),
 	"status" varchar DEFAULT 'pending' NOT NULL,
 	"email" varchar,
 	"contact" varchar,
 	"token_id" varchar,
-	"response_object" jsonb NOT NULL
+	"response_object" jsonb,
+	"fee" integer DEFAULT 0,
+	"tax" integer DEFAULT 0,
+	"vpa" varchar,
+	"bank" varchar,
+	"card_id" varchar,
+	"notes" varchar,
+	"description" varchar,
+	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "product" (
@@ -76,11 +89,11 @@ CREATE TABLE "user" (
 	"name" varchar NOT NULL,
 	"email" varchar NOT NULL,
 	"mobile_number" varchar NOT NULL,
-	"is_varified" boolean DEFAULT false,
 	"designation" varchar NOT NULL,
 	"institute_name" varchar NOT NULL,
 	"city" varchar,
 	"is_active" boolean DEFAULT true,
+	"is_varified" boolean DEFAULT false,
 	"password" varchar NOT NULL,
 	"role" varchar DEFAULT 'user' NOT NULL,
 	"created_at" timestamp DEFAULT now(),
@@ -116,4 +129,5 @@ CREATE TABLE "workshop_registration" (
 --> statement-breakpoint
 ALTER TABLE "course_item" ADD CONSTRAINT "course_item_course_id_course_id_fk" FOREIGN KEY ("course_id") REFERENCES "public"."course"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_media" ADD CONSTRAINT "product_media_product_id_product_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "workshop_registration" ADD CONSTRAINT "workshop_registration_workshop_id_workshop_id_fk" FOREIGN KEY ("workshop_id") REFERENCES "public"."workshop"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "workshop_registration" ADD CONSTRAINT "workshop_registration_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;

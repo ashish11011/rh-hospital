@@ -1,5 +1,5 @@
 {
-  "id": "51a54195-0f6d-4992-a1a7-797482ad84c5",
+  "id": "8660b8e7-6cee-4f8e-8e7c-0ab6cc511dcc",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -194,8 +194,26 @@
           "notNull": true,
           "default": "'INR'"
         },
+        "gateway_payment_event_id": {
+          "name": "gateway_payment_event_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "modeOf_payment": {
           "name": "modeOf_payment",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "geteway_payment_id": {
+          "name": "geteway_payment_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gateway_invoice_id": {
+          "name": "gateway_invoice_id",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
@@ -208,21 +226,37 @@
         },
         "amount": {
           "name": "amount",
-          "type": "varchar",
+          "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": 0
+        },
+        "amount_due": {
+          "name": "amount_due",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "amount_paid": {
+          "name": "amount_paid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "transaction_id": {
           "name": "transaction_id",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "transaction_date": {
           "name": "transaction_date",
-          "type": "varchar",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": "now()"
         },
         "status": {
           "name": "status",
@@ -253,7 +287,58 @@
           "name": "response_object",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "fee": {
+          "name": "fee",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "tax": {
+          "name": "tax",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "vpa": {
+          "name": "vpa",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bank": {
+          "name": "bank",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "card_id": {
+          "name": "card_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -476,13 +561,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "is_varified": {
-          "name": "is_varified",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": false
-        },
         "designation": {
           "name": "designation",
           "type": "varchar",
@@ -507,6 +585,13 @@
           "primaryKey": false,
           "notNull": false,
           "default": true
+        },
+        "is_varified": {
+          "name": "is_varified",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         },
         "password": {
           "name": "password",
@@ -698,6 +783,19 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "workshop_registration_workshop_id_workshop_id_fk": {
+          "name": "workshop_registration_workshop_id_workshop_id_fk",
+          "tableFrom": "workshop_registration",
+          "tableTo": "workshop",
+          "columnsFrom": [
+            "workshop_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "workshop_registration_user_id_user_id_fk": {
           "name": "workshop_registration_user_id_user_id_fk",
           "tableFrom": "workshop_registration",

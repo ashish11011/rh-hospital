@@ -1,22 +1,159 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateWebhookSignature } from "razorpay/dist/utils/razorpay-utils";
+import crypto from "crypto";
+import { sendWorkshopEmail } from "@/lib/sesClient";
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/dbConfig";
+import { payment, workshop, workshopRegistration } from "@/db";
+export async function POST(req: NextRequest) {
+    const rawBody = await req.text();
 
-export function POST(req: NextRequest) {
-    console.log(req);
-    const body: any = req.body;
+    const signature = req.headers.get("x-razorpay-signature") || "";
+    const secret = "1234567890qwert";
 
-    console.log(body);
+    // ✅ Verify signature
+    const expectedSignature = crypto
+        .createHmac("sha256", secret)
+        .update(rawBody)
+        .digest("hex");
 
-    const paymentEventId = req.headers.get("x-razorpay-event-id");
-    const paymentOrderId = body.payload.pyament.entity.order_id;
+    if (expectedSignature !== signature) {
+        return NextResponse.json(
+            { success: false, message: "Invalid signature" },
+            { status: 400 }
+        );
+    }
 
-    console.log(paymentEventId);
-    console.log(paymentOrderId);
+    const event = JSON.parse(rawBody);
+    // ✅ Handle payment.captured
+    if (event.event === "payment.captured") {
+        try {
+            const paymentEventId = req.headers.get("x-razorpay-event-id");
 
-    // validateWebhookSignature(JSON.stringify(webhookBody), webhookSignature, webhookSecret)
+            const gatewayPaymentResponse = event.payload.payment.entity;
 
-    return NextResponse.json({ message: "Payment success" }, { status: 200 });
+            const dataToStore = {
+                razorpay_payment_id: gatewayPaymentResponse.id,
+                order_id: gatewayPaymentResponse.order_id,
+                amount: gatewayPaymentResponse.amount, // in paise
+                amount_in_rupees: gatewayPaymentResponse.amount / 100,
+                invoice_id: gatewayPaymentResponse.invoice_id,
+                currency: gatewayPaymentResponse.currency,
+                status: gatewayPaymentResponse.status,
+                modeOfgatewayPaymentResponse: gatewayPaymentResponse.method,
+                captured: gatewayPaymentResponse.captured,
+                email: gatewayPaymentResponse.email,
+                contact: gatewayPaymentResponse.contact,
+                fee: gatewayPaymentResponse.fee,
+                tax: gatewayPaymentResponse.tax,
+                wallet: gatewayPaymentResponse.wallet,
+                vpa: gatewayPaymentResponse.vpa,
+                bank: gatewayPaymentResponse.bank,
+                card_id: gatewayPaymentResponse.card_id,
+                notes: gatewayPaymentResponse.notes,
+                description: gatewayPaymentResponse.description,
+                created_at: new Date(gatewayPaymentResponse.created_at * 1000),
+                raw_payload: gatewayPaymentResponse, // optional: store full object
+            };
+
+            // save to db.
+
+            const [paymentUpdateResponse] = await db.update(payment).set({
+                gatewayPaymentEventId: paymentEventId,
+                modeOfPayment: dataToStore.modeOfgatewayPaymentResponse,
+                status: dataToStore.status,
+                amountPaid: dataToStore.amount,
+                amountDue: 0,
+                getewayPaymentId: dataToStore.razorpay_payment_id,
+                gatewayInvoiceId: dataToStore.invoice_id,
+                transactionId: dataToStore.razorpay_payment_id,
+
+
+                email: dataToStore.email,
+                contact: dataToStore.contact,
+                fee: dataToStore.fee,
+                tax: dataToStore.tax,
+
+                vpa: dataToStore.vpa,
+                bank: dataToStore.bank,
+                cardId: dataToStore.card_id,
+                notes: dataToStore.notes,
+                description: dataToStore.description,
+                createdAt: dataToStore.created_at,
+
+            }).where(eq(payment.orderId, dataToStore.order_id)).returning({
+                id: payment.id,
+                orderId: payment.orderId,
+                email: payment.email,
+                contact: payment.contact,
+                workshopRegistrationId: payment.orderId
+            });
+
+            // update status to workshopRegistration Table
+            await db.update(workshopRegistration).set({ paymentStatus: "completed" }).where(eq(workshopRegistration.id, paymentUpdateResponse.workshopRegistrationId));
+
+
+            // send email conformation.
+            await sendWorkshopEmail({ toEmail: paymentUpdateResponse.email! });
+
+            console.log(dataToStore);
+            return NextResponse.json({ received: true }, { status: 200 });
+        } catch (error) {
+            console.log(error);
+            return NextResponse.json({ received: false }, { status: 500 });
+        }
+    }
+
+    return NextResponse.json({ message: "Not conformed" }, { status: 300 });
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // x-razorpay-event-id
 

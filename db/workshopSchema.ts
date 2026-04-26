@@ -1,4 +1,4 @@
-import { integer, jsonb, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { integer, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { userSchema } from "./userSchema";
 import { paymentStatusEnumSchema } from "./paymentSchema";
 
@@ -20,7 +20,7 @@ export const modeOfAttandaceEnumSchema = pgEnum("modeOfAttandace", ["online", "o
 
 export const workshopRegistrationSchema = pgTable("workshop_registration", {
     id: uuid("id").defaultRandom().primaryKey(),
-    workshopId: uuid("workshop_id").notNull(),
+    workshopId: uuid("workshop_id").notNull().references(() => workshopSchema.id),
     userId: uuid('user_id').references(() => userSchema.id).notNull(),
     email: varchar("email").notNull(),
     name: varchar("name").notNull(),

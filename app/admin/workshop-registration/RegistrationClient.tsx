@@ -44,7 +44,7 @@ interface RegistrationClientProps {
 export function RegistrationClient({ data, total, workshops, limit }: RegistrationClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [emailFilter, setEmailFilter] = useState(searchParams.get("email") || "");
   const [workshopId, setWorkshopId] = useState(searchParams.get("workshopId") || "");
   const [isExporting, setIsExporting] = useState(false);
@@ -71,7 +71,7 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
     try {
       setIsExporting(true);
       const allData = await getAllRegistrations();
-      
+
       const worksheetData = allData.map(reg => ({
         ID: reg.id,
         "Workshop Name": reg.workshopName || "N/A",
@@ -82,7 +82,7 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
         "Institute/Company": reg.instituteName,
         City: reg.city || "N/A",
         "Mode of Attendance": reg.modeOfAttandnace,
-        "Payment Status": reg.paymentStatus || "N/A",
+        // "Payment Status": reg.paymentStatus || "N/A",
       }));
 
       const ws = XLSX.utils.json_to_sheet(worksheetData);
@@ -101,7 +101,7 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (emailFilter !== (searchParams.get("email") || "")) {
-         applyFilters(emailFilter, workshopId);
+        applyFilters(emailFilter, workshopId);
       }
     }, 500);
 
@@ -121,7 +121,7 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
               className="pl-9"
             />
           </div>
-          
+
           <div className="max-w-xs w-full">
             <select
               title="Filter by workshop"

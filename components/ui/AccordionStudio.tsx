@@ -3,18 +3,28 @@ import { cn } from '@/lib/utils'
 
 const items = [
     {
-        title: 'How do I track my order?',
-        content: `You can track your order by logging into your account and visiting the "Orders" section. You'll receive tracking information via email once your order ships. For real-time updates, you can also use the tracking number provided in your shipping confirmation email. an track your order by logging into your account and visiting the "Orders" section. You'll receive tracking information via email once your order ships. For real-time updates, you can also use the tracking number provided in your shipping confirmation email.`
+        title: 'What is RH Healthcare Simulation Centre?',
+        content: `RH Healthcare Simulation Centre is a training facility in Jaipur focused on simulation-based learning for nursing and healthcare students. It provides a safe environment to practice real-life clinical skills without risk to patients.`
     },
     {
-        title: 'What is your return policy?',
+        title: 'Who can join the training programs?',
         content:
-            'We offer a 30-day return policy for most items. Products must be unused and in their original packaging. To initiate a return, please contact our customer service team or use the return portal in your account dashboard.'
+            'Our programs are designed for B.Sc. Nursing students (1st to final year), nursing interns, healthcare trainees, and allied health students looking to improve their clinical skills.'
     },
     {
-        title: 'How can I contact customer support?',
+        title: 'What kind of training is provided?',
         content:
-            'Our customer support team is available 24/7. You can reach us via live chat, email at support@example.com, or by phone at 1-800-123-4567. For faster service, please have your order number ready when contacting us.'
+            'We offer hands-on training including clinical skill simulations, emergency response training, medication safety, OSCE-based assessments, and certification courses like BLS, ATLS, IPC, and more.'
+    },
+    {
+        title: 'How does simulation-based training help students?',
+        content:
+            'Simulation training helps students gain practical experience, improve decision-making, build confidence, and reduce errors by practicing in a controlled and realistic environment.'
+    },
+    {
+        title: 'Are the programs aligned with official standards?',
+        content:
+            'Yes, all our programs are aligned with Indian Nursing Council (INC) guidelines to ensure standardized training, proper skill assessment, and better career opportunities.'
     }
 ]
 

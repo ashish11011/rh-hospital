@@ -1,15 +1,12 @@
-import { getWorkshopById } from "@/actions/workshopActions";
 import { notFound } from "next/navigation";
 import { Calendar, Clock, IndianRupee, MapPin, Video } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { db } from "@/lib/dbConfig";
 import { workshop } from "@/db";
 import { eq } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { WorkshopRegistrationDialog } from "@/components/workshop/takeRegistratoinDialog";
+import { WorkshopRegistration } from "@/components/workshop/takeRegistratoinDialog";
 
 export const revalidate = 600;
-
 
 export default async function WorkshopDetailsPage({ params }: { params: { id: string } }) {
   const { id } = await params;
@@ -57,19 +54,19 @@ export default async function WorkshopDetailsPage({ params }: { params: { id: st
           </div>
         )}
         <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent flex items-end">
-          <div className="container mx-auto px-4 max-w-5xl pb-12">
+          <div className="container mx-auto px-4 max-w-4xl! pb-12">
             <h1 className="text-4xl md:text-5xl capitalize font-black text-white mb-4 ">
               {ws.name}
             </h1>
-            <p className="text-lg text-gray-200 max-w-3xl line-clamp-2">
+            <p className="text-lg text-gray-200 max-w-3xl ">
               {ws.description}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 max-w-5xl py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <div className="container mx-auto px-4 max-w-3xl! py-12">
+        <div className="grid grid-cols-1 gap-12">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             <section>
@@ -129,10 +126,8 @@ export default async function WorkshopDetailsPage({ params }: { params: { id: st
                 </div>
 
                 <div className="space-y-3">
-                  <WorkshopRegistrationDialog workshopId={ws.id} priceOnline={ws.onlinePrice} priceOffline={ws.offlinePrice} />
-                  <p className="text-xs text-center text-gray-500">
-                    Secure your spot before seats run out!
-                  </p>
+                  <WorkshopRegistration workshopId={ws.id} priceOnline={ws.onlinePrice} priceOffline={ws.offlinePrice} />
+
                 </div>
               </CardContent>
             </Card>

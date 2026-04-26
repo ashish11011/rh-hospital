@@ -32,8 +32,9 @@ export function ModeOfAttendanceRadio({
                     <FieldContent>
                         <FieldTitle>Online</FieldTitle>
                         <FieldDescription>
-                            <p>Attend remotely via internet.</p>
-                            <p>Rs. {priceOnline}</p>
+                            Attend remotely via internet.
+                            <br />
+                            <span className="  text-gray-800">Rs. {priceOnline}</span>
                         </FieldDescription>
                     </FieldContent>
                     <RadioGroupItem value="online" id="online-mode" />
@@ -45,8 +46,9 @@ export function ModeOfAttendanceRadio({
                     <FieldContent>
                         <FieldTitle>Offline</FieldTitle>
                         <FieldDescription>
-                            <p>Attend physically at location.</p>
-                            <p>Rs. {priceOffline}</p>
+                            Attend physically at location.
+                            <br />
+                            <span className=" text-gray-800">Rs. {priceOffline}</span>
                         </FieldDescription>
                     </FieldContent>
                     <RadioGroupItem value="offline" id="offline-mode" />

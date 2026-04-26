@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/dbConfig";
-import { workshopRegistration, workshop, workshopPayment } from "@/db/index";
+import { workshopRegistration, workshop } from "@/db/index";
 import { eq, ilike, and, desc, count } from "drizzle-orm";
 
 export async function getRegistrations({
@@ -27,16 +27,16 @@ export async function getRegistrations({
       city: workshopRegistration.city,
       modeOfAttandnace: workshopRegistration.modeOfAttandnace,
       workshopName: workshop.name,
-      paymentStatus: workshopPayment.status,
+      // paymentStatus: workshopPayment.status,
     })
-    .from(workshopRegistration)
-    .leftJoin(workshop, eq(workshopRegistration.workshopId, workshop.id))
-    .leftJoin(workshopPayment, eq(workshopRegistration.id, workshopPayment.registrationId));
+      .from(workshopRegistration)
+      .leftJoin(workshop, eq(workshopRegistration.workshopId, workshop.id))
+    // .leftJoin(workshopPayment, eq(workshopRegistration.id, workshopPayment.registrationId));
 
     const query = conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery;
 
     const data = await query.limit(limit).offset(offset).orderBy(desc(workshopRegistration.id));
-    
+
     const countQuery = db.select({ value: count() }).from(workshopRegistration);
     const cQuery = conditions.length > 0 ? countQuery.where(and(...conditions)) : countQuery;
     const totalResult = await cQuery;
@@ -50,35 +50,35 @@ export async function getRegistrations({
 }
 
 export async function getAllRegistrations() {
-    try {
-      const data = await db.select({
-        id: workshopRegistration.id,
-        name: workshopRegistration.name,
-        email: workshopRegistration.email,
-        mobileNumber: workshopRegistration.mobileNumber,
-        designation: workshopRegistration.designation,
-        instituteName: workshopRegistration.instituteName,
-        city: workshopRegistration.city,
-        modeOfAttandnace: workshopRegistration.modeOfAttandnace,
-        workshopName: workshop.name,
-        paymentStatus: workshopPayment.status,
-      })
+  try {
+    const data = await db.select({
+      id: workshopRegistration.id,
+      name: workshopRegistration.name,
+      email: workshopRegistration.email,
+      mobileNumber: workshopRegistration.mobileNumber,
+      designation: workshopRegistration.designation,
+      instituteName: workshopRegistration.instituteName,
+      city: workshopRegistration.city,
+      modeOfAttandnace: workshopRegistration.modeOfAttandnace,
+      workshopName: workshop.name,
+      // paymentStatus: workshopPayment.status,
+    })
       .from(workshopRegistration)
       .leftJoin(workshop, eq(workshopRegistration.workshopId, workshop.id))
-      .leftJoin(workshopPayment, eq(workshopRegistration.id, workshopPayment.registrationId));
-      
-      return data;
-    } catch(err) {
-      console.error(err);
-      return [];
-    }
+    // .leftJoin(workshopPayment, eq(workshopRegistration.id, workshopPayment.registrationId));
+
+    return data;
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
 }
 
 export async function getWorkshopsList() {
-    try {
-      return await db.select({ id: workshop.id, name: workshop.name }).from(workshop);
-    } catch(err) {
-      console.error(err);
-      return [];
-    }
+  try {
+    return await db.select({ id: workshop.id, name: workshop.name }).from(workshop);
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
 }

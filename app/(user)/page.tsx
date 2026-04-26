@@ -1,25 +1,21 @@
-import { Navbar } from "@/components/navbar";
-import Header from "@/components/header";
-import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, ChevronRight, HeartIcon, Microchip, ShieldIcon, User, UserIcon } from "lucide-react";
+import { ArrowRight, ShieldIcon, UserIcon } from "lucide-react";
 import { PRODUCT_CATEGORY } from "@/const/product";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { IconAugmentedReality, IconCertificate, IconDeviceHeartMonitor, IconHospital, IconMeeple, IconUserScreen } from "@tabler/icons-react";
+import { IconAugmentedReality, IconBodyScan, IconCertificate, IconHospital, IconMeeple, IconNumber1 } from "@tabler/icons-react";
 import WorkshopFAQ from "@/components/ui/AccordionStudio";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
     <>
-
       <HeroSection />
       <CatalogContainer />
       <div className=" container grid grid-cols-1 md:grid-cols-2 gap-4 py-12">
         <ProductCategory />
         <div className=" p-4">
           <img src={"https://5.imimg.com/data5/SELLER/Default/2025/11/558466978/JG/NR/PM/194025138/human-torso-small-23-parts-model-250x250.jpg"} alt="sample image" className=" w-full max-h-60 object-contain max-w-80 mx-auto" />
-          <p className=" max-w-md text-center text-base md:text-xl font-medium mt-6 mx-auto">Human Torso Small 23 Parts Model
+          <p className=" max-w-md text-gray-700 text-center text-base md:text-lg font-medium mt-6 mx-auto">Human Torso Small 23 Parts Model
             RH LARNYX MODEL
             Human Trachea Intubation Model With Monitor</p>
         </div>
@@ -31,9 +27,9 @@ export default function Home() {
       <div className=" container pb-10">
         <div className="mb-8 mt-16">
           <h2 className=" text-xl md:text-3xl font-bold text-primary">Frequently Asked Questions</h2>
-          <p className="mt-2 text-base md:text-lg text-gray-600">
+          {/* <p className="mt-2 text-base md:text-lg text-gray-600">
             Here are some common questions about our workshops.
-          </p>
+          </p> */}
         </div>
         <WorkshopFAQ />
       </div>
@@ -45,16 +41,18 @@ export default function Home() {
 function HeroSection() {
   return <div className=" bg-linear-to-r shadow-[inset_0px_6px_14px_0px_#515251] from-primary via-primary to-primary text-white w-full min-h-72 py-3 md:py-6" >
     <div className="container h-full flex flex-col md:flex-row items-center gap-6 min-h-72  justify-between">
-      <div className=" max-w-xl text-center md:text-left space-y-3 md:space-y-8 h-fit">
-        <h3 className=" text-lg md:text-2xl">
-          Our Medical Experts are here for you.
+      <div className=" max-w-xl text-center md:text-left space-y-3 md:space-y-6 h-fit">
+        <h3 className=" text-lg md:text-xl">
+          First Simulation Centre in Jaipur, Rajasthan
         </h3>
-        <h1 className=" text-2xl md:text-4xl font-semibold">
-          Get quality medical care and treatment with us.
+        <h1 className=" text-2xl md:text-3xl font-semibold">
+          First Simulation Centre in Jaipur, Rajasthan
+          Empowering Nurses
+          Through Clinical Simulation
         </h1>
 
-        <h3 className=" text-base md:text-2xl">
-          Find the required doctor and schedule your appointment now.
+        <h3 className=" text-base">
+          RH Healthcare is Jaipur's first and most advanced simulation-based training centre exclusively focused on BSc Nursing students
         </h3>
       </div>
       <div className="max-w-80 max-h-64 w-full h-full">
@@ -66,7 +64,7 @@ function HeroSection() {
 
 function CatalogContainer() {
   return (
-    <div className=" container pt-12 max-w-6xl! py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+    <div className=" container pt-12 max-w-6xl! py-8 grid grid-cols-2 md:grid-cols-3 gap-6">
       {
         CATELOG_ITEMS.map((item) => {
           return <CatelogBox {...item} />
@@ -79,34 +77,29 @@ function CatalogContainer() {
 const CATELOG_ITEMS = [
   {
     key: 1,
-    title: "Participate in exibitions",
-    icon: IconUserScreen,
+    title: "Simulation Centre in Jaipur dedicated to BSc Nursing",
+    icon: IconNumber1,
   },
   {
     key: 2,
-    title: "Upscale Your Nursing Skills ",
+    title: "Certificate & Workshop Programs Available ",
     icon: IconCertificate,
   },
   {
     key: 3,
-    title: "Health care machines",
-    icon: IconDeviceHeartMonitor,
-  },
-  {
-    key: 4,
-    title: "Product Dummies",
+    title: "Mandated Module Certified Programs",
     icon: IconMeeple,
   },
 ]
 
 function CatelogBox({ title, icon: Icon }: { title: string, icon: any }) {
-  return <Card className=" py-3 ring-primary/60 hover:shadow-xl rounded-md duration-200 cursor-pointer">
+  return <Card className=" py-3 ring-2 ring-primary/60 hover:shadow-xl rounded-md duration-200 cursor-pointer">
     <CardContent className=" flex items-center  gap-4 w-full ">
-      <Icon className=" text-primary shrink-0 size-6 md:size-10 stroke-1" />
+      <Icon className=" text-primary shrink-0 size-6 md:size-10 stroke-[1.5px]" />
       <p className=" text-xs md:text-lg text-gray-600">{title}</p>
-      <div className="hidden sm:block ml-auto bg-primary/30 p-0.5 rounded-full">
+      {/* <div className="hidden sm:block ml-auto bg-primary/30 p-0.5 rounded-full">
         <ChevronRight className="   text-primary size-5  " />
-      </div>
+      </div> */}
     </CardContent>
   </Card>
 }
@@ -114,16 +107,13 @@ function CatelogBox({ title, icon: Icon }: { title: string, icon: any }) {
 function ProductCategory() {
   return (
     <div className=" py-4">
-      <Carousel opts={{ align: "start" }}>
+      {/* <Carousel opts={{ align: "start" }}>
         <CarouselContent>
           <CarouselItem
             key={1}
             className="basis-full"
           >
-            <div className=" grid grid-cols-2 gap-4">
-              {PRODUCT_CATEGORY.slice(0, 4).map((item) => (
-                <ProductCategoryCatelogCard key={item.name} category={item} />))}
-            </div>
+      
           </CarouselItem>
           <CarouselItem
             key={2}
@@ -138,7 +128,11 @@ function ProductCategory() {
 
         <CarouselPrevious className=" -top-4 left-[100%-4rem] right-12" />
         <CarouselNext className=" -top-4 right-0" />
-      </Carousel>
+      </Carousel> */}
+      <div className=" grid grid-cols-2 gap-4">
+        {PRODUCT_CATEGORY.slice(0, 4).map((item) => (
+          <ProductCategoryCatelogCard key={item.name} category={item} />))}
+      </div>
     </div>
   )
 }
@@ -146,7 +140,7 @@ function ProductCategory() {
 function ProductCategoryCatelogCard({ category }: any) {
   return (
     <div className=" w-full h-full p-1">
-      <Card className="w-full h-full hover:shadow-xl duration-200">
+      <Card className=" w-full h-full hover:shadow-xl duration-200">
         <CardContent className="flex flex-col gap-3 items-center text-center">
           <img
             src={category.image}
@@ -167,8 +161,8 @@ const features = [
     color: "text-sky-600",
   },
   {
-    title: "Unmatched Care",
-    icon: HeartIcon,
+    title: "Simulation Equipment",
+    icon: IconBodyScan,
     color: "text-red-500",
   },
   {
@@ -200,12 +194,7 @@ function WhyChooseRH() {
           </h2>
 
           <p className="text-sm md:text-base text-white/90 leading-relaxed">
-            Rh healthcare, ranked as the top and Best Hospital in
-            Jaipur, India has been serving people with quality
-            medical services and empathetic care for the last 34 years. We bring
-            you experienced medical and non-medical professionals, advanced
-            technology & frontier infrastructure to offer quality clinical
-            services, ensuring good health for you and your family.
+            RH Healthcare is a premier clinical simulation training centre established to transform nursing education in Rajasthan. We provide hands-on, scenario-based training in a safe, controlled environment that replicates real clinical settings. Our centre is equipped with high-fidelity manikins, task trainers, and advanced simulation equipment to ensure BSc Nursing students develop competency, confidence.
           </p>
         </div>
       </div>
@@ -234,20 +223,20 @@ function WhyChooseRH() {
 
 function AwardSection() {
   return (
-    <div className="select-none pt-10 md:pb-10 w-full bg-primary/10">
+    <div className="select-none  w-full bg-primary/10">
       <div className=" container flex-col md:flex-row justify-between max-w-6xl! flex  gap-8 md:gap-20 items-center ">
-        <div className=" max-w-xl ">
+        <div className="pt-10 md:pb-10 max-w-xl ">
           <h2 className="text-3xl mb-4 text-primary break-keep font-semibold">
             Certificates
           </h2>
-          <p className=" text-sm md:text-base text-gray-600  mb-2">Lorem ipsum dolor sit amet consectetur adipisicing elit. Qui magnam quas laborum aut odit, similique tempora provident, expedita veniam laboriosam, necessitatibus a. Odio, exercitationem animi! Nostrum vitae error quia aperiam?</p>
-          <p className=" text-sm md:text-base text-gray-600 mb-2">Lorem ipsum dolor sit amet consectetur adipisicing elit. Qui magnam quas laborum aut odit, similique tempora provident, expedita veniam laboriosam</p>
+          <p className=" text-sm md:text-base text-gray-600  mb-2">Comprehensive training on standard precautions, transmission-based precautions, hand hygiene, PPE use, healthcare-associated infection (HAI) prevention, and sterile technique in clinical settings.</p>
+          <p className=" text-sm md:text-base text-gray-600 mb-2">Intensive training in ICU patient management, ventilator care, hemodynamic monitoring, vasopressor management, sedation assessment, and nursing care of critically ill patients.</p>
           <Button className="p-0 flex gap-1.5 duration-200 cursor-pointer hover:gap-3" variant={"link"}>
             <p>View All</p>
             <ArrowRight />
           </Button>
         </div>
-        <img src={"/certificate.svg"} className=" w-full h-full shrink-0 max-h-60 max-w-60 object-contain" />
+        <img src={"/certificate.svg"} className=" w-full h-full shrink-0 max-h-60 md:max-h-none max-w-60 md:max-w-80 object-contain" />
         {/* <div className=" space-y-12">
 
           <div className=" w-full flex">

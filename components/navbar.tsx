@@ -11,8 +11,11 @@ import {
 } from "@/components/ui/sheet";
 
 import Image from "next/image";
+import CallbackDialog from "./CallbackDialog";
+import { useState } from "react";
 
 export function Navbar() {
+    const [open, setOpen] = useState(false);
     return (
         <div className="border-b bg-white sticky top-0 z-50">
             <header className="container ">
@@ -26,22 +29,13 @@ export function Navbar() {
                     {/* Desktop Menu */}
                     <nav className="hidden md:flex items-center gap-6">
 
-                        <p> Rh healthcare</p>
+                        {NAV_LINKS.map((link) => {
+                            return (
+                                <Link key={link.title} href={link.href} className="text-sm">{link.title}</Link>
+                            )
+                        })}
 
-                        <Link href="/workshops" className="text-sm">Workshops</Link>
-
-                        <p>Specialities</p>
-
-                        <Link href="#" className="text-sm">
-                            International Patients
-                        </Link>
-
-                        <Link href="#" className="text-sm">
-                            Login
-                        </Link>
-
-
-                        <Button className="">
+                        <Button onClick={() => setOpen(true)} className="">
                             Book Appointment
                         </Button>
                     </nav>
@@ -59,13 +53,13 @@ export function Navbar() {
                             <SheetContent side="right" className="w-72 px-4">
                                 <div className="flex flex-col gap-4 mt-6">
 
-                                    <Link href="#">Rh healthcare</Link>
-                                    <Link href="/workshops" className="text-sm">Workshops</Link>
-                                    <Link href="#">Specialities</Link>
-                                    <Link href="#">International Patients</Link>
-                                    <Link href="#">Login</Link>
+                                    {NAV_LINKS.map((link) => {
+                                        return (
+                                            <Link key={link.title} href={link.href} className="text-sm">{link.title}</Link>
+                                        )
+                                    })}
 
-                                    <Button className="mt-4">
+                                    <Button onClick={() => setOpen(true)} className="mt-4 rounded-sm">
                                         Book Appointment
                                     </Button>
                                 </div>
@@ -75,6 +69,15 @@ export function Navbar() {
 
                 </div>
             </header >
+            <CallbackDialog open={open} setOpen={setOpen} />
         </div>
     );
 }
+
+const NAV_LINKS = [
+    { title: "Rh healthcare", href: "/" },
+    { title: "Workshops", href: "/workshops" },
+    { title: "Specialities", href: "/specialities" },
+    { title: "International Patients", href: "/international-patients" },
+    // { title: "Login", href: "/" },
+]

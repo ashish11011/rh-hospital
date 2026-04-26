@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
                 description: dataToStore.description,
                 createdAt: dataToStore.created_at,
 
-            }).where(eq(payment.orderId, dataToStore.order_id)).returning({
+            }).where(eq(payment.gatewayOrderId, dataToStore.order_id)).returning({
                 id: payment.id,
                 orderId: payment.orderId,
                 email: payment.email,

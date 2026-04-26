@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
           // Allow for specific domains to have access or * for all
           {
             key: "Access-Control-Allow-Origin",
-            value: "http://127.0.0.1:5500",
+            value: "*",
             // DOES NOT WORK
             // value: process.env.ALLOWED_ORIGIN,
           },

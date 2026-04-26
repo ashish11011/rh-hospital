@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     const event = JSON.parse(rawBody);
+    console.log("Signature conformed")
     // ✅ Handle payment.captured
     if (event.event === "payment.captured") {
         try {
@@ -91,11 +92,10 @@ export async function POST(req: NextRequest) {
             // update status to workshopRegistration Table
             await db.update(workshopRegistration).set({ paymentStatus: "completed" }).where(eq(workshopRegistration.id, paymentUpdateResponse.workshopRegistrationId));
 
-
+            console.log("Database update done")
             // send email conformation.
             await sendWorkshopEmail({ toEmail: paymentUpdateResponse.email! });
-
-            console.log(dataToStore);
+            console.log("Email sent")
             return NextResponse.json({ received: true }, { status: 200 });
         } catch (error) {
             console.log(error);

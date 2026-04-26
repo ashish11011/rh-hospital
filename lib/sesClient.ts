@@ -58,7 +58,7 @@ export async function sendWorkshopEmail({
   `;
 
     const command = new SendEmailCommand({
-        Source: "no-reply.ashishbishnoi.com", // bishnoi11011@gmail.com
+        Source: "no-reply@ashishbishnoi.com", // bishnoi11011@gmail.com
         Destination: {
             ToAddresses: [toEmail],
         },

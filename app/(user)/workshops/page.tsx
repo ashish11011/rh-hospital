@@ -3,7 +3,12 @@ import WorkshopFAQ from "@/components/ui/AccordionStudio";
 import { WorkshowListCard } from "@/components/workshop/WorkshowListCard";
 
 export const metadata = {
-  title: "Workshops - Learn & Grow",
+  title: "Workshops",
+  description:
+    "Explore healthcare workshops by RH Healthcare Pvt. Ltd. and enhance your skills with professional training programs.",
+  alternates: {
+    canonical: "https://www.rhhealthcaresimulation.com/workshops",
+  },
 };
 
 export const revalidate = 60; // Revalidate every 60 seconds

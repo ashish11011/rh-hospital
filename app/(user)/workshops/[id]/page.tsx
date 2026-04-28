@@ -39,6 +39,8 @@ export default async function WorkshopDetailsPage({ params }: { params: { id: st
     }).format(date);
   };
 
+  const cleanContent = ws.content?.replace(/&nbsp;/g, " ");
+
   return (
     <div className="bg-white min-h-screen">
       {/* Banner Section */}
@@ -74,8 +76,8 @@ export default async function WorkshopDetailsPage({ params }: { params: { id: st
               <h2 className="text-3xl font-bold text-gray-900 mb-6">About the Workshop</h2>
               {/* Rich text Content */}
               <div
-                className="prose prose-lg space-y-4 max-w-none prose-blue break-normal [&>p]:whitespace-pre-wrap [&>p]:wrap-break-word "
-                dangerouslySetInnerHTML={{ __html: ws.content || "" }}
+                className="prose prose-lg space-y-4 max-w-none prose-blue break-normal [&>p]:whitespace-pre-wrap [&>p]:wrap-break-word [&>p>span]:wrap-break-word "
+                dangerouslySetInnerHTML={{ __html: cleanContent || "" }}
               />
             </section>
           </div>

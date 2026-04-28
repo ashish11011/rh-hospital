@@ -5,6 +5,57 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { IconAugmentedReality, IconBodyScan, IconCertificate, IconHospital, IconMeeple, IconNumber1 } from "@tabler/icons-react";
 import WorkshopFAQ from "@/components/ui/AccordionStudio";
 import { Button } from "@/components/ui/button";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: {
+    default:
+      "RH Healthcare Pvt. Ltd. – Medical Simulators, Workshops & Healthcare Products",
+    template:
+      "%s | RH Healthcare Pvt. Ltd.",
+  },
+  description:
+    "RH Healthcare Pvt. Ltd. provides medical simulators, healthcare products, hospital equipment, and professional workshops across India. Explore high-quality training solutions and products.",
+  alternates: {
+    canonical: "https://www.rhhealthcaresimulation.com", // update if domain differs
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    title:
+      "RH Healthcare Pvt. Ltd. – Medical Simulators & Healthcare Training",
+    description:
+      "Explore medical simulators, hospital products, and professional healthcare workshops by RH Healthcare Pvt. Ltd.",
+    url: "https://www.rhhealthcaresimulation.com",
+    siteName: "RH Healthcare Pvt. Ltd.",
+    images: [
+      {
+        url: "https://www.rhhealthcaresimulation.com/logo.png", // replace with actual logo
+        width: 512,
+        height: 512,
+        alt: "RH Healthcare Logo",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title:
+      "RH Healthcare Pvt. Ltd. – Medical Simulators & Healthcare Products",
+    description:
+      "Discover healthcare products, simulators, and workshops by RH Healthcare Pvt. Ltd.",
+    images: [
+      "https://www.rhhealthcaresimulation.com/logo.png", // replace with actual logo
+    ],
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
+};
 
 export default function Home() {
   return (

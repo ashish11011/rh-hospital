@@ -5,6 +5,19 @@ import { workshop } from "@/db";
 import { eq } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WorkshopRegistration } from "@/components/workshop/takeRegistratoinDialog";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const title = `${params.id.replace(/-/g, " ")} Workshop`;
+
+  return {
+    title,
+    description: `Join the ${title} by RH Healthcare Pvt. Ltd. and enhance your healthcare skills with expert-led training.`,
+    alternates: {
+      canonical: `https://www.rhhealthcaresimulation.com/workshops/${params.id}`,
+    },
+  };
+}
 
 export const revalidate = 600;
 

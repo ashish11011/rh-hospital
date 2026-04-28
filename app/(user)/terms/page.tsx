@@ -1,5 +1,12 @@
 import React from "react";
-
+export const metadata = {
+    title: "Terms and Conditions",
+    description:
+        "Review the Terms and Conditions of RH Healthcare Pvt. Ltd. regarding the use of our services, products, and payments.",
+    alternates: {
+        canonical: "https://www.rhhealthcaresimulation.com/terms",
+    },
+};
 export default function PrivacyPolicy() {
     return (
         <div className="bg-gray-50 py-16 px-6 md:px-16">

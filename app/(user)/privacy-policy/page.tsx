@@ -1,5 +1,12 @@
 import React from "react";
-
+export const metadata = {
+    title: "Privacy Policy",
+    description:
+        "Read the Privacy Policy of RH Healthcare Pvt. Ltd. to understand how we collect, use, and protect your personal data.",
+    alternates: {
+        canonical: "https://www.rhhealthcaresimulation.com/privacy-policy",
+    },
+};
 export default function PrivacyPolicy() {
     return (
         <div className="bg-gray-50 py-16 px-6 md:px-16">

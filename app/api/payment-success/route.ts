@@ -4,11 +4,12 @@ import { sendWorkshopEmail } from "@/lib/sesClient";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/dbConfig";
 import { payment, workshop, workshopRegistration } from "@/db";
+import { RAZORPAY_WEBHOOK_SECRET } from "@/env";
 export async function POST(req: NextRequest) {
     const rawBody = await req.text();
 
     const signature = req.headers.get("x-razorpay-signature") || "";
-    const secret = "1234567890qwert";
+    const secret = RAZORPAY_WEBHOOK_SECRET;
 
     // ✅ Verify signature
     const expectedSignature = crypto
@@ -29,6 +30,9 @@ export async function POST(req: NextRequest) {
     if (event.event === "payment.captured") {
         try {
             const paymentEventId = req.headers.get("x-razorpay-event-id");
+            const [isAlreadyProcessed] = await db.select().from(payment).where(eq(payment.gatewayPaymentEventId, paymentEventId!));
+            if (isAlreadyProcessed) return NextResponse.json({ received: false, message: "Already processed" }, { status: 200 });
+
 
             const gatewayPaymentResponse = event.payload.payment.entity;
 

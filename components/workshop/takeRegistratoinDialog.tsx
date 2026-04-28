@@ -8,6 +8,7 @@ import { ModeOfAttendanceRadio } from "./modeOfAttandanceRadio";
 import axios from "axios";
 import { z } from "zod";
 import { toast } from "sonner";
+import { RAZORPAY_KEY } from "@/env";
 
 const schema = z.object({
     workshopId: z.string(),
@@ -82,20 +83,19 @@ export function WorkshopRegistration({
         try {
             const res = await axios.post("/api/workshop/register", form);
             const responseData = res.data.data;
-            console.log(JSON.stringify(res));
             // if (res.status === 200) {
 
             // }
+            if (!responseData) throw new Error("Request Failed, please try again")
 
             const options = {
-                key: "rzp_test_SdJzsB1BH8Arbm", // Replace with your Razorpay key_id
+                key: RAZORPAY_KEY, // Replace with your Razorpay key_id
                 amount: responseData.amount, // Use dynamic amount
                 currency: responseData.currency,
                 name: form.name,
                 description: "Registration for workshop",
                 order_id: responseData.id, // Use backend order_id
                 handler: async function (response: any) {
-                    console.log("Client res-> ", response)
                     const res = await fetch("/api/verify-payment", {
                         method: "POST",
                         headers: {

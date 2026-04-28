@@ -15,3 +15,12 @@ export const userSchema = pgTable("user", {
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+export const contactSchema = pgTable("contact", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: varchar("name").notNull(),
+    email: varchar("email"),
+    mobileNumber: varchar("mobile_number"),
+    message: varchar("message"),
+    createdAt: timestamp("created_at").defaultNow(),
+});

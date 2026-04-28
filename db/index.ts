@@ -1,7 +1,7 @@
 import { courseItemSchema, courseSchema } from "./courseSchema";
 import { itemEnumSchema, paymentSchema, paymentStatusEnumSchema } from "./paymentSchema";
 import { productCategorySchema, productMediaSchema, productSchema } from "./productSchema";
-import { userSchema } from "./userSchema";
+import { contactSchema, userSchema } from "./userSchema";
 import { modeOfAttandaceEnumSchema, workshopRegistrationSchema, workshopSchema } from "./workshopSchema";
 
 export const itemEnum = itemEnumSchema;
@@ -21,3 +21,5 @@ export const courseItem = courseItemSchema;
 export const productCategory = productCategorySchema
 export const product = productSchema
 export const productMedia = productMediaSchema
+
+export const contact = contactSchema;

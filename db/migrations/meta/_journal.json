@@ -8,6 +8,13 @@
       "when": 1777201606421,
       "tag": "0000_fearless_marvel_boy",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777290601604,
+      "tag": "0001_neat_frightful_four",
+      "breakpoints": true
     }
   ]
 }

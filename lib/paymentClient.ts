@@ -1,5 +1,6 @@
 import Razorpay from "razorpay";
+import { RAZORPAY_KEY, RAZORPAY_KEY_SECRET } from "../env";
 export var paymentClient = new Razorpay({
-    key_id: 'rzp_test_SdJzsB1BH8Arbm',
-    key_secret: 'sKDgs09YOFHP9R5hiaUhSE0I',
+    key_id: RAZORPAY_KEY,
+    key_secret: RAZORPAY_KEY_SECRET,
 });

@@ -56,7 +56,7 @@ function HeroSection() {
         </h3>
       </div>
       <div className="max-w-80 max-h-64 w-full h-full">
-        <img src="/hero-dummy.png" alt="" className=" object-contain h-auto  w-auto" />
+        <img src="/group-doctor.png" alt="" className=" object-contain h-auto  w-auto" />
       </div>
     </div>
   </div>

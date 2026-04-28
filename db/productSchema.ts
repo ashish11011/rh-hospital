@@ -21,6 +21,8 @@ export const productSchema = pgTable("product", {
     maxQuantity: integer("max_quantity").notNull().default(1),
     color: varchar("color"),
     size: varchar("size"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const productMediaSchema = pgTable("product_media", {
@@ -29,6 +31,7 @@ export const productMediaSchema = pgTable("product_media", {
     mediaUrl: varchar("media_url").notNull(),
     createdAt: timestamp("created_at").defaultNow(),
     priority: integer("priority").notNull().default(0),
+    updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const productShippingSchema = null;

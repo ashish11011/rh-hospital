@@ -1,12 +1,12 @@
 export const formatTime = (dateValue: any) => {
-    if (!dateValue) return "";
+    if (!dateValue) return "N/A";
     const date = new Date(dateValue);
     return new Intl.DateTimeFormat("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
+        // dateStyle: "medium",
+        timeStyle: "short",
     }).format(date);
 };
+
 
 export const formatDate = (dateValue: any) => {
     if (!dateValue) return "";

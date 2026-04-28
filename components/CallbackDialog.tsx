@@ -11,8 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Phone, Mail } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function CallbackDialog({ open, setOpen }: any) {
+    const [loading, setLoading] = useState(false);
     const [form, setForm] = useState({
         name: "",
         phone: "",
@@ -23,12 +25,28 @@ export default function CallbackDialog({ open, setOpen }: any) {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = () => {
-        console.log(form);
+    const handleSubmit = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch("/api/contact-form", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(form),
+            });
+            const data = await res.json();
+            if (data.status === 200) {
+                toast.success(data.message);
+                setOpen(false);
+            }
+        } catch (error) {
+            toast.error("Failed to send message");
+        } finally {
+            setLoading(false)
+        }
     };
-    useEffect(() => {
-        console.log(open)
-    }, [open])
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="sm:max-w-md rounded-xl p-0 overflow-hidden">
@@ -68,10 +86,11 @@ export default function CallbackDialog({ open, setOpen }: any) {
 
                     {/* Button */}
                     <Button
+                        disabled={loading}
                         onClick={handleSubmit}
                         className="w-full h-11"
                     >
-                        Request a Callback
+                        {loading ? "Sending..." : "Request a Callback"}
                     </Button>
 
                     {/* Terms */}

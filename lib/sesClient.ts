@@ -43,7 +43,7 @@ export async function sendWorkshopEmail({
     <p><b>⚠️ Joining our official WhatsApp group is mandatory.</b></p>
 
     <p>
-      👉 <a href="https://www.whatsapp.com/channel/0029VbAu0b5A89MfvzJZkp23">Join WhatsApp Group</a>
+      👉 <a href="https://chat.whatsapp.com/CsJFW8uZinV8UKFGkBP4c8">Join WhatsApp Group</a>
     </p>
 
     <p>We look forward to your participation.</p>
@@ -58,7 +58,7 @@ export async function sendWorkshopEmail({
   `;
 
     const command = new SendEmailCommand({
-        Source: "no-reply@ashishbishnoi.com", // bishnoi11011@gmail.com
+        Source: "no-reply@rhhealthcaresimulation.com",
         Destination: {
             ToAddresses: [toEmail],
         },

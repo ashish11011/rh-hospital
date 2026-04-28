@@ -5,3 +5,6 @@ export const AWS_SECRET_KEY: string = process.env.SECRET_KEY!;
 export const AWS_ACCESS_KEY: string = process.env.ACCESS_KEY!;
 export const SES_ACCESS_KEY = process.env.SES_ACCESS_KEY!;
 export const SES_SECRET_ACCESS_KEY = process.env.SES_SECRET_ACCESS_KEY!;
+export const RAZORPAY_KEY = process.env.NEXT_PUBLIC_RAZORPAY_KEY!;
+export const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET!;
+export const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET!;

@@ -31,5 +31,6 @@ export const workshopRegistrationSchema = pgTable("workshop_registration", {
     modeOfAttandnace: modeOfAttandaceEnumSchema("mode_of_attandnace").notNull().default("online"),
     // add payment status and default as pending
     paymentStatus: paymentStatusEnumSchema("payment_status").notNull().default("pending"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

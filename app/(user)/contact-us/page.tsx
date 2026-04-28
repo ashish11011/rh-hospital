@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { toast } from "sonner";
 
 export default function ContactUs() {
+    const [loading, setLoading] = useState(false)
     const [form, setForm] = useState({
         name: "",
         email: "",
@@ -17,9 +19,27 @@ export default function ContactUs() {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e: any) => {
-        e.preventDefault();
-        console.log("Form Data:", form);
+    const handleSubmit = async () => {
+        setLoading(true)
+        try {
+            const res = await fetch("/api/contact-form", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(form),
+            });
+            const data = await res.json();
+            if (data.status === 200) {
+                toast.success(data.message)
+                setForm({ name: "", email: "", message: "" });
+            }
+        } catch (error) {
+            toast.error("Something went wrong")
+            console.log(error)
+        } finally {
+            setLoading(false)
+        }
     };
 
     return (
@@ -102,7 +122,7 @@ export default function ContactUs() {
                                 Send a Message
                             </h2>
 
-                            <form onSubmit={handleSubmit} className="space-y-5">
+                            <div className="space-y-5">
                                 <Input
                                     name="name"
                                     placeholder="Full Name"
@@ -128,10 +148,10 @@ export default function ContactUs() {
                                     required
                                 />
 
-                                <Button className="w-full h-11 text-base">
-                                    Send Message
+                                <Button onClick={handleSubmit} disabled={loading} className="w-full h-11 text-base">
+                                    {loading ? "Sending..." : "Send Message"}
                                 </Button>
-                            </form>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

@@ -9,6 +9,7 @@ import axios from "axios";
 import { z } from "zod";
 import { toast } from "sonner";
 import { RAZORPAY_KEY } from "@/env";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "../ui/input-group";
 
 const schema = z.object({
     workshopId: z.string(),
@@ -21,6 +22,7 @@ const schema = z.object({
     designation: z.string().min(1, "Required"),
     instituteName: z.string().min(1, "Required"),
     city: z.string().min(1, "Required"),
+    couponCode: z.string().optional(),
     modeOfAttandnace: z.enum(["online", "offline"]),
 });
 
@@ -41,7 +43,12 @@ export function WorkshopRegistration({
         designation: "",
         instituteName: "",
         city: "",
+        couponCode: "",
         modeOfAttandnace: "online",
+    });
+    const [couponDiscount, setCouponDiscount] = useState({
+        onlineDiscount: 0,
+        offlineDiscount: 0
     });
 
     const [loading, setLoading] = useState(false);
@@ -67,6 +74,42 @@ export function WorkshopRegistration({
     const handleChange = (key: string, value: string) => {
         setForm((prev) => ({ ...prev, [key]: value }));
     };
+
+    const handleApplyCoupon = async () => {
+        setLoading(true);
+        try {
+            const res = await axios.post("/api/workshop/validate-coupon", {
+                couponCode: form.couponCode,
+                workshopId: form.workshopId
+            });
+            const responseData = res.data;
+
+            if (!responseData) throw new Error("Request Failed, please try again")
+
+            if (responseData.status === 400) {
+                toast.error(responseData.message);
+                setCouponDiscount({
+                    onlineDiscount: 0,
+                    offlineDiscount: 0
+                });
+                return;
+            }
+
+            else if (responseData.status === 200) {
+                toast.success("Coupon code applied successfully");
+                setCouponDiscount({
+                    onlineDiscount: responseData.data.onlineDiscount,
+                    offlineDiscount: responseData.data.offlineDiscount
+                });
+            }
+
+            // setForm((prev) => ({ ...prev, couponCode: responseData.couponCode }));
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const handleSubmit = async () => {
         setLoading(true);
@@ -135,6 +178,7 @@ export function WorkshopRegistration({
                 designation: "",
                 instituteName: "",
                 city: "",
+                couponCode: "",
                 modeOfAttandnace: "online",
             });
 
@@ -201,10 +245,19 @@ export function WorkshopRegistration({
                         onChange={(e) => handleChange("city", e.target.value)}
                     />
                 </div>
+                <div className=" space-y-1">
+                    <Label>Coupon <span className="text-gray-500">(optional)</span></Label>
+                    <InputGroup>
+                        <InputGroupInput value={form.couponCode} onChange={(e) => handleChange("couponCode", e.target.value)} placeholder="Enter coupon code..." />
+                        <InputGroupAddon align="inline-end">
+                            <InputGroupButton onClick={handleApplyCoupon} disabled={loading} className=" cursor-pointer" variant={"default"} >Apply</InputGroupButton>
+                        </InputGroupAddon>
+                    </InputGroup>
+                </div>
 
                 <ModeOfAttendanceRadio
-                    priceOnline={priceOnline}
-                    priceOffline={priceOffline}
+                    priceOnline={priceOnline - couponDiscount.onlineDiscount}
+                    priceOffline={priceOffline - couponDiscount.offlineDiscount}
                     value={form.modeOfAttandnace}
                     onChange={(val) =>
                         handleChange("modeOfAttandnace", val)

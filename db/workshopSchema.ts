@@ -32,5 +32,17 @@ export const workshopRegistrationSchema = pgTable("workshop_registration", {
     // add payment status and default as pending
     paymentStatus: paymentStatusEnumSchema("payment_status").notNull().default("pending"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    workshopAmount: integer("workshop_amount").notNull().default(0),
+    couponDiscount: integer("coupon_discount").default(0).notNull(),
+    payableAmount: integer("payable_amount").notNull().default(0),
+});
+
+export const couponCodeSchema = pgTable("coupon_code", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    code: varchar("code").notNull(),
+    onlineDiscount: integer("online_discount").default(0).notNull(),
+    offlineDiscount: integer("offline_discount").default(0).notNull(),
+    workshopId: uuid("workshop_id").notNull().references(() => workshopSchema.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

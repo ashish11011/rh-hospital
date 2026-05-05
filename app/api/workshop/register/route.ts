@@ -5,11 +5,12 @@ import { notFound } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 import { userSchema } from "@/db/userSchema";
 import { paymentClient } from "@/lib/paymentClient";
+import { getCouponCodeDetails } from "@/helper/workshop/getCouponCodeDetails";
 
 
 export async function POST(req: NextRequest) {
-    const { workshopId, email, name, mobileNumber, designation, instituteName, city, modeOfAttandnace } = await req.json();
-
+    const { workshopId, email, name, mobileNumber, designation, instituteName, city, modeOfAttandnace, couponCode } = await req.json();
+    if (!email || !name || !mobileNumber || !designation || !instituteName || !city || !modeOfAttandnace || !workshopId) return NextResponse.json({ message: "All fields are required" });
     let userId;
     // Take userId
     const [userDetail] = await db.select({ id: user.id }).from(user).where(eq(user.email, email));
@@ -31,11 +32,15 @@ export async function POST(req: NextRequest) {
     const [workshopDetail] = await db.select().from(workshop).where(eq(workshop.id, workshopId));
 
     if (!workshopDetail) return notFound();
-    const paymentModeAmount = modeOfAttandnace === "online" ? workshopDetail.onlinePrice : workshopDetail.offlinePrice;
-    if (!email || !name || !mobileNumber || !designation || !instituteName || !city || !modeOfAttandnace || !workshopId) return NextResponse.json({ message: "All fields are required" });
 
+    let workshopAmount = modeOfAttandnace === "online" ? workshopDetail.onlinePrice : workshopDetail.offlinePrice;
+    let couponDiscount = 0;
+    if (couponCode) {
+        const couponDetail: any = await getCouponCodeDetails(couponCode, workshopId);
+        couponDiscount = modeOfAttandnace === "online" ? couponDetail?.onlineDiscount : couponDetail?.offlineDiscount;
+    }
+    let payableAmount = workshopAmount - couponDiscount;
     try {
-
         const [registrationDetail] = await db.insert(workshopRegistration).values({
             workshopId,
             userId: userId,
@@ -46,10 +51,13 @@ export async function POST(req: NextRequest) {
             instituteName,
             city,
             modeOfAttandnace,
+            workshopAmount,
+            couponDiscount,
+            payableAmount,
         }).returning({ id: workshopRegistration.id });
 
         var options = {
-            amount: paymentModeAmount * 100,
+            amount: payableAmount * 100,
             currency: "INR",
             receipt: registrationDetail.id
         };
@@ -61,8 +69,8 @@ export async function POST(req: NextRequest) {
             orderType: "workshop",
             orderId: registrationDetail.id,
             gatewayOrderId: gatewayPaymentOrder.id,
-            amount: paymentModeAmount,
-            amountDue: paymentModeAmount,
+            amount: payableAmount,
+            amountDue: payableAmount,
             currency: gatewayPaymentOrder.currency,
             email: email,
             contact: mobileNumber,

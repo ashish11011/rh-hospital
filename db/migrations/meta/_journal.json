@@ -15,6 +15,20 @@
       "when": 1777290601604,
       "tag": "0001_neat_frightful_four",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777910987101,
+      "tag": "0002_clear_bloodstorm",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1777956870721,
+      "tag": "0003_fixed_kid_colt",
+      "breakpoints": true
     }
   ]
 }

@@ -35,9 +35,13 @@ export async function POST(req: NextRequest) {
 
     let workshopAmount = modeOfAttandnace === "online" ? workshopDetail.onlinePrice : workshopDetail.offlinePrice;
     let couponDiscount = 0;
-    if (couponCode) {
-        const couponDetail: any = await getCouponCodeDetails(couponCode, workshopId);
-        couponDiscount = modeOfAttandnace === "online" ? couponDetail?.onlineDiscount : couponDetail?.offlineDiscount;
+    try {
+        if (couponCode) {
+            const couponDetail: any = await getCouponCodeDetails(couponCode, workshopId);
+            couponDiscount = modeOfAttandnace === "online" ? couponDetail?.onlineDiscount : couponDetail?.offlineDiscount;
+        }
+    } catch (error) {
+        console.log(error)
     }
     let payableAmount = workshopAmount - couponDiscount;
     try {

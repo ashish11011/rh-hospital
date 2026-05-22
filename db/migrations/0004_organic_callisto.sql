@@ -1,0 +1,2 @@
+CREATE TYPE "public"."registrationSource" AS ENUM('website', 'whatsapp', 'facebook', 'instagram');--> statement-breakpoint
+ALTER TABLE "workshop_registration" ADD COLUMN "registration_source" "registrationSource" DEFAULT 'website';

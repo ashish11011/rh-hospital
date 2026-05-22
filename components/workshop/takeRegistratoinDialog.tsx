@@ -10,6 +10,8 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { RAZORPAY_KEY } from "@/env";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "../ui/input-group";
+import { SourceOfRegistraion } from "./sourceOfRegistration";
+import { sourceOfRegistraion } from "@/const/workshopRegistration";
 
 const schema = z.object({
     workshopId: z.string(),
@@ -24,6 +26,7 @@ const schema = z.object({
     city: z.string().min(1, "Required"),
     couponCode: z.string().optional(),
     modeOfAttandnace: z.enum(["online", "offline"]),
+    registrationSource: z.enum(sourceOfRegistraion.map((it) => it.value))
 });
 
 export function WorkshopRegistration({
@@ -45,6 +48,7 @@ export function WorkshopRegistration({
         city: "",
         couponCode: "",
         modeOfAttandnace: "online",
+        registrationSource: "website"
     });
     const [couponDiscount, setCouponDiscount] = useState({
         onlineDiscount: 0,
@@ -180,6 +184,7 @@ export function WorkshopRegistration({
                 city: "",
                 couponCode: "",
                 modeOfAttandnace: "online",
+                registrationSource: "website"
             });
 
         } catch (error) {
@@ -261,6 +266,12 @@ export function WorkshopRegistration({
                     value={form.modeOfAttandnace}
                     onChange={(val) =>
                         handleChange("modeOfAttandnace", val)
+                    }
+                />
+                <SourceOfRegistraion
+                    value={form.registrationSource}
+                    onChange={(val) =>
+                        handleChange("registrationSource", val)
                     }
                 />
             </div>

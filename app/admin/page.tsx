@@ -28,6 +28,7 @@ export default async function Page({ searchParams }: PageProps) {
         workshopName: workshop.name
     })
         .from(workshopRegistration)
+        .where(eq(workshopRegistration.workshopId, "b4f95ab7-9ae7-46f8-8dac-bb6d299b3ec0"))
         .leftJoin(workshop, eq(workshopRegistration.workshopId, workshop.id))
         .limit(limit)
         .offset(offset)

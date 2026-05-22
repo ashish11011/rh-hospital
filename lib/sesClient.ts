@@ -23,18 +23,19 @@ export async function sendWorkshopEmail({
 
     <p>Thank you for registering for our upcoming workshop:</p>
 
-    <h3>MEDSAFE - Right Drug • Right Dose • Right Patient — No Error, No Risk</h3>
-    <p><b>Simulation-Based Drug Safety & Injection Techniques Workshop</b></p>
+    <h3>SIMTECH – ICU WORKSHOP</h3>
+    <p><b>Bridging Knowledge and Critical Care Skills</b></p>
 
-    <p><b>📅 Date:</b> 10th May<br/>
-    <b>⏰ Time:</b> 10 am to 3 pm</p>
+    <p><b>📅 Date:</b> 6 June 2026<br/>
+    <b>⏰ Time:</b> 9;30 am to 4 pm</p>
 
     <h4>Workshop Topics</h4>
     <ul>
-      <li>Injection Simulation</li>
-      <li>IV Cannulation & Infusion Pump Handling</li>
-      <li>Medication Error Simulation & Emergency Drug Challenge</li>
-      <li>Drug preparation, Dosage & IV Drop Factor Calculation</li>
+      <li>Defibrillator Handling</li>
+      <li>Cardiac Monitor Training</li>
+      <li>ECG Machine Demonstration</li>
+      <li>BiPAP & CPAP Management</li>
+      <li>Critical Care Simulation Practice</li>
     </ul>
 
     <h4>Important Instructions</h4>
@@ -43,7 +44,7 @@ export async function sendWorkshopEmail({
     <p><b>⚠️ Joining our official WhatsApp group is mandatory.</b></p>
 
     <p>
-      👉 <a href="https://chat.whatsapp.com/CsJFW8uZinV8UKFGkBP4c8">Join WhatsApp Group</a>
+      👉 <a href="https://chat.whatsapp.com/CyHpNIAepYjItf7W96TqZe">Join WhatsApp Group</a>
     </p>
 
     <p>We look forward to your participation.</p>

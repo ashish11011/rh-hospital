@@ -17,6 +17,7 @@ export const workshopSchema = pgTable("workshop", {
 });
 
 export const modeOfAttandaceEnumSchema = pgEnum("modeOfAttandace", ["online", "offline"]);
+export const registrationSourceEnumSchema = pgEnum("registrationSource", ["website", "whatsapp", "facebook", "instagram"]);
 
 export const workshopRegistrationSchema = pgTable("workshop_registration", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -35,6 +36,7 @@ export const workshopRegistrationSchema = pgTable("workshop_registration", {
     workshopAmount: integer("workshop_amount").notNull().default(0),
     couponDiscount: integer("coupon_discount").default(0).notNull(),
     payableAmount: integer("payable_amount").notNull().default(0),
+    registrationSource: registrationSourceEnumSchema("registration_source").default("website")
 });
 
 export const couponCodeSchema = pgTable("coupon_code", {

@@ -12,6 +12,7 @@ import { RAZORPAY_KEY } from "@/env";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "../ui/input-group";
 import { SourceOfRegistraion } from "./sourceOfRegistration";
 import { sourceOfRegistraion } from "@/const/workshopRegistration";
+import { useRouter } from "next/navigation";
 
 const schema = z.object({
     workshopId: z.string(),
@@ -56,6 +57,7 @@ export function WorkshopRegistration({
     });
 
     const [loading, setLoading] = useState(false);
+    const router = useRouter()
 
     useEffect(() => {
         const loadScript = () => {
@@ -153,8 +155,9 @@ export function WorkshopRegistration({
 
                     const data = await res.json();
 
-                    if (data.status == 200) {
-                        toast.success("Payment successful, your registration is confirmed")
+                    if (data.success) {
+                        toast.success("Payment successful, your registration is confirmed");
+                        router.push("/payment-success");
                     } else if (data.status == 400) {
                         toast.error("Payment failed")
                     }
@@ -170,8 +173,12 @@ export function WorkshopRegistration({
             };
 
             const rzp = new (window as any).Razorpay(options);
-            rzp.open();
+            rzp.on("payment.failed", function (response: any) {
+                console.log("Payment Failed:", response);
+                toast.error("Payment failed");
+            });
 
+            rzp.open();
 
             // clear the form after successfull payment
             setForm({

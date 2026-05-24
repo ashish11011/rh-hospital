@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/dbConfig";
-import { workshop } from "@/db/index";
+import { workshop, workshopImage } from "@/db/index";
 import { eq, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -33,6 +33,7 @@ export async function createWorkshop(data: {
   endTime: Date;
   onlinePrice: number;
   offlinePrice: number;
+  isCompleted: boolean;
 }) {
   try {
     await db.insert(workshop).values(data);
@@ -56,6 +57,7 @@ export async function updateWorkshop(
     endTime: Date;
     onlinePrice: number;
     offlinePrice: number;
+    isCompleted: boolean;
   }>
 ) {
   try {
@@ -84,5 +86,38 @@ export async function deleteWorkshop(id: string) {
   } catch (error) {
     console.error("Delete Workshop error:", error);
     return { error: "Failed to delete workshop" };
+  }
+}
+
+export async function getWorkshopImages(workshopId: string) {
+  try {
+    return await db.select().from(workshopImage).where(eq(workshopImage.workshopId, workshopId)).orderBy(workshopImage.displayOrder);
+  } catch (error) {
+    console.error("Fetch Workshop Images error:", error);
+    return [];
+  }
+}
+
+export async function addWorkshopImage(data: { workshopId: string; image: string }) {
+  try {
+    await db.insert(workshopImage).values(data);
+    revalidatePath("/admin/workshop");
+    revalidatePath("/workshops");
+    return { success: true };
+  } catch (error) {
+    console.error("Add Workshop Image error:", error);
+    return { error: "Failed to add workshop image" };
+  }
+}
+
+export async function deleteWorkshopImage(id: string) {
+  try {
+    await db.delete(workshopImage).where(eq(workshopImage.id, id));
+    revalidatePath("/admin/workshop");
+    revalidatePath("/workshops");
+    return { success: true };
+  } catch (error) {
+    console.error("Delete Workshop Image error:", error);
+    return { error: "Failed to delete workshop image" };
   }
 }

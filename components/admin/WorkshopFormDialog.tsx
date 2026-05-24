@@ -10,6 +10,7 @@ import RichTextEditor from "@/components/RichTextEditor";
 import { getPresignedUrl } from "@/actions/uploadAction";
 import { createWorkshop, updateWorkshop } from "@/actions/workshopActions";
 import { Plus, Pencil } from "lucide-react";
+import { Checkbox } from "../ui/checkbox";
 
 export function WorkshopFormDialog({
   initialData,
@@ -30,6 +31,7 @@ export function WorkshopFormDialog({
   const [onlinePrice, setOnlinePrice] = useState(initialData?.onlinePrice || 0);
   const [offlinePrice, setOfflinePrice] = useState(initialData?.offlinePrice || 0);
   const [file, setFile] = useState<File | null>(null);
+  const [isCompleted, setIsCompleted] = useState(initialData?.isCompleted || false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +72,7 @@ export function WorkshopFormDialog({
         endTime: new Date(endTime),
         onlinePrice: Number(onlinePrice),
         offlinePrice: Number(offlinePrice),
+        isCompleted,
         ...(bannerImageUrl && { bannerImage: bannerImageUrl }),
       };
 
@@ -119,6 +122,10 @@ export function WorkshopFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+          <div className="flex items-center gap-2">
+            <Checkbox id="iscompleted" checked={isCompleted} onCheckedChange={setIsCompleted} />
+            <Label htmlFor="iscompleted">Workshop Completed</Label>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Workshop Name</Label>

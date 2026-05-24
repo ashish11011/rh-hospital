@@ -4,8 +4,9 @@ import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { deleteWorkshop } from "@/actions/workshopActions";
-import { Trash2, Pencil } from "lucide-react";
+import { Trash2, Pencil, Image } from "lucide-react";
 import { WorkshopFormDialog } from "./WorkshopFormDialog";
+import { WorkshopImages } from "./WorkshopImages";
 
 export function WorkshopClient({ workshops }: { workshops: any[] }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -77,6 +78,15 @@ export function WorkshopClient({ workshops }: { workshops: any[] }) {
                   <TableCell>₹{ws.offlinePrice}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      <WorkshopImages
+                        initialData={ws}
+                        isCompleted={ws.isCompleted}
+                        trigger={
+                          <Button disabled={!ws.isCompleted} variant="outline" size="icon">
+                            <Image className="w-4 h-4" />
+                          </Button>
+                        }
+                      />
                       <WorkshopFormDialog
                         initialData={ws}
                         trigger={

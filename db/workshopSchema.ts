@@ -17,6 +17,13 @@ export const workshopSchema = pgTable("workshop", {
     isCompleted: boolean("is_completed").default(false),
 });
 
+export const workshopImageSchema = pgTable("workshop_image", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workshopId: uuid("workshop_id").notNull().references(() => workshopSchema.id, { onDelete: "cascade" }),
+    displayOrder: integer("display_order").notNull().default(0),
+    image: varchar("image").notNull(),
+});
+
 export const modeOfAttandaceEnumSchema = pgEnum("modeOfAttandace", ["online", "offline"]);
 export const registrationSourceEnumSchema = pgEnum("registrationSource", ["website", "whatsapp", "facebook", "instagram"]);
 

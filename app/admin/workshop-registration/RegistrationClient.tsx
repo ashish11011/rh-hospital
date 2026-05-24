@@ -15,6 +15,7 @@ import {
 import { getAllRegistrations } from "@/actions/registrationActions";
 import * as XLSX from "xlsx";
 import { Download, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 type Registration = {
   id: string;
@@ -42,6 +43,7 @@ interface RegistrationClientProps {
 }
 
 export function RegistrationClient({ data, total, workshops, limit }: RegistrationClientProps) {
+  console.log(data)
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -70,7 +72,7 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
   const handleExport = async () => {
     try {
       setIsExporting(true);
-      const allData = await getAllRegistrations();
+      const allData = await getAllRegistrations(workshopId);
 
       const worksheetData = allData.map(reg => ({
         ID: reg.id,
@@ -82,7 +84,7 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
         "Institute/Company": reg.instituteName,
         City: reg.city || "N/A",
         "Mode of Attendance": reg.modeOfAttandnace,
-        // "Payment Status": reg.paymentStatus || "N/A",
+        "Payment Status": reg.paymentStatus || "N/A",
       }));
 
       const ws = XLSX.utils.json_to_sheet(worksheetData);
@@ -178,9 +180,7 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
                   <TableCell>{reg.instituteName}</TableCell>
                   <TableCell className="capitalize">{reg.modeOfAttandnace}</TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${reg.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                      {reg.paymentStatus}
-                    </span>
+                    <Badge variant={reg.paymentStatus === "completed" ? "default" : "secondary"}>{reg.paymentStatus}</Badge>
                   </TableCell>
                 </TableRow>
               ))

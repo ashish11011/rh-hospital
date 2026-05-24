@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    domains: ["rh-healthcare.s3.ap-south-1.amazonaws.com"],
+  },
   async headers() {
     return [
       {

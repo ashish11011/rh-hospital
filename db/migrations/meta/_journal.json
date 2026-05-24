@@ -36,6 +36,13 @@
       "when": 1779427356971,
       "tag": "0004_organic_callisto",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1779529925373,
+      "tag": "0005_clear_demogoblin",
+      "breakpoints": true
     }
   ]
 }

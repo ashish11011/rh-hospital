@@ -1,0 +1,1 @@
+ALTER TABLE "workshop" ADD COLUMN "is_completed" boolean DEFAULT false;

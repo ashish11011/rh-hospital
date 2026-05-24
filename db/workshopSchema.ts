@@ -1,4 +1,4 @@
-import { integer, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { userSchema } from "./userSchema";
 import { paymentStatusEnumSchema } from "./paymentSchema";
 
@@ -14,6 +14,7 @@ export const workshopSchema = pgTable("workshop", {
     // certificate:
     onlinePrice: integer("online_price").notNull(),
     offlinePrice: integer("offline_price").notNull(),
+    isCompleted: boolean("is_completed").default(false),
 });
 
 export const modeOfAttandaceEnumSchema = pgEnum("modeOfAttandace", ["online", "offline"]);

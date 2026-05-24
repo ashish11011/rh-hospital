@@ -34,7 +34,7 @@ export default async function Page({ searchParams }: PageProps) {
         .offset(offset)
         .orderBy(desc(workshopRegistration.createdAt));
 
-    const totalCountResult = await db.select({ value: count() }).from(workshopRegistration);
+    const totalCountResult = await db.select({ value: count() }).from(workshopRegistration).where(eq(workshopRegistration.workshopId, "b4f95ab7-9ae7-46f8-8dac-bb6d299b3ec0"));
     const totalCount = totalCountResult[0].value;
     const totalPages = Math.ceil(totalCount / limit);
 

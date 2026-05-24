@@ -257,7 +257,7 @@ export function WorkshopRegistration({
                         onChange={(e) => handleChange("city", e.target.value)}
                     />
                 </div>
-                <div className=" space-y-1">
+                {/* <div className=" space-y-1">
                     <Label>Coupon <span className="text-gray-500">(optional)</span></Label>
                     <InputGroup>
                         <InputGroupInput value={form.couponCode} onChange={(e) => handleChange("couponCode", e.target.value)} placeholder="Enter coupon code..." />
@@ -265,7 +265,7 @@ export function WorkshopRegistration({
                             <InputGroupButton onClick={handleApplyCoupon} disabled={loading} className=" cursor-pointer" variant={"default"} >Apply</InputGroupButton>
                         </InputGroupAddon>
                     </InputGroup>
-                </div>
+                </div> */}
 
                 <ModeOfAttendanceRadio
                     priceOnline={priceOnline - couponDiscount.onlineDiscount}
@@ -288,7 +288,7 @@ export function WorkshopRegistration({
                 disabled={loading}
                 onClick={handleSubmit}
             >
-                Submit
+                Register & Pay
             </Button>
         </>
     );

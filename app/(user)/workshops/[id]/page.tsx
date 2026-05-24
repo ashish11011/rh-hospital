@@ -81,60 +81,72 @@ export default async function WorkshopDetailsPage({ params }: { params: { id: st
           </div>
 
           {/* Sidebar / Registration Details */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-24 bg-gray-50 ">
-              <CardHeader>
-                <CardTitle className="">Workshop Details</CardTitle>
-              </CardHeader>
+          {
+            !ws.isCompleted ? (<WsForm ws={ws} formatDate={formatDate} formatTime={formatTime} />) : (<p className="text-center text-gray-600">  This workshop has been completed successfully. You can explore the event highlights and images below or contact us for more information.
+            </p>)
+          }
 
-              <CardContent className="space-y-6">
-                <div className="flex items-start">
-                  <Calendar className="w-6 h-6 text-blue-600 mr-4 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">Date</p>
-                    <p className="text-gray-900 font-semibold">{formatDate(ws.startTime)}</p>
-                  </div>
-                </div>
 
-                <div className="flex items-start">
-                  <Clock className="w-6 h-6 text-blue-600 mr-4 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">Time</p>
-                    <p className="text-gray-900 font-semibold">
-                      {formatTime(ws.startTime)} - {formatTime(ws.endTime)}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="pt-4 border-t border-gray-200">
-                  <p className="text-sm text-gray-500 font-medium mb-3">Investment</p>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center text-gray-600">
-                      <Video className="w-4 h-4 mr-2" /> Online
-                    </div>
-                    <div className="font-bold text-xl text-gray-900 flex items-center">
-                      <IndianRupee className="w-5 h-5" /> {ws.onlinePrice}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center text-gray-600">
-                      <MapPin className="w-4 h-4 mr-2" /> Offline
-                    </div>
-                    <div className="font-bold text-xl text-gray-900 flex items-center">
-                      <IndianRupee className="w-5 h-5" /> {ws.offlinePrice}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <WorkshopRegistration workshopId={ws.id} priceOnline={ws.onlinePrice} priceOffline={ws.offlinePrice} />
-
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </div>
   );
+}
+
+async function WsForm({ ws, formatDate, formatTime }: any) {
+  return (
+    <div className="lg:col-span-1">
+      <Card className="sticky top-24 bg-gray-50 ">
+        <CardHeader>
+          <CardTitle className="">Workshop Details</CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          <div className="flex items-start">
+            <Calendar className="w-6 h-6 text-blue-600 mr-4 mt-0.5" />
+            <div>
+              <p className="text-sm text-gray-500 font-medium">Date</p>
+              <p className="text-gray-900 font-semibold">{formatDate(ws.startTime)}</p>
+            </div>
+          </div>
+
+          <div className="flex items-start">
+            <Clock className="w-6 h-6 text-blue-600 mr-4 mt-0.5" />
+            <div>
+              <p className="text-sm text-gray-500 font-medium">Time</p>
+              <p className="text-gray-900 font-semibold">
+                {formatTime(ws.startTime)} - {formatTime(ws.endTime)}
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-gray-200">
+            <p className="text-sm text-gray-500 font-medium mb-3">Investment</p>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center text-gray-600">
+                <Video className="w-4 h-4 mr-2" /> Online
+              </div>
+              <div className="font-bold text-xl text-gray-900 flex items-center">
+                <IndianRupee className="w-5 h-5" /> {ws.onlinePrice}
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center text-gray-600">
+                <MapPin className="w-4 h-4 mr-2" /> Offline
+              </div>
+              <div className="font-bold text-xl text-gray-900 flex items-center">
+                <IndianRupee className="w-5 h-5" /> {ws.offlinePrice}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <WorkshopRegistration workshopId={ws.id} priceOnline={ws.onlinePrice} priceOffline={ws.offlinePrice} />
+
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
 }

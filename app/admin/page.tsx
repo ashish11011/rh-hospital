@@ -1,7 +1,7 @@
 import { workshopRegistration, workshop } from "@/db"
 import { db } from "@/lib/dbConfig"
 import Link from "next/link"
-import { eq, desc, count } from "drizzle-orm"
+import { eq, desc, count, and } from "drizzle-orm"
 import {
     Table,
     TableBody,
@@ -22,19 +22,29 @@ export default async function Page({ searchParams }: PageProps) {
     const page = typeof params.page === 'string' ? parseInt(params.page, 10) : 1;
     const limit = 10;
     const offset = (page - 1) * limit;
+    const isFilterPaymentComplete = params.filter?.toString() || "";
+    console.log(isFilterPaymentComplete, "isFilterPaymentComplete");
+
+    const filter = [];
+    filter.push(eq(workshopRegistration.workshopId, "b4f95ab7-9ae7-46f8-8dac-bb6d299b3ec0"));
+    if (isFilterPaymentComplete) {
+        filter.push(eq(workshopRegistration.paymentStatus, "completed"));
+    }
 
     const registrations = await db.select({
         registration: workshopRegistration,
         workshopName: workshop.name
     })
         .from(workshopRegistration)
-        .where(eq(workshopRegistration.workshopId, "b4f95ab7-9ae7-46f8-8dac-bb6d299b3ec0"))
+        .where(and(...filter))
         .leftJoin(workshop, eq(workshopRegistration.workshopId, workshop.id))
         .limit(limit)
         .offset(offset)
         .orderBy(desc(workshopRegistration.createdAt));
 
-    const totalCountResult = await db.select({ value: count() }).from(workshopRegistration).where(eq(workshopRegistration.workshopId, "b4f95ab7-9ae7-46f8-8dac-bb6d299b3ec0"));
+    const totalCountResult = await db.select({ value: count() }).from(workshopRegistration)
+        .where(and(...filter))
+
     const totalCount = totalCountResult[0].value;
     const totalPages = Math.ceil(totalCount / limit);
 
@@ -49,7 +59,11 @@ export default async function Page({ searchParams }: PageProps) {
                     Total: {totalCount}
                 </div>
             </div>
-
+            <div className=" mb-4 ml-auto w-fit">
+                <Link className=" mr-auto" href={isFilterPaymentComplete ? "/admin" : "/admin?filter=1"}>
+                    <Button>{isFilterPaymentComplete ? "Get all registrations" : "Get completed registrations"}</Button>
+                </Link>
+            </div>
             <div className="  border bg-white shadow-sm overflow-hidden">
                 <Table>
                     <TableHeader className="bg-gray-50">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ModeOfAttendanceRadio } from "./modeOfAttandanceRadio";
 import axios from "axios";
 import { z } from "zod";
@@ -12,7 +13,7 @@ import { RAZORPAY_KEY } from "@/env";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "../ui/input-group";
 import { SourceOfRegistraion } from "./sourceOfRegistration";
 import { sourceOfRegistraion } from "@/const/workshopRegistration";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const schema = z.object({
     workshopId: z.string(),
@@ -27,7 +28,11 @@ const schema = z.object({
     city: z.string().min(1, "Required"),
     couponCode: z.string().optional(),
     modeOfAttandnace: z.enum(["online", "offline"]),
-    registrationSource: z.enum(sourceOfRegistraion.map((it) => it.value))
+    registrationSource: z.enum(sourceOfRegistraion.map((it) => it.value)),
+    utmSource: z.string().optional(),
+    utmMedium: z.string().optional(),
+    utmCampaign: z.string().optional(),
+    utmContent: z.string().optional(),
 });
 
 export function WorkshopRegistration({
@@ -39,7 +44,11 @@ export function WorkshopRegistration({
     priceOnline: number;
     priceOffline: number;
 }) {
-    const [form, setForm] = useState({
+
+    const searchParams = useSearchParams()
+
+
+    const [form, setForm] = useState<any>({
         workshopId: workshopId,
         email: "",
         name: "",
@@ -49,7 +58,7 @@ export function WorkshopRegistration({
         city: "",
         couponCode: "",
         modeOfAttandnace: "online",
-        registrationSource: "website"
+        registrationSource: "website",
     });
     const [couponDiscount, setCouponDiscount] = useState({
         onlineDiscount: 0,
@@ -57,6 +66,7 @@ export function WorkshopRegistration({
     });
 
     const [loading, setLoading] = useState(false);
+    const [hasJoinedWhatsapp, setHasJoinedWhatsapp] = useState(false);
     const router = useRouter()
 
     useEffect(() => {
@@ -77,8 +87,26 @@ export function WorkshopRegistration({
         loadScript();
     }, []);
 
+    useEffect(() => {
+
+        const utmSource = searchParams.get("utm_source");
+        const utmMedium = searchParams.get("utm_medium");
+        const utmCampaign = searchParams.get("utm_campaign");
+        const utmContent = searchParams.get("utm_content");
+
+        setForm((prev: any) => ({
+            ...prev,
+            utmSource,
+            utmMedium,
+            utmCampaign,
+            utmContent,
+        }));
+
+
+    }, [searchParams]);
+
     const handleChange = (key: string, value: string) => {
-        setForm((prev) => ({ ...prev, [key]: value }));
+        setForm((prev: any) => ({ ...prev, [key]: value }));
     };
 
     const handleApplyCoupon = async () => {
@@ -283,9 +311,23 @@ export function WorkshopRegistration({
                 />
             </div>
 
+            <div className="flex items-center space-x-2 py-4">
+                <Checkbox
+                    id="whatsappgroup"
+                    checked={hasJoinedWhatsapp}
+                    onCheckedChange={(checked) => setHasJoinedWhatsapp(checked as boolean)}
+                />
+                <label
+                    htmlFor="whatsappgroup"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                    I have joined the workshop WhatsApp group (link above).
+                </label>
+            </div>
+
             <Button
                 className="w-full h-10"
-                disabled={loading}
+                disabled={loading || !hasJoinedWhatsapp}
                 onClick={handleSubmit}
             >
                 Register & Pay

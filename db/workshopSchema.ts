@@ -1,4 +1,4 @@
-import { boolean, integer, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, integer, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { userSchema } from "./userSchema";
 import { paymentStatusEnumSchema } from "./paymentSchema";
 
@@ -44,8 +44,14 @@ export const workshopRegistrationSchema = pgTable("workshop_registration", {
     workshopAmount: integer("workshop_amount").notNull().default(0),
     couponDiscount: integer("coupon_discount").default(0).notNull(),
     payableAmount: integer("payable_amount").notNull().default(0),
-    registrationSource: registrationSourceEnumSchema("registration_source").default("website")
-});
+    registrationSource: registrationSourceEnumSchema("registration_source").default("website"),
+    utmSource: varchar("utm_source"),
+    utmMedium: varchar("utm_medium"),
+    utmCampaign: varchar("utm_campaign"),
+    utmContent: varchar("utm_content"),
+}, (tables) => [
+    index("idx_workshop_id_user_id_created_at").on(tables.workshopId, tables.userId, tables.createdAt),
+]);
 
 export const couponCodeSchema = pgTable("coupon_code", {
     id: uuid("id").defaultRandom().primaryKey(),

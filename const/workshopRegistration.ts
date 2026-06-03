@@ -7,7 +7,7 @@ export const sourceOfRegistraion = [
     },
     {
         icon: IconWorldWww,
-        value: "Website"
+        value: "website"
     },
     {
         icon: IconBrandWhatsapp,

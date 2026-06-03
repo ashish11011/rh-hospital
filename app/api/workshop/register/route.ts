@@ -9,7 +9,7 @@ import { getCouponCodeDetails } from "@/helper/workshop/getCouponCodeDetails";
 
 
 export async function POST(req: NextRequest) {
-    const { workshopId, email, name, mobileNumber, designation, instituteName, city, modeOfAttandnace, couponCode, registrationSource } = await req.json();
+    const { workshopId, email, name, mobileNumber, designation, instituteName, city, modeOfAttandnace, couponCode, registrationSource, utmSource, utmMedium, utmCampaign, utmContent } = await req.json();
     if (!email || !name || !mobileNumber || !designation || !instituteName || !city || !modeOfAttandnace || !workshopId) return NextResponse.json({ message: "All fields are required" });
 
     let userId;
@@ -59,7 +59,11 @@ export async function POST(req: NextRequest) {
             workshopAmount,
             couponDiscount,
             payableAmount,
-            registrationSource
+            registrationSource,
+            utmSource,
+            utmMedium,
+            utmCampaign,
+            utmContent
         }).returning({ id: workshopRegistration.id });
 
         var options = {

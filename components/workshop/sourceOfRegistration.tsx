@@ -44,7 +44,7 @@ export function SourceOfRegistraion({
                                         <FieldDescription>
                                             <Icon />
                                         </FieldDescription>
-                                        <FieldTitle>{source.value}</FieldTitle>
+                                        <FieldTitle className=" capitalize">{source.value}</FieldTitle>
                                     </FieldContent>
                                     <RadioGroupItem value={source.value} id={source.value} />
                                 </Field>

@@ -28,11 +28,7 @@ const schema = z.object({
     city: z.string().min(1, "Required"),
     couponCode: z.string().optional(),
     modeOfAttandnace: z.enum(["online", "offline"]),
-    registrationSource: z.enum(sourceOfRegistraion.map((it) => it.value)),
-    utmSource: z.string().optional(),
-    utmMedium: z.string().optional(),
-    utmCampaign: z.string().optional(),
-    utmContent: z.string().optional(),
+    registrationSource: z.enum(sourceOfRegistraion.map((it) => it.value))
 });
 
 export function WorkshopRegistration({

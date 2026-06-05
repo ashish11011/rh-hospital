@@ -3,7 +3,7 @@ import { ArrowRight, Calendar, Clock, IndianRupee } from "lucide-react"
 import Link from "next/link"
 import { Card } from "../ui/card"
 
-export const WorkshowListCard = ({ ws }: any) => {
+export const WorkshowListCard = ({ ws, isCompleted }: any) => {
     return (
         <Link key={ws.id} href={`/workshops/${ws.id}`} className="group">
             <Card className=" p-0 overflow-hidden  flex flex-col h-full cursor-pointer">
@@ -31,25 +31,35 @@ export const WorkshowListCard = ({ ws }: any) => {
                         {ws.description}
                     </p>
 
-                    <div className="space-y-3 mb-6 pt-4 border-t border-gray-100">
-                        <div className="flex items-center text-sm text-gray-600">
-                            <Calendar className="w-4 h-4 mr-3 text-primary" />
-                            <span>{formatDate(ws.startTime)}</span>
-                        </div>
-                        <div className="flex items-center text-sm text-gray-600">
-                            <Clock className="w-4 h-4 mr-3 text-primary" />
-                            <span>
-                                {formatTime(ws.startTime)} - {formatTime(ws.endTime)}
-                            </span>
-                        </div>
-                    </div>
+                    {
+                        !isCompleted && (
+                            <div className="space-y-3 mb-6 pt-4 border-t border-gray-100">
+                                <div className="flex items-center text-sm text-gray-600">
+                                    <Calendar className="w-4 h-4 mr-3 text-primary" />
+                                    <span>{formatDate(ws.startTime)}</span>
+                                </div>
+                                <div className="flex items-center text-sm text-gray-600">
+                                    <Clock className="w-4 h-4 mr-3 text-primary" />
+                                    <span>
+                                        {formatTime(ws.startTime)} - {formatTime(ws.endTime)}
+                                    </span>
+                                </div>
+                            </div>
+                        )
+                    }
+
+
 
                     {/* Price and Action */}
                     <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-                        <div className="flex items-center font-semibold text-lg text-gray-900">
-                            <IndianRupee className="w-4 h-4 mr-1 text-gray-600" />
-                            {ws.onlinePrice}
-                        </div>
+                        {
+                            !isCompleted && (
+                                <div className="flex items-center font-semibold text-lg text-gray-900">
+                                    <IndianRupee className="w-4 h-4 mr-1 text-gray-600" />
+                                    {ws.onlinePrice}
+                                </div>
+                            )
+                        }
                         <span className="text-primary font-medium text-sm flex gap-2 items-center group-hover:underline">
                             View Details <ArrowRight className="w-4 h-4" />
                         </span>

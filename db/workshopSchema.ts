@@ -49,6 +49,7 @@ export const workshopRegistrationSchema = pgTable("workshop_registration", {
     utmMedium: varchar("utm_medium"),
     utmCampaign: varchar("utm_campaign"),
     utmContent: varchar("utm_content"),
+    certificateUrl: varchar("certificate_url"),
 }, (tables) => [
     index("idx_workshop_id_user_id_created_at").on(tables.workshopId, tables.userId, tables.createdAt),
 ]);

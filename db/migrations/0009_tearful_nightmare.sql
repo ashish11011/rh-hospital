@@ -1,0 +1,1 @@
+ALTER TABLE "workshop_registration" ADD COLUMN "certificate_url" varchar;

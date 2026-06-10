@@ -24,6 +24,10 @@ export function SidebarAdmin() {
             name: "Workshops",
             url: "/admin/workshop",
         },
+        {
+            name: "Generate Certificate",
+            url: "/admin/generate-certificate",
+        },
     ]
     return (
         <Sidebar>

@@ -10,6 +10,7 @@ import { Suspense } from "react";
 import Image from "next/image";
 
 export const revalidate = 600;
+export const dynamic = "force-static"
 
 export default async function WorkshopDetailsPage({ params }: { params: { id: string } }) {
   const { id } = await params;

@@ -87,3 +87,28 @@ export async function getWorkshopsList() {
     return [];
   }
 }
+
+export async function getCertificateUser(workshopId: string, searchType: "email" | "number", searchValue: string) {
+  try {
+    const field = searchType === "email" ? workshopRegistration.email : workshopRegistration.mobileNumber;
+    const query = db.select({ certificateUrl: workshopRegistration.certificateUrl })
+      .from(workshopRegistration)
+      .where(
+        and(
+          eq(workshopRegistration.workshopId, workshopId),
+          eq(field, searchValue),
+          eq(workshopRegistration.paymentStatus, 'completed')
+        )
+      )
+      .limit(1);
+
+    const result = await query;
+    if (result.length > 0) {
+      return { success: true, certificateUrl: result[0].certificateUrl };
+    }
+    return { success: false, message: "No registration found with provided details." };
+  } catch (err) {
+    console.error(err);
+    return { success: false, message: "An error occurred while fetching certificate." };
+  }
+}

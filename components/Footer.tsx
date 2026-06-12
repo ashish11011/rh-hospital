@@ -1,12 +1,9 @@
 // Footer.tsx
-
 import {
     IconBrandFacebook,
     IconBrandInstagram,
-    IconBrandLinkedin,
     IconBrandYoutube,
 } from "@tabler/icons-react";
-import { ArrowRight, X } from "lucide-react";
 import Link from "next/link";
 
 const footerLinks = [
@@ -17,6 +14,7 @@ const footerLinks = [
             { label: "Contact Us", href: "/contact-us" },
             { label: "Certifications", href: "/certifications" },
             { label: "Workshops", href: "/workshops" },
+            { label: "Workshop Certificate", href: "/course-certificate" },
         ],
     },
     {

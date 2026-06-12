@@ -28,7 +28,6 @@ const SidebarForm = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        console.log('Form submitted:', formData)
         alert('Thank you for contacting us! Our health experts will get back to you soon.')
     }
 

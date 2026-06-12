@@ -16,8 +16,8 @@ export async function getWorkshops() {
 
 export async function getWorkshopById(id: string) {
   try {
-    const records = await db.select().from(workshop).where(eq(workshop.id, id));
-    return records[0] || null;
+    const [record] = await db.select().from(workshop).where(eq(workshop.id, id));
+    return record;
   } catch (error) {
     console.error("Fetch Workshop error:", error);
     return null;

@@ -9,7 +9,7 @@ import { paymentClient } from "@/lib/paymentClient";
 export async function POST(req: NextRequest) {
     const data = await req.json();
     const { email, name, mobileNumber, designation, instituteName, city, registrationMode, isNaitMember, offlineDuration } = data;
-    
+
     if (!email || !name || !mobileNumber || !designation || !instituteName || !city || !registrationMode) {
         return NextResponse.json({ message: "All fields are required" }, { status: 400 });
     }
@@ -40,12 +40,19 @@ export async function POST(req: NextRequest) {
         const isNait = isNaitMember === true;
         let payableAmount = 0;
 
+        // if (registrationMode === "online") {
+        //     payableAmount = isNait ? 400 : 500;
+        // } else if (registrationMode === "offline" && offlineDuration === "one_day") {
+        //     payableAmount = isNait ? 1000 : 1500;
+        // } else if (registrationMode === "offline" && offlineDuration === "two_day") {
+        //     payableAmount = isNait ? 2000 : 2500;
+        // }
         if (registrationMode === "online") {
-            payableAmount = isNait ? 400 : 500;
+            payableAmount = isNait ? 1 : 1;
         } else if (registrationMode === "offline" && offlineDuration === "one_day") {
-            payableAmount = isNait ? 1000 : 1500;
+            payableAmount = isNait ? 1 : 1;
         } else if (registrationMode === "offline" && offlineDuration === "two_day") {
-            payableAmount = isNait ? 2000 : 2500;
+            payableAmount = isNait ? 1 : 1;
         }
 
         const [registrationDetail] = await db.insert(seminarRegistrations).values({

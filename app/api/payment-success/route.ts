@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { sendWorkshopEmail } from "@/lib/sesClient";
+import { sendSeminarEmail, sendWorkshopEmail } from "@/lib/sesClient";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/dbConfig";
-import { payment, workshop, workshopRegistration } from "@/db";
+import { payment, seminarRegistrations, workshop, workshopRegistration } from "@/db";
 import { RAZORPAY_WEBHOOK_SECRET } from "@/env";
 export async function POST(req: NextRequest) {
     const rawBody = await req.text();
@@ -90,16 +90,29 @@ export async function POST(req: NextRequest) {
                 orderId: payment.orderId,
                 email: payment.email,
                 contact: payment.contact,
-                workshopRegistrationId: payment.orderId
+                registrationId: payment.orderId,
+                orderType: payment.orderType
             });
 
-            // update status to workshopRegistration Table
-            await db.update(workshopRegistration).set({ paymentStatus: "completed" }).where(eq(workshopRegistration.id, paymentUpdateResponse.workshopRegistrationId));
+            if (paymentUpdateResponse.orderType === "workshop") {
+                // update status to workshopRegistration Table
+                await db.update(workshopRegistration).set({ paymentStatus: "completed" }).where(eq(workshopRegistration.id, paymentUpdateResponse.registrationId));
+                console.log("Database update done")
+                // send email conformation.
+                await sendWorkshopEmail({ toEmail: paymentUpdateResponse.email! });
+                console.log("Email sent")
+            }
 
-            console.log("Database update done")
-            // send email conformation.
-            await sendWorkshopEmail({ toEmail: paymentUpdateResponse.email! });
-            console.log("Email sent")
+            else if (paymentUpdateResponse.orderType === "seminar") {
+                // update status to seminarRegistration Table
+                await db.update(seminarRegistrations).set({ paymentStatus: "completed" }).where(eq(seminarRegistrations.id, paymentUpdateResponse.registrationId));
+                console.log("Database update done")
+                // send email conformation.
+                await sendSeminarEmail({ toEmail: paymentUpdateResponse.email! });
+                console.log("Email sent")
+            }
+
+
             return NextResponse.json({ received: true }, { status: 200 });
         } catch (error) {
             console.log(error);

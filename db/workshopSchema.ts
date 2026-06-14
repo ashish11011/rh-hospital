@@ -1,4 +1,4 @@
-import { boolean, index, integer, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, integer, pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { userSchema } from "./userSchema";
 import { paymentStatusEnumSchema } from "./paymentSchema";
 
@@ -15,6 +15,7 @@ export const workshopSchema = pgTable("workshop", {
     onlinePrice: integer("online_price").notNull(),
     offlinePrice: integer("offline_price").notNull(),
     isCompleted: boolean("is_completed").default(false),
+    whatsappLink: varchar("whatsapp_link"),
 });
 
 export const workshopImageSchema = pgTable("workshop_image", {
@@ -63,3 +64,87 @@ export const couponCodeSchema = pgTable("coupon_code", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+
+
+export const seminarSchema = pgTable("seminar", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: varchar("name").notNull(),
+    bannerImage: varchar("banner_image"),
+    description: varchar("description").notNull(),
+    content: varchar("content").notNull(),
+    startTime: timestamp("start_time"),
+    endTime: timestamp("end_time"),
+    // certificate:
+    onlinePrice: integer("online_price"),
+    offlinePrice: integer("offline_price"),
+    isCompleted: boolean("is_completed").default(false),
+    whatsappLink: varchar("whatsapp_link"),
+});
+
+
+export const seminarRegistrationsSchema = pgTable(
+    "seminar_registrations",
+    {
+        id: uuid("id").defaultRandom().primaryKey(),
+
+        seminarId: uuid("seminar_id").notNull().references(() => seminarSchema.id, { onDelete: "set null" }),
+        userId: uuid('user_id').references(() => userSchema.id, { onDelete: "set null" }),
+
+        // Basic Details
+        name: varchar("name", { length: 255 }).notNull(),
+        gender: varchar("gender", { length: 20 }).notNull(),
+        mobileNumber: varchar("mobile_number", { length: 20 }).notNull(),
+        email: varchar("email", { length: 255 }).notNull(),
+        designation: varchar("designation", { length: 255 }).notNull(),
+        qualification: varchar("qualification", { length: 255 }).notNull(),
+        instituteName: varchar("institute_name", {
+            length: 255,
+        }).notNull(),
+
+        // Address
+        addressLine1: text("address_line_1").notNull(),
+        addressLine2: text("address_line_2"),
+        city: varchar("city", { length: 100 }).notNull(),
+        state: varchar("state", { length: 100 }).notNull(),
+        country: varchar("country", { length: 100 }).notNull(),
+        pincode: varchar("pincode", { length: 20 }).notNull(),
+
+        // Paper Presentation
+        paperPresentation: boolean("paper_presentation").notNull(),
+        paperTitle: text("paper_title"),
+        authorName: varchar("author_name", { length: 255 }),
+        paperInstitution: varchar("paper_institution", { length: 255 }),
+
+        // Additional Info
+        additionalDetails: text("additional_details"),
+
+        // Reference
+        referenceType: varchar("reference_type", { length: 50 }).notNull(),
+        referencePersonName: varchar("reference_person_name", { length: 255 }),
+        referencePersonMobile: varchar("reference_person_mobile", { length: 20 }),
+        socialMediaName: varchar("social_media_name", { length: 255 }),
+
+        // Registration
+        registrationMode: varchar("registration_mode", { length: 20 }).notNull(),
+        offlineDuration: varchar("offline_duration", { length: 20 }),
+
+        // NAIT
+        isNaitMember: boolean("is_nait_member").notNull(),
+        naitRegistrationId: varchar("nait_registration_id", { length: 100 }),
+
+        // Payment
+        amount: varchar("amount", { length: 20, }).notNull(),
+        paymentStatus: varchar("payment_status", { length: 20 }).default("pending").notNull(),
+        paymentId: varchar("payment_id", { length: 255, }),
+        orderId: varchar("order_id", { length: 255, }),
+
+        createdAt: timestamp("created_at").defaultNow().notNull(),
+        updatedAt: timestamp("updated_at").defaultNow().notNull(),
+
+        utmSource: varchar("utm_source"),
+        utmMedium: varchar("utm_medium"),
+        utmCampaign: varchar("utm_campaign"),
+        utmContent: varchar("utm_content"),
+        certificateUrl: varchar("certificate_url"),
+    }
+);

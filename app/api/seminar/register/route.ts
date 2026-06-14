@@ -40,19 +40,12 @@ export async function POST(req: NextRequest) {
         const isNait = isNaitMember === true;
         let payableAmount = 0;
 
-        // if (registrationMode === "online") {
-        //     payableAmount = isNait ? 400 : 500;
-        // } else if (registrationMode === "offline" && offlineDuration === "one_day") {
-        //     payableAmount = isNait ? 1000 : 1500;
-        // } else if (registrationMode === "offline" && offlineDuration === "two_day") {
-        //     payableAmount = isNait ? 2000 : 2500;
-        // }
         if (registrationMode === "online") {
-            payableAmount = isNait ? 1 : 1;
+            payableAmount = isNait ? 400 : 500;
         } else if (registrationMode === "offline" && offlineDuration === "one_day") {
-            payableAmount = isNait ? 1 : 1;
+            payableAmount = isNait ? 1000 : 1500;
         } else if (registrationMode === "offline" && offlineDuration === "two_day") {
-            payableAmount = isNait ? 1 : 1;
+            payableAmount = isNait ? 2000 : 2500;
         }
 
         const [registrationDetail] = await db.insert(seminarRegistrations).values({

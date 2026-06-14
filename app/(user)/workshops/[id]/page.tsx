@@ -47,7 +47,9 @@ export default async function WorkshopDetailsPage({ params }: { params: { id: st
       {/* Banner Section */}
       <div className="w-full h-[40vh] md:h-[50vh] bg-gray-900 relative">
         {ws.bannerImage ? (
-          <img
+          <Image
+            height={700}
+            width={1280}
             src={ws.bannerImage}
             alt={ws.name}
             className="w-full h-full object-cover opacity-60"

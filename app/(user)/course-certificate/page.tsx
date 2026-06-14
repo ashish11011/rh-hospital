@@ -8,7 +8,7 @@ const page = () => {
     const workshopData = [{ "idx": 5, "id": "b4f95ab7-9ae7-46f8-8dac-bb6d299b3ec0", "name": "SIMTECH", "bannerImage": "https://rh-healthcare.s3.ap-south-1.amazonaws.com/1779450554173-WhatsApp_Image_2026-05-22_at_10.25.55_AM__1_.jpeg", "start_time": "2026-06-06 04:00:00", "end_time": "2026-06-06 10:30:00", "online_price": 300, "offline_price": 500, "is_completed": true }]
     return (
         <div className=' py-20  max-w-7xl px-4 mx-auto'>
-            <div className='  grid grid-cols-3 gap-4'>
+            <div className='  grid grid-cols-1 md:grid-cols-3 gap-4'>
                 {workshopData.map((ws) => {
                     return (
                         <Link key={ws.id} href={`/course-certificate/${ws.id}`} className="group">

@@ -71,6 +71,11 @@ export default function Home() {
             Human Trachea Intubation Model With Monitor</p>
         </div>
       </div>
+      <div className=" py-12 flex flex-col md:flex-row gap-6 container">
+        <iframe width="345" height="315" src="https://www.youtube.com/embed/PQ6HXDK8Tk0?si=l3n9p1hwTqgKZbil" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+        <iframe width="345" height="315" src="https://www.youtube.com/embed/DwhQItB8u4A?si=Xz06OpAzQvQ11txR" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+        <iframe width="345" height="315" src="https://www.youtube.com/embed/rCLVwwpdZhk?si=WebusDPN89sH0Qbh" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+      </div>
       <HomeProductCrousel />
       <WhyChooseRH />
       <AwardSection />

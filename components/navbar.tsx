@@ -23,7 +23,7 @@ export function Navbar() {
 
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 h-full w-auto py-1 ">
-                        <Image src={"/logo.png"} height={100} width={250} className=" h-full w-auto" alt="logo" />
+                        <Image src={"/logo.png"} loading="eager" height={100} width={250} className=" h-full w-auto" alt="logo" />
                     </Link>
 
                     {/* Desktop Menu */}
@@ -36,7 +36,7 @@ export function Navbar() {
                         })}
 
                         <Button onClick={() => setOpen(true)} className="">
-                            Book Appointment
+                            Contact Us
                         </Button>
                     </nav>
 
@@ -60,7 +60,7 @@ export function Navbar() {
                                     })}
 
                                     <Button onClick={() => setOpen(true)} className="mt-4 rounded-sm">
-                                        Book Appointment
+                                        Contact Us
                                     </Button>
                                 </div>
                             </SheetContent>
@@ -75,9 +75,9 @@ export function Navbar() {
 }
 
 const NAV_LINKS = [
-    { title: "Rh healthcare", href: "/" },
+    { title: "RH healthcare", href: "/" },
     { title: "Workshops", href: "/workshops" },
-    { title: "Specialities", href: "/specialities" },
-    { title: "International Patients", href: "/international-patients" },
+    { title: "Seminar", href: "/seminar" },
+    // { title: "International Patients", href: "/international-patients" },
     // { title: "Login", href: "/" },
 ]

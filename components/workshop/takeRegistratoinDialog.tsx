@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ModeOfAttendanceRadio } from "./modeOfAttandanceRadio";
+import { CustomRadioGroup } from "@/components/custom-radio-group";
 import axios from "axios";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -292,13 +292,40 @@ export function WorkshopRegistration({
                     </InputGroup>
                 </div>
 
-                <ModeOfAttendanceRadio
-                    priceOnline={priceOnline - couponDiscount.onlineDiscount}
-                    priceOffline={priceOffline - couponDiscount.offlineDiscount}
+                <CustomRadioGroup
+                    label="Mode of Attendace"
                     value={form.modeOfAttandnace}
-                    onChange={(val) =>
-                        handleChange("modeOfAttandnace", val)
-                    }
+                    onChange={(val) => handleChange("modeOfAttandnace", val)}
+                    options={[
+                        {
+                            id: "online-mode",
+                            value: "online",
+                            title: "Online",
+                            description: (
+                                <>
+                                    Attend remotely via internet.
+                                    <br />
+                                    <span className="text-gray-800">
+                                        Rs. {priceOnline - couponDiscount.onlineDiscount}
+                                    </span>
+                                </>
+                            ),
+                        },
+                        {
+                            id: "offline-mode",
+                            value: "offline",
+                            title: "Offline",
+                            description: (
+                                <>
+                                    Attend physically at location.
+                                    <br />
+                                    <span className="text-gray-800">
+                                        Rs. {priceOffline - couponDiscount.offlineDiscount}
+                                    </span>
+                                </>
+                            ),
+                        },
+                    ]}
                 />
                 <SourceOfRegistraion
                     value={form.registrationSource}

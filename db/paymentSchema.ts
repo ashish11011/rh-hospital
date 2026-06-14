@@ -1,7 +1,7 @@
 import { integer, jsonb, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 
-export const itemEnumSchema = pgEnum("item", ["workshop", "product", "course"]);
+export const itemEnumSchema = pgEnum("item", ["workshop", "product", "course", "seminar"]);
 
 export const paymentSchema = pgTable("payment", {
     id: uuid("id").defaultRandom().primaryKey(),

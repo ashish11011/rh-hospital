@@ -52,6 +52,8 @@ export async function POST(req: NextRequest) {
             seminarId,
             userId,
             ...data,
+            qualification: "",
+            referenceType: data.motivatedBy,
             amount: payableAmount.toString(),
             paymentStatus: "pending"
         }).returning({ id: seminarRegistrations.id });

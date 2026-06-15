@@ -114,7 +114,7 @@ export async function sendSeminarEmail({
     // name: string;
 }) {
     const html = `
-<p>Dear ${"Participant"},</p>
+      <p>Dear ${"Participant"},</p>
 
 <p>Greetings from RH Healthcare Simulation Centre.</p> 
 
@@ -148,47 +148,13 @@ We are delighted to confirm your registration for this prestigious event organiz
 <b>📅 Date:</b> 5th & 6th September 2026 (Saturday & Sunday)<br/>
 <b>📍 Venue:</b> Rajasthan International Centre (RIC), Jhalana Doongri, Jaipur, Rajasthan<br/>
 <b>📘 Mode:</b> Offline & Online<br/>
-<b>🎓 Credit Hours:</b> 5 CNE Credit Hours Awarded
+<b>🎓 Credit Hours:</b>
+5 CNE Credit Hours for attending 1 day of the summit<br />
+10 CNE Credit Hours for attending both days of the summit
 </p>
 
-<p>
-The summit will bring together nursing students, educators, researchers, healthcare professionals,
-industry leaders, and policymakers to discuss emerging trends, innovations, leadership,
-and excellence in nursing education and practice.
 </p>
 
-<h4>🏆 Event Highlights</h4>
-<ul>
-  <li>Global Nursing Leadership & Education Summit 2026</li>
-  <li>Best Nurses & Nursing Educators Awards 2026</li>
-  <li>Sessions by National & International Speakers</li>
-  <li>Networking Opportunities with Healthcare Leaders</li>
-  <li>Academic & Professional Development Sessions</li>
-  <li>Certificate of Participation</li>
-  <li>5 CNE Credit Hours</li>
-</ul>
-
-<h4>📊 Event Scale</h4>
-<ul>
-  <li>1000+ Delegates</li>
-  <li>200+ Award Nominees</li>
-  <li>20+ Exhibitors</li>
-  <li>15+ National Speakers</li>
-</ul>
-
-<h4>🎯 Eligible Participants</h4>
-<ul>
-  <li>ANM Nursing Students</li>
-  <li>GNM Students</li>
-  <li>B.Sc Nursing Students</li>
-  <li>Post Basic B.Sc Nursing Students</li>
-  <li>M.Sc Nursing Students</li>
-  <li>PhD Scholars</li>
-  <li>Nursing Faculty Members</li>
-  <li>Nurse Educators</li>
-  <li>Healthcare Professionals</li>
-  <li>Researchers & Academicians</li>
-</ul>
 
 <h4>📢 Important Instructions</h4>
 

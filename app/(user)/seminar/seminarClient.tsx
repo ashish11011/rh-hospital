@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from "sonner";
+import Link from 'next/link';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export const registrationSchema = z
     .object({
@@ -25,21 +27,21 @@ export const registrationSchema = z
 
         designation: z.string().min(2),
 
-        qualification: z.string().min(2),
+        // institution: z.string().min(2),
 
         instituteName: z.string().min(2),
 
-        addressLine1: z.string().min(5),
+        // addressLine1: z.string().min(5),
 
-        addressLine2: z.string().optional(),
+        // addressLine2: z.string().optional(),
 
         city: z.string().min(2),
 
         state: z.string().min(2),
 
-        country: z.string().min(2),
+        // country: z.string().min(2),
 
-        pincode: z.string().regex(/^\d{6}$/),
+        // pincode: z.string().regex(/^\d{6}$/),
 
         paperPresentation: z.boolean(),
 
@@ -51,7 +53,7 @@ export const registrationSchema = z
 
         additionalDetails: z.string().optional(),
 
-        referenceType: z.enum([
+        motivatedBy: z.enum([
             "person",
             "social_media",
             "other",
@@ -88,24 +90,24 @@ export const registrationSchema = z
                 });
             }
 
-            if (!data.authorName) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["authorName"],
-                    message: "Author name is required",
-                });
-            }
+            // if (!data.authorName) {
+            //     ctx.addIssue({
+            //         code: "custom",
+            //         path: ["authorName"],
+            //         message: "Author name is required",
+            //     });
+            // }
 
-            if (!data.paperInstitution) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["paperInstitution"],
-                    message: "Institution is required",
-                });
-            }
+            // if (!data.paperInstitution) {
+            //     ctx.addIssue({
+            //         code: "custom",
+            //         path: ["paperInstitution"],
+            //         message: "Institution is required",
+            //     });
+            // }
         }
 
-        if (data.referenceType === "person") {
+        if (data.motivatedBy === "person") {
             if (!data.referencePersonName) {
                 ctx.addIssue({
                     code: "custom",
@@ -124,7 +126,7 @@ export const registrationSchema = z
         }
 
         if (
-            data.referenceType === "social_media" &&
+            data.motivatedBy === "social_media" &&
             !data.socialMediaName
         ) {
             ctx.addIssue({
@@ -142,6 +144,16 @@ export const registrationSchema = z
                 code: "custom",
                 path: ["offlineDuration"],
                 message: "Select duration",
+            });
+        }
+        if (
+            data.registrationMode === "online" &&
+            data.paperPresentation
+        ) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["offlineDuration"],
+                message: "Paper presenters must register offline for two days",
             });
         }
 
@@ -163,13 +175,13 @@ export const registrationSchema = z
                 ctx.addIssue({
                     code: "custom",
                     path: ["naitRegistrationId"],
-                    message: "NAIT Registration ID is required",
+                    message: "NTAI Registration ID is required",
                 });
             } else if (!/^NTA\/\d{4}LM\d{8}$/.test(data.naitRegistrationId)) {
                 ctx.addIssue({
                     code: "custom",
                     path: ["naitRegistrationId"],
-                    message: "Invalid NTA membership number",
+                    message: "Invalid NTAI membership number",
                 });
             }
         }
@@ -179,7 +191,8 @@ const SeminarClient = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
-
+    const [isChecked, setIsChecked] = useState(false);
+    const [designationType, setDesignationType] = useState("");
     useEffect(() => {
         const loadScript = () => {
             return new Promise((resolve) => {
@@ -219,7 +232,7 @@ const SeminarClient = () => {
         mobileNumber: "",
         email: "",
         designation: "",
-        qualification: "",
+        // institution: "",
         instituteName: "",
         addressLine1: "",
         addressLine2: "",
@@ -229,16 +242,16 @@ const SeminarClient = () => {
         pincode: "",
         paperPresentation: "no",
         paperTitle: "",
-        authorName: "",
-        paperInstitution: "",
+        // authorName: "",
+        // paperInstitution: "",
         additionalDetails: "",
-        referenceType: "",
+        motivatedBy: "",
         referencePersonName: "",
         referencePersonMobile: "",
         socialMediaName: "",
         registrationMode: "online",
         offlineDuration: "",
-        isNaitMember: "",
+        isNaitMember: "no",
         naitRegistrationId: ""
     });
 
@@ -353,7 +366,7 @@ const SeminarClient = () => {
                 mobileNumber: "",
                 email: "",
                 designation: "",
-                qualification: "",
+                // institution: "",
                 instituteName: "",
                 addressLine1: "",
                 addressLine2: "",
@@ -363,10 +376,10 @@ const SeminarClient = () => {
                 pincode: "",
                 paperPresentation: "no",
                 paperTitle: "",
-                authorName: "",
-                paperInstitution: "",
+                // authorName: "",
+                // paperInstitution: "",
                 additionalDetails: "",
-                referenceType: "",
+                motivatedBy: "",
                 referencePersonName: "",
                 referencePersonMobile: "",
                 socialMediaName: "",
@@ -383,7 +396,7 @@ const SeminarClient = () => {
     }
 
     return (
-        <div className=' max-w-xl mx-auto p-4 py-12'>
+        <div className=''>
             <div className="grid gap-4 py-4">
 
                 <p className='mt-6 text-xl'>Basic Information</p>
@@ -435,15 +448,41 @@ const SeminarClient = () => {
 
                 <div className="space-y-1">
                     <Label>Designation</Label>
-                    <Input
-                        value={form.designation}
-                        onChange={(e) =>
-                            handleChange("designation", e.target.value)
-                        }
-                    />
+                    <Select
+                        onValueChange={(val) => {
+                            setDesignationType(val);
+                            if (val !== "other") {
+                                handleChange("designation", val);
+                            } else {
+                                handleChange("designation", "");
+                            }
+                        }}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select Designation" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Student">Student</SelectItem>
+                            <SelectItem value="PHD scholar">PHD scholar</SelectItem>
+                            <SelectItem value="Clinical nurse">Clinical nurse</SelectItem>
+                            <SelectItem value="Nursing teacher">Nursing teacher</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    {designationType === "other" && (
+                        <div className="pt-2">
+                            <Input
+                                placeholder="Enter your designation"
+                                value={form.designation}
+                                onChange={(e) =>
+                                    handleChange("designation", e.target.value)
+                                }
+                            />
+                        </div>
+                    )}
                 </div>
 
-                <div className="space-y-1">
+                {/* <div className="space-y-1">
                     <Label>Qualification</Label>
                     <Input
                         value={form.qualification}
@@ -451,10 +490,10 @@ const SeminarClient = () => {
                             handleChange("qualification", e.target.value)
                         }
                     />
-                </div>
+                </div> */}
 
                 <div className="space-y-1">
-                    <Label>Institute Name</Label>
+                    <Label>Institution / Organization</Label>
                     <Input
                         value={form.instituteName}
                         onChange={(e) =>
@@ -467,7 +506,7 @@ const SeminarClient = () => {
                 <p className='mt-12 text-xl'>Address</p>
                 <Separator className=' -mt-4' />
 
-                <div className="space-y-1">
+                {/* <div className="space-y-1">
                     <Label>Address Line 1</Label>
                     <Input
                         value={form.addressLine1}
@@ -485,7 +524,7 @@ const SeminarClient = () => {
                             handleChange("addressLine2", e.target.value)
                         }
                     />
-                </div>
+                </div> */}
 
                 <div className="grid grid-cols-2 gap-4">
 
@@ -509,7 +548,7 @@ const SeminarClient = () => {
                         />
                     </div>
 
-                    <div>
+                    {/* <div>
                         <Label>Country</Label>
                         <Input
                             value={form.country}
@@ -527,7 +566,7 @@ const SeminarClient = () => {
                                 handleChange("pincode", e.target.value)
                             }
                         />
-                    </div>
+                    </div> */}
 
                 </div>
 
@@ -540,6 +579,7 @@ const SeminarClient = () => {
                     onChange={(val) => {
                         handleChange("paperPresentation", val);
                         if (val === "yes") {
+                            handleChange("registrationMode", "offline");
                             handleChange("offlineDuration", "two_day");
                         }
                     }}
@@ -571,7 +611,7 @@ const SeminarClient = () => {
                             />
                         </div>
 
-                        <div>
+                        {/* <div>
                             <Label>Author Name</Label>
                             <Input
                                 value={form.authorName}
@@ -592,7 +632,7 @@ const SeminarClient = () => {
                                     )
                                 }
                             />
-                        </div>
+                        </div> */}
                     </>
                 )}
 
@@ -606,40 +646,38 @@ const SeminarClient = () => {
                     />
                 </div>
 
+                {
+                    form.paperPresentation != "yes" && (
+                        <>
+                            <p className='mt-12 text-xl'>Registration Type</p>
+                            <Separator className=' -mt-4' />
 
-                <p className='mt-12 text-xl'>Registration Type</p>
-                <Separator className=' -mt-4' />
+                            <CustomRadioGroup
+                                label="Mode Of Registration"
+                                value={form.registrationMode}
+                                onChange={(val) => handleChange("registrationMode", val)}
+                                options={[
+                                    {
+                                        id: "online",
+                                        value: "online",
+                                        title: "Online",
+                                        description: ("Attend virtually/remotely via internet"),
+                                    },
+                                    {
+                                        id: "offline",
+                                        value: "offline",
+                                        title: "Offline",
+                                        description: "Attend physically at location.",
+                                    },
+                                ]}
+                            />
+                        </>
+                    )
+                }
 
-                <CustomRadioGroup
-                    label="Mode Of Registration"
-                    value={form.registrationMode}
-                    onChange={(val) => handleChange("registrationMode", val)}
-                    options={[
-                        {
-                            id: "online",
-                            value: "online",
-                            title: "Online",
-                            description: (
-                                <>
-                                    Attend remotely via internet.
-                                    <br />
-                                    <span className="text-gray-800">
-                                        Rs. {form.isNaitMember === "yes" ? 400 : 500}
-                                    </span>
-                                </>
-                            ),
-                        },
-                        {
-                            id: "offline",
-                            value: "offline",
-                            title: "Offline",
-                            description: "Attend physically at location.",
-                        },
-                    ]}
-                />
                 <div className=" h-1"></div>
                 <CustomRadioGroup
-                    label="Are You NAIT Member?"
+                    label="Are You NTAI Member?"
                     value={form.isNaitMember}
                     onChange={(val) => handleChange("isNaitMember", val)}
                     options={[
@@ -647,13 +685,13 @@ const SeminarClient = () => {
                             id: "nait-yes",
                             value: "yes",
                             title: "Yes",
-                            description: "I am a registered NAIT member.",
+                            description: "I am a registered NTAI member.",
                         },
                         {
                             id: "nait-no",
                             value: "no",
                             title: "No",
-                            description: "I am not a NAIT member.",
+                            description: "I am not a NTAI member.",
                         },
                     ]}
                 />
@@ -673,7 +711,7 @@ const SeminarClient = () => {
                     </div>
                 )}
 
-                {form.registrationMode === "offline" && (
+                {form.registrationMode === "offline" && form.paperPresentation != "yes" && (
                     <div className="mt-4">
                         <CustomRadioGroup
                             label="Duration"
@@ -718,12 +756,12 @@ const SeminarClient = () => {
 
             <div className=' gap-4 flex flex-col'>
                 <div className=' mt-6'>
-                    <Label>Referred By</Label>
+                    <Label>Motivated By</Label>
 
                     <Select
-                        value={form.referenceType}
+                        value={form.motivatedBy}
                         onValueChange={(val) =>
-                            handleChange("referenceType", val)
+                            handleChange("motivatedBy", val)
                         }
                     >
                         <SelectTrigger>
@@ -740,7 +778,7 @@ const SeminarClient = () => {
                     </Select>
                 </div>
 
-                {form.referenceType === "person" && (
+                {form.motivatedBy === "person" && (
                     <>
                         <Input
                             placeholder="Person Name"
@@ -766,7 +804,7 @@ const SeminarClient = () => {
                     </>
                 )}
 
-                {form.referenceType === "social_media" && (
+                {form.motivatedBy === "social_media" && (
                     <Select
                         value={form.socialMediaName}
                         onValueChange={(val) =>
@@ -793,7 +831,16 @@ const SeminarClient = () => {
                 </p>
             </div>
 
-            <Button onClick={handleSubmit} disabled={loading} className="mt-4 h-10 w-full">
+            <div className=' pt-4'>
+                <Link className=' underline text-blue-600' href="https://chat.whatsapp.com/ElsWv1MjOBHBLeYWVEJbg9?s=cl&p=a&mlu=3">Join WhatsApp Group</Link>
+            </div>
+
+            <div className="flex items-center space-x-2 mt-4">
+                <Checkbox checked={isChecked} onCheckedChange={(checked) => setIsChecked(checked === true)} id="terms" />
+                <Label htmlFor="terms">Yes, i have joinded whatsapp group.</Label>
+            </div>
+
+            <Button onClick={handleSubmit} disabled={loading || !isChecked} className="mt-4 h-10 w-full">
                 {loading ? "Processing..." : `₹ ${amount} Pay`}
             </Button>
         </div>

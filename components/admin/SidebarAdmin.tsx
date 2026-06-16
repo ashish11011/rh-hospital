@@ -25,6 +25,14 @@ export function SidebarAdmin() {
             url: "/admin/workshop",
         },
         {
+            name: "Workshop Registrations",
+            url: "/admin/workshop-registration",
+        },
+        {
+            name: "Seminar Registrations",
+            url: "/admin/seminar-registration",
+        },
+        {
             name: "Generate Certificate",
             url: "/admin/generate-certificate",
         },

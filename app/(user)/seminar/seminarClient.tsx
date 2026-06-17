@@ -177,7 +177,7 @@ export const registrationSchema = z
                     path: ["naitRegistrationId"],
                     message: "NTAI Registration ID is required",
                 });
-            } else if (!/^NTA\/\d{4}LM\d{8}$/.test(data.naitRegistrationId)) {
+            } else if (!/^NTA\/\d{4}LM\d{8,9}$/.test(data.naitRegistrationId)) {
                 ctx.addIssue({
                     code: "custom",
                     path: ["naitRegistrationId"],

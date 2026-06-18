@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -77,7 +77,7 @@ export function Navbar() {
 const NAV_LINKS = [
     { title: "RH healthcare", href: "/" },
     { title: "Workshops", href: "/workshops" },
-    { title: "Seminar", href: "/seminar" },
+    { title: "Conference", href: "/rh-healthcare-ntai-conference-ric-jaipur-2026" },
     // { title: "International Patients", href: "/international-patients" },
     // { title: "Login", href: "/" },
 ]

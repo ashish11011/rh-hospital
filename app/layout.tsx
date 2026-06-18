@@ -5,13 +5,22 @@ import { Toaster } from "@/components/ui/sonner";
 
 
 const roboto = Roboto({
+  weight: ["100", "300", "400", "500", "700", "900"],
   variable: "--font-roboto",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.rhhealthcaresimulation.com'),
   title: "Rh healthcare",
   description: "Rh healthcare",
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

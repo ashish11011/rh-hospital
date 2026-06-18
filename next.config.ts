@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/seminar',
+        destination: '/rh-healthcare-ntai-conference-ric-jaipur-2026',
+        permanent: true, // 308 — tells Google to update its index
+      },
+    ]
+  },
   images: {
     domains: ["rh-healthcare.s3.ap-south-1.amazonaws.com"],
   },

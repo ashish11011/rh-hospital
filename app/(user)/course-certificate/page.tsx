@@ -3,6 +3,15 @@ import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: "Course Certificates | RH Healthcare",
+  description: "View and download your healthcare and medical training course certificates from RH Healthcare.",
+  alternates: {
+    canonical: '/course-certificate',
+  },
+}
 
 const page = () => {
     const workshopData = [{ "idx": 5, "id": "b4f95ab7-9ae7-46f8-8dac-bb6d299b3ec0", "name": "SIMTECH", "bannerImage": "https://rh-healthcare.s3.ap-south-1.amazonaws.com/1779450554173-WhatsApp_Image_2026-05-22_at_10.25.55_AM__1_.jpeg", "start_time": "2026-06-06 04:00:00", "end_time": "2026-06-06 10:30:00", "online_price": 300, "offline_price": 500, "is_completed": true }]

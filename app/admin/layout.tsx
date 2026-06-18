@@ -2,6 +2,14 @@ import { SidebarAdmin } from '@/components/admin/SidebarAdmin'
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import Link from 'next/link'
 import React from 'react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 const LINKS = [
     {
         name: "Dashboard",

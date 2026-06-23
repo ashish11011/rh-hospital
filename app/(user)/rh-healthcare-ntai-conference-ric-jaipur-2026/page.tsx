@@ -5,11 +5,17 @@ import { SeminarClient } from './seminarClient'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: "Global Nursing Leadership & Education Summit 2026 | RH Healthcare",
-  description: "Join the Global Nursing Leadership & Education Summit 2026 presented by RH Healthcare & NTAI. Celebrate nursing excellence at RIC, Jaipur.",
-  alternates: {
-    canonical: '/rh-healthcare-ntai-conference-ric-jaipur-2026',
-  },
+    title: "Global Nursing Leadership & Education Summit 2026 | RH Healthcare",
+    description: "Join the Global Nursing Leadership & Education Summit 2026 presented by RH Healthcare & NTAI. Celebrate nursing excellence at RIC, Jaipur.",
+    alternates: {
+        canonical: '/rh-healthcare-ntai-conference-ric-jaipur-2026',
+    },
+    openGraph: {
+        images: ['https://d2c3lsl35lix55.cloudfront.net/seminar/global-submit.jpeg'],
+    },
+    twitter: {
+        images: ['https://d2c3lsl35lix55.cloudfront.net/seminar/global-submit.jpeg'],
+    },
 }
 
 const page = () => {
@@ -17,7 +23,7 @@ const page = () => {
         <>
             <div className='max-w-xl mx-auto p-4 py-12'>
                 <div className=' max-w-xl mx-auto w-full'>
-                    <Image src={"/seminar_horizontal.jpeg"} height={500} width={700} alt='seminar poster' />
+                    <Image src={"https://d2c3lsl35lix55.cloudfront.net/seminar/global-submit.jpeg"} height={500} width={700} alt='seminar poster' />
                 </div>
                 <Content />
                 <Suspense>

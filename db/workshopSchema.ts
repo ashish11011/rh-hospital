@@ -81,6 +81,7 @@ export const seminarSchema = pgTable("seminar", {
     whatsappLink: varchar("whatsapp_link"),
 });
 
+export const presentationType = pgEnum("presentation_type", ["presentation", "poster", "paper"]);
 
 export const seminarRegistrationsSchema = pgTable(
     "seminar_registrations",
@@ -102,16 +103,17 @@ export const seminarRegistrationsSchema = pgTable(
         }).notNull(),
 
         // Address
-        addressLine1: text("address_line_1").notNull(),
+        addressLine1: text("address_line_1"),
         addressLine2: text("address_line_2"),
-        city: varchar("city", { length: 100 }).notNull(),
-        state: varchar("state", { length: 100 }).notNull(),
-        country: varchar("country", { length: 100 }).notNull(),
-        pincode: varchar("pincode", { length: 20 }).notNull(),
+        city: varchar("city", { length: 100 }),
+        state: varchar("state", { length: 100 }),
+        country: varchar("country", { length: 100 }),
+        pincode: varchar("pincode", { length: 20 }),
 
         // Paper Presentation
-        paperPresentation: boolean("paper_presentation").notNull(),
-        paperTitle: text("paper_title"),
+        paperPresentation: boolean("paper_presentation"),
+        presentationType: presentationType("presentation_type"),
+        presentationTitle: text("presentation_title"),
         authorName: varchar("author_name", { length: 255 }),
         paperInstitution: varchar("paper_institution", { length: 255 }),
 

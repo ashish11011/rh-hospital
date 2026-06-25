@@ -2,12 +2,13 @@ import { courseItemSchema, courseSchema } from "./courseSchema";
 import { itemEnumSchema, paymentSchema, paymentStatusEnumSchema } from "./paymentSchema";
 import { productCategorySchema, productMediaSchema, productSchema } from "./productSchema";
 import { contactSchema, userSchema } from "./userSchema";
-import { couponCodeSchema, modeOfAttandaceEnumSchema, registrationSourceEnumSchema, workshopImageSchema, workshopRegistrationSchema, workshopSchema, seminarRegistrationsSchema, seminarSchema } from "./workshopSchema";
+import { couponCodeSchema, modeOfAttandaceEnumSchema, registrationSourceEnumSchema, workshopImageSchema, workshopRegistrationSchema, workshopSchema, seminarRegistrationsSchema, seminarSchema, presentationType } from "./workshopSchema";
 
 export const itemEnum = itemEnumSchema;
 export const modeOfAttandace = modeOfAttandaceEnumSchema;
 export const paymentStatusEnum = paymentStatusEnumSchema;
 export const registrationSourceEnum = registrationSourceEnumSchema;
+export const presentationTypeEnum = presentationType;
 
 export const user = userSchema
 

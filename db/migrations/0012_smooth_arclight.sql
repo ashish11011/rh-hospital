@@ -1,0 +1,1 @@
+ALTER TYPE "public"."presentation_type" ADD VALUE 'paper';

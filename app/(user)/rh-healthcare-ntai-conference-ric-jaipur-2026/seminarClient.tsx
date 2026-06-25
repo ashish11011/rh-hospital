@@ -43,9 +43,9 @@ export const registrationSchema = z
 
         // pincode: z.string().regex(/^\d{6}$/),
 
-        paperPresentation: z.boolean(),
+        presentationType: z.enum(["paper", "poster", "no"]),
 
-        paperTitle: z.string().optional(),
+        presentationTitle: z.string().optional(),
 
         authorName: z.string().optional(),
 
@@ -81,12 +81,12 @@ export const registrationSchema = z
     })
     .superRefine((data, ctx) => {
 
-        if (data.paperPresentation) {
-            if (!data.paperTitle) {
+        if (data.presentationType === "paper" || data.presentationType === "poster") {
+            if (!data.presentationTitle) {
                 ctx.addIssue({
                     code: "custom",
-                    path: ["paperTitle"],
-                    message: "Paper title is required",
+                    path: ["presentationTitle"],
+                    message: "Presentation title is required",
                 });
             }
 
@@ -116,13 +116,13 @@ export const registrationSchema = z
                 });
             }
 
-            if (!data.referencePersonMobile) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["referencePersonMobile"],
-                    message: "Mobile number is required",
-                });
-            }
+            // if (!data.referencePersonMobile) {
+            //     ctx.addIssue({
+            //         code: "custom",
+            //         path: ["referencePersonMobile"],
+            //         message: "Mobile number is required",
+            //     });
+            // }
         }
 
         if (
@@ -148,17 +148,17 @@ export const registrationSchema = z
         }
         if (
             data.registrationMode === "online" &&
-            data.paperPresentation
+            (data.presentationType === "paper" || data.presentationType === "poster")
         ) {
             ctx.addIssue({
                 code: "custom",
                 path: ["offlineDuration"],
-                message: "Paper presenters must register offline for two days",
+                message: "Presenters must register offline for two days",
             });
         }
 
         if (
-            data.paperPresentation &&
+            (data.presentationType === "paper" || data.presentationType === "poster") &&
             data.registrationMode === "offline" &&
             data.offlineDuration === "one_day"
         ) {
@@ -166,7 +166,7 @@ export const registrationSchema = z
                 code: "custom",
                 path: ["offlineDuration"],
                 message:
-                    "Paper presenters must register for two days",
+                    "Presenters must register for two days",
             });
         }
 
@@ -240,8 +240,8 @@ const SeminarClient = () => {
         state: "",
         country: "",
         pincode: "",
-        paperPresentation: "no",
-        paperTitle: "",
+        presentationType: "no",
+        presentationTitle: "",
         // authorName: "",
         // paperInstitution: "",
         additionalDetails: "",
@@ -288,11 +288,14 @@ const SeminarClient = () => {
 
     const handleSubmit = async () => {
         setLoading(true);
-        const data: any = { ...form, paperPresentation: form.paperPresentation === "yes" ? true : false, isNaitMember: form.isNaitMember === "yes" ? true : false }
+        const data: any = {
+            ...form,
+            paperPresentation: form.presentationType === "paper" || form.presentationType === "poster",
+            isNaitMember: form.isNaitMember === "yes" ? true : false
+        };
         if (data.registrationMode !== "offline" || !data.offlineDuration) {
             delete data.offlineDuration;
         }
-        console.log(data)
         const zodResult = registrationSchema.safeParse(data);
         if (!zodResult.success) {
             const firstError = zodResult.error.issues[0];
@@ -374,8 +377,8 @@ const SeminarClient = () => {
                 state: "",
                 country: "",
                 pincode: "",
-                paperPresentation: "no",
-                paperTitle: "",
+                presentationType: "no",
+                presentationTitle: "",
                 // authorName: "",
                 // paperInstitution: "",
                 additionalDetails: "",
@@ -570,43 +573,49 @@ const SeminarClient = () => {
 
                 </div>
 
-                <p className='mt-12 text-xl'>Paper Presentation Participation</p>
+                <p className='mt-12 text-xl'>Presentation Participation</p>
                 <Separator className=' -mt-4' />
 
                 <CustomRadioGroup
-                    label="Paper Presentation Participation"
-                    value={form.paperPresentation}
+                    label="Presentation Participation"
+                    value={form.presentationType}
                     onChange={(val) => {
-                        handleChange("paperPresentation", val);
-                        if (val === "yes") {
+                        handleChange("presentationType", val);
+                        if (val === "paper" || val === "poster") {
                             handleChange("registrationMode", "offline");
                             handleChange("offlineDuration", "two_day");
                         }
                     }}
                     options={[
                         {
-                            id: "paper-yes",
-                            value: "yes",
-                            title: "Yes",
+                            id: "presentation-paper",
+                            value: "paper",
+                            title: "Paper Presentation",
                             description: "I will present a paper.",
                         },
                         {
-                            id: "paper-no",
+                            id: "presentation-poster",
+                            value: "poster",
+                            title: "Poster Presentation",
+                            description: "I will present a poster.",
+                        },
+                        {
+                            id: "presentation-no",
                             value: "no",
                             title: "No",
-                            description: "I will not present a paper.",
+                            description: "I will not present.",
                         },
                     ]}
                 />
 
-                {form.paperPresentation === "yes" && (
+                {(form.presentationType === "paper" || form.presentationType === "poster") && (
                     <>
                         <div>
-                            <Label>Title of Paper</Label>
+                            <Label>Title of {form.presentationType === 'paper' ? 'Paper' : 'Poster'}</Label>
                             <Input
-                                value={form.paperTitle}
+                                value={form.presentationTitle}
                                 onChange={(e) =>
-                                    handleChange("paperTitle", e.target.value)
+                                    handleChange("presentationTitle", e.target.value)
                                 }
                             />
                         </div>
@@ -647,7 +656,7 @@ const SeminarClient = () => {
                 </div>
 
                 {
-                    form.paperPresentation != "yes" && (
+                    form.presentationType === "no" && (
                         <>
                             <p className='mt-12 text-xl'>Registration Type</p>
                             <Separator className=' -mt-4' />
@@ -698,7 +707,7 @@ const SeminarClient = () => {
 
                 {form.isNaitMember === "yes" && (
                     <div className="space-y-1 mt-4">
-                        <Label>NAIT Registration ID</Label>
+                        <Label>NTAI Registration ID</Label>
                         <Input
                             value={form.naitRegistrationId}
                             onChange={(e) =>
@@ -711,7 +720,7 @@ const SeminarClient = () => {
                     </div>
                 )}
 
-                {form.registrationMode === "offline" && form.paperPresentation != "yes" && (
+                {form.registrationMode === "offline" && form.presentationType === "no" && (
                     <div className="mt-4">
                         <CustomRadioGroup
                             label="Duration"
@@ -731,7 +740,7 @@ const SeminarClient = () => {
                                             </span>
                                         </>
                                     ),
-                                    disabled: form.paperPresentation === "yes",
+                                    disabled: form.presentationType !== "no",
                                 },
                                 {
                                     id: "two-day",
@@ -773,7 +782,7 @@ const SeminarClient = () => {
                             <SelectItem value="social_media">
                                 Social Media
                             </SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
+                            {/* <SelectItem value="other">Other</SelectItem> */}
                         </SelectContent>
                     </Select>
                 </div>

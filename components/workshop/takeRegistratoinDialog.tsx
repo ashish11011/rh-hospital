@@ -126,8 +126,8 @@ export function WorkshopRegistration({
             }
 
             else if (responseData.status === 200) {
-                // toast.success("Coupon code applied successfully");
-                toast.success("Coupon code no longer available");
+                 toast.success("Coupon code applied successfully");
+               // toast.success("Coupon code no longer available");
                 setCouponDiscount({
                     onlineDiscount: responseData.data.onlineDiscount,
                     offlineDiscount: responseData.data.offlineDiscount

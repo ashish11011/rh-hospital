@@ -8,3 +8,6 @@ export const SES_SECRET_ACCESS_KEY = process.env.SES_SECRET_ACCESS_KEY!;
 export const RAZORPAY_KEY = process.env.NEXT_PUBLIC_RAZORPAY_KEY!;
 export const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET!;
 export const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET!;
+export const USER_POOL_ID = process.env.USER_POOL_ID!;
+export const USER_POOL_CLIENT_ID = process.env.USER_POOL_CLIENT_ID!;
+export const AWS_COGNITO_REGION = process.env.AWS_COGNITO_REGION!;

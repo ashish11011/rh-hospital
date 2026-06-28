@@ -1,11 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, ShieldIcon, UserIcon } from "lucide-react";
+import { ArrowRight, ArrowRightCircle, Award, BadgeCheck, BriefcaseMedical, ChevronRight, Clock, Globe2, PlayCircleIcon, ShieldIcon, UserIcon } from "lucide-react";
 import { PRODUCT_CATEGORY } from "@/const/product";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { CertificateDialogButton } from "@/components/certificate-dialog-button";
 import { IconAugmentedReality, IconBodyScan, IconCertificate, IconHospital, IconMeeple, IconNumber1 } from "@tabler/icons-react";
 import WorkshopFAQ from "@/components/ui/AccordionStudio";
 import { Button } from "@/components/ui/button";
 import { Metadata } from "next";
+import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
+import { Separator } from "@/components/ui/separator";
 
 export const metadata: Metadata = {
   title: {
@@ -61,8 +65,10 @@ export default function Home() {
   return (
     <>
       <HeroSection />
+      <CurrentWorkshop />
+      <CertifiedModules />
       <CatalogContainer />
-      <div className=" container grid grid-cols-1 md:grid-cols-2 gap-4 py-12">
+      {/* <div className=" container grid grid-cols-1 md:grid-cols-2 gap-4 py-12">
         <ProductCategory />
         <div className=" p-4">
           <img src={"https://5.imimg.com/data5/SELLER/Default/2025/11/558466978/JG/NR/PM/194025138/human-torso-small-23-parts-model-250x250.jpg"} alt="sample image" className=" w-full max-h-60 object-contain max-w-80 mx-auto" />
@@ -70,16 +76,20 @@ export default function Home() {
             RH LARNYX MODEL
             Human Trachea Intubation Model With Monitor</p>
         </div>
-      </div>
-      <div className=" py-12 flex flex-col md:flex-row gap-6 container">
+      </div> */}
+      <MedicalEducation />
+      <WhyChooseRH />
+      <div className=" py-12 pb-24 flex flex-col md:flex-row gap-6 container">
         <iframe width="345" height="315" src="https://www.youtube.com/embed/PQ6HXDK8Tk0?si=l3n9p1hwTqgKZbil" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
         <iframe width="345" height="315" src="https://www.youtube.com/embed/DwhQItB8u4A?si=Xz06OpAzQvQ11txR" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
         <iframe width="345" height="315" src="https://www.youtube.com/embed/rCLVwwpdZhk?si=WebusDPN89sH0Qbh" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
       </div>
-      <HomeProductCrousel />
-      <WhyChooseRH />
+      {/* <HomeProductCrousel /> */}
+
       <AwardSection />
       <AboutOrg />
+      <div className="h-12"></div>
+      <CTASection />
       <div className=" container pb-10">
         <div className="mb-8 mt-16">
           <h2 className=" text-xl md:text-3xl font-bold text-primary">Frequently Asked Questions</h2>
@@ -88,6 +98,7 @@ export default function Home() {
           </p> */}
         </div>
         <WorkshopFAQ />
+        <div className="h-10"></div>
       </div>
     </>
   );
@@ -95,32 +106,120 @@ export default function Home() {
 
 
 function HeroSection() {
-  return <div className=" bg-linear-to-r shadow-[inset_0px_6px_14px_0px_#515251] from-primary via-primary to-primary text-white w-full min-h-72 py-3 md:py-6" >
+  return <div className=" py-16  w-full min-h-72 md:py-16" >
     <div className="container h-full flex flex-col md:flex-row items-center gap-6 min-h-72  justify-between">
       <div className=" max-w-xl text-center md:text-left space-y-3 md:space-y-6 h-fit">
-        <h3 className=" text-lg md:text-xl">
+        <Badge className="">
           First Simulation Centre in Jaipur, Rajasthan
-        </h3>
-        <h1 className=" text-2xl md:text-3xl font-semibold">
-          First Simulation Centre in Jaipur, Rajasthan
-          Empowering Nurses
-          Through Clinical Simulation
+        </Badge>
+        <h1 className=" text-2xl md:text-4xl font-semibold">
+          Empowering Nurses <br /> Through Clinical Simulation
         </h1>
 
-        <h3 className=" text-base">
+        <h3 className="">
           RH Healthcare is Jaipur's first and most advanced simulation-based training centre exclusively focused on BSc Nursing students
         </h3>
+        <div className=" flex gap-4 items-center  flex-col md:flex-row">
+          <Button size={"lg"} className=" w-full md:w-auto rounded-sm" >View Workshops <ArrowRight /> </Button>
+          <Button size={"lg"} className=" w-full md:w-auto rounded-sm" variant={"outline"} > Browse Catalogue </Button>
+        </div>
       </div>
-      <div className="max-w-80 max-h-64 w-full h-full">
-        <img src="/group-doctor.png" alt="" className=" object-contain h-auto  w-auto" />
+      <div className="max-w-80 hidden md:block max-h-64 w-full h-full">
+        <Image src="/group-doctor.png" alt="group-doctor" width={500} height={500} className=" object-contain h-auto  w-auto" />
       </div>
     </div>
   </div>
 }
 
+function CurrentWorkshop() {
+  return <div className=" w-full container py-12">
+    <div className="grid grid-cols-1 md:grid-cols-2 bg-primary/10 rounded-xl overflow-hidden ">
+      <div className="">
+        <Image src={"https://d2c3lsl35lix55.cloudfront.net/bioshild-ws.jpeg"} alt="current-workshop" height={800} width={800} className=" w-full h-full object-cover" />
+      </div>
+      <div className=" p-8 md:p-12 flex flex-col gap-8">
+        <h2 className=" text-xl md:text-3xl font-bold text-primary">BIO-SHIELD WORKSHOP</h2>
+        <p className=" flex flex-col gap-1">
+          <span>📅 Date: 27 June 2026</span>
+          <span>⏰ Time: 9:30 AM – 4:00 PM</span>
+          <span>📍 Venue: RH Healthcare Simulation Center, Triveni Nagar Chouraha, Gopalpura Bypass, Jaipur</span>
+          <span>📘 Mode: Offline and Online</span>
+        </p>
+        <p className="mt-2  text-gray-600">
+          This workshop is a specialized infection control training program designed for healthcare professionals and students. Participants will gain practical knowledge of hand hygiene, PPE usage, biomedical waste management, while earning a Certificate of Participation and 5 Credit Hours.
+        </p>
+        <Button size={"lg"}>Reserve your seat now</Button>
+      </div>
+    </div>
+
+  </div>
+}
+
+function CertifiedModules() {
+  return (
+    <div className=" container pt-8">
+      <div className=" flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+        <div className=" space-y-2">
+          <h3 className=" text-lg md:text-2xl font-semibold">Certified Online Modules</h3>
+          <p className=" text-sm md:text-base">Self-paced learning modules designed by clinicians for clinicians.</p>
+        </div>
+        <Button variant={"link"}> View All Modules <ArrowRight /> </Button>
+      </div>
+      <div className=" mt-12">
+        <div className=" w-full grid grid-cols-1 md:grid-cols-3 gap-6 ">
+          {
+            [1, 2, 3].map((item) => (
+              <div key={item} className=" flex flex-col border group cursor-pointer rounded-2xl overflow-hidden h-full">
+                <Image src={"https://d2c3lsl35lix55.cloudfront.net/course-tmn.jpg"} height={200} width={200} alt="sample image" className=" group-hover:scale-105 duration-300 transition-all w-full h-full object-contain" />
+                <div className=" p-4 flex flex-col gap-2">
+                  <p className=" text-lg font-semibold">Fundamentals of IV Cannulation</p>
+                  <div className=" flex items-center gap-4 text-sm">
+                    <p className="flex items-center gap-1">
+                      <Clock size={14} />
+                      12 hrs
+                    </p>
+                    <p className="flex items-center gap-1">
+                      <PlayCircleIcon size={14} />
+                      24 video lessons
+                    </p>
+                  </div>
+                  <Separator className=" mt-1 w-full h-0.5" />
+                  <div className=" mt-3 flex items-center justify-between">
+                    <p className=" text-primary font-semibold">CME Accredited</p>
+                    <p className=" p-1 bg-gray-200 rounded-full">
+                      <ChevronRight size={14} />
+                    </p>
+                  </div>
+                </div>
+              </div>))
+          }
+        </div>
+      </div>
+
+    </div>
+  )
+}
+
+function CTASection() {
+  return (
+    <div className=" container py-12">
+      <div className="rounded-2xl overflow-hidden w-full h-full space-y-5 bg-primary p-10 md:p-12 ">
+        <h3 className=" text-2xl md:text-3xl font-semibold text-white text-center">
+          Ready to Advance Your Healthcare Career?
+        </h3>
+        <p className=" text-gray-100 text-sm text-center mt-2">Join our next batch of clinicians and get certified in the most in-demand medical skills.</p>
+        <div className=" flex items-center flex-col md:flex-row gap-4 justify-center">
+          <Button size={"lg"} variant={"secondary"} className=" w-full md:w-auto  rounded-sm"> Enrol Now <ArrowRight /> </Button>
+          <Button size={"lg"} variant={"outline"} className=" bg-primary text-white hover:bg-primary/90 w-full md:w-auto rounded-sm"> Speak to an Advicer <ArrowRight /> </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function CatalogContainer() {
   return (
-    <div className=" container pt-12 max-w-6xl! py-8 grid grid-cols-2 md:grid-cols-3 gap-6">
+    <div className=" container pt-20 max-w-6xl! py-8 grid grid-cols-2 md:grid-cols-3 gap-6">
       {
         CATELOG_ITEMS.map((item) => {
           return <CatelogBox {...item} />
@@ -149,7 +248,7 @@ const CATELOG_ITEMS = [
 ]
 
 function CatelogBox({ title, icon: Icon }: { title: string, icon: any }) {
-  return <Card className=" py-3 ring-2 ring-primary/60 hover:shadow-xl rounded-md duration-200 cursor-pointer">
+  return <Card className=" py-3 ring-2 border border-primary rounded-md duration-200 cursor-pointer">
     <CardContent className=" flex items-center  gap-4 w-full ">
       <Icon className=" text-primary shrink-0 size-6 md:size-10 stroke-[1.5px]" />
       <p className=" text-xs md:text-lg text-gray-600">{title}</p>
@@ -249,7 +348,7 @@ function WhyChooseRH() {
             Why Choose Rh healthcare?
           </h2>
 
-          <p className="text-sm md:text-base text-white/90 leading-relaxed">
+          <p className="text-base leading-7 text-white/90">
             RH Healthcare is a premier clinical simulation training centre established to transform nursing education in Rajasthan. We provide hands-on, scenario-based training in a safe, controlled environment that replicates real clinical settings. Our centre is equipped with high-fidelity manikins, task trainers, and advanced simulation equipment to ensure BSc Nursing students develop competency, confidence.
           </p>
         </div>
@@ -278,40 +377,32 @@ function WhyChooseRH() {
 }
 
 function AwardSection() {
+
+  const Label = ({ text }: { text: string }) => {
+    return <p className=" flex text-sm"> <BadgeCheck className=" text-primary mr-2" size={18} /> {text}</p>
+  }
   return (
     <div className="select-none  w-full bg-primary/10">
-      <div className=" container flex-col md:flex-row justify-between max-w-6xl! flex  gap-8 md:gap-20 items-center ">
-        <div className="pt-10 md:pb-10 max-w-xl ">
+      <div className=" container flex-col md:flex-row justify-between max-w-6xl! flex  gap-8 md:gap-20 items-center pb-10 md:pb-0">
+        <div className="pt-10 md:pb-10 max-w-xl flex  flex-col">
           <h2 className="text-3xl mb-4 text-primary break-keep font-semibold">
-            Certificates
+            Your Certificate Benefits
           </h2>
-          <p className=" text-sm md:text-base text-gray-600  mb-2">Comprehensive training on standard precautions, transmission-based precautions, hand hygiene, PPE use, healthcare-associated infection (HAI) prevention, and sterile technique in clinical settings.</p>
-          <p className=" text-sm md:text-base text-gray-600 mb-2">Intensive training in ICU patient management, ventilator care, hemodynamic monitoring, vasopressor management, sedation assessment, and nursing care of critically ill patients.</p>
-          <Button className="p-0 flex gap-1.5 duration-200 cursor-pointer hover:gap-3" variant={"link"}>
-            <p>View All</p>
-            <ArrowRight />
-          </Button>
-        </div>
-        <img src={"/certificate.svg"} className=" w-full h-full shrink-0 max-h-60 md:max-h-none max-w-60 md:max-w-80 object-contain" />
-        {/* <div className=" space-y-12">
-
-          <div className=" w-full flex">
-            <Carousel>
-              <CarouselContent>
-                {
-                  CERTIFICATES.map((cert) => {
-                    return <CarouselItem className=" basis-1/4">
-                      <img src={cert} className=" w-full h-auto max-w-60" />
-                    </CarouselItem>
-                  })
-                }
-              </CarouselContent>
-              <CarouselNext />
-              <CarouselPrevious />
-            </Carousel>
-
+          <div className="text-base text-gray-600 leading-7 ">
+            <p className="mb-2">Comprehensive training on standard precautions, transmission-based precautions, hand hygiene, PPE use, healthcare-associated infection (HAI) prevention, and sterile technique in clinical settings.</p>
+            <p className="mb-2">Intensive training in ICU patient management, ventilator care, hemodynamic monitoring, vasopressor management, sedation assessment, and nursing care of critically ill patients.</p>
           </div>
-        </div> */}
+
+          <Image height={600} width={600} alt="certificate-sample" src={"/certificate.svg"} className="md:hidden mt-6 w-full h-full shrink-0 max-h-60 max-w-60 self-center object-contain" />
+
+          <div className="flex flex-col gap-1 mt-5 mb-6">
+            <Label text="QR-Coded Verification System" />
+            <Label text="CME Points Eligibility" />
+            <Label text="Lifetime Digital Badge" />
+          </div>
+          <CertificateDialogButton />
+        </div>
+        <Image height={600} width={600} alt="certificate-sample" src={"/certificate.svg"} className="hidden md:block w-full h-full shrink-0 max-h-none max-w-80 object-contain" />
       </div>
     </div>
   )
@@ -494,4 +585,75 @@ function AboutOrg() {
 
     </div>
   )
+}
+
+function MedicalEducation() {
+
+  const features = [
+    {
+      title: "Experienced Faculty",
+      description:
+        "Learn from experienced healthcare professionals and educators with real-world clinical expertise.",
+      icon: Award,
+    },
+    {
+      title: "Practical Learning",
+      description:
+        "Build confidence through hands-on workshops, simulation-based training, and case-based learning.",
+      icon: BriefcaseMedical,
+    },
+    {
+      title: "Recognized Certification",
+      description:
+        "Earn certificates that showcase your learning and support your professional development.",
+      icon: Globe2,
+    },
+  ];
+
+  return (
+    <section className="py-16 md:py-24">
+      <div className="container mx-auto px-4">
+        {/* Heading */}
+        <div className="mx-auto mb-14 max-w-3xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900 md:text-5xl">
+            Why Learn with RH Healthcare?
+          </h2>
+
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
+            Advance your healthcare career through expert-led courses, practical
+            workshops, and industry-focused training designed to strengthen your
+            clinical knowledge and professional skills.
+          </p>
+        </div>
+
+        {/* Cards */}
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {features.map((feature) => {
+            const Icon = feature.icon;
+
+            return (
+              <Card
+                key={feature.title}
+                className="transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+              >
+                <CardContent className="md:p-8">
+                  <div className=" mb-4 md:mb-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+                    <Icon className="h-7 w-7 text-primary" />
+                  </div>
+
+                  <h3 className=" mb-2 md:mb-4 text-xl font-semibold text-slate-900">
+                    {feature.title}
+                  </h3>
+
+                  <p className="text-base leading-6 md:leading-7 text-slate-600">
+                    {feature.description}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
 }

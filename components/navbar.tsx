@@ -35,9 +35,14 @@ export function Navbar() {
                             )
                         })}
 
-                        <Button onClick={() => setOpen(true)} className="">
-                            Contact Us
-                        </Button>
+                        <div className=" flex gap-2 items-center">
+                            <Button variant={"link"} className="">
+                                Sign in
+                            </Button>
+                            <Button className="">
+                                Sign up
+                            </Button>
+                        </div>
                     </nav>
 
                     {/* Mobile Menu */}
@@ -75,7 +80,7 @@ export function Navbar() {
 }
 
 const NAV_LINKS = [
-    { title: "RH healthcare", href: "/" },
+    { title: "Courses", href: "/courses" },
     { title: "Workshops", href: "/workshops" },
     { title: "Conference", href: "/rh-healthcare-ntai-conference-ric-jaipur-2026" },
     // { title: "International Patients", href: "/international-patients" },

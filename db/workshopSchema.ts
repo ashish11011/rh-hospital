@@ -81,7 +81,7 @@ export const seminarSchema = pgTable("seminar", {
     whatsappLink: varchar("whatsapp_link"),
 });
 
-export const presentationType = pgEnum("presentation_type", ["presentation", "poster", "paper"]);
+export const presentationType = pgEnum("presentation_type", ["presentation", "poster", "paper", 'online_paper']);
 
 export const seminarRegistrationsSchema = pgTable(
     "seminar_registrations",

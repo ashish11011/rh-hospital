@@ -40,7 +40,9 @@ export async function POST(req: NextRequest) {
         const isNait = isNaitMember === true;
         let payableAmount = 0;
 
-        if (registrationMode === "online") {
+        if (data.presentationType === "online_paper") {
+            payableAmount = isNait ? 900 : 1400;
+        } else if (registrationMode === "online") {
             payableAmount = isNait ? 400 : 500;
         } else if (registrationMode === "offline" && offlineDuration === "one_day") {
             payableAmount = isNait ? 1000 : 1500;
@@ -53,7 +55,7 @@ export async function POST(req: NextRequest) {
             userId,
             ...data,
             qualification: "",
-            presentationType: data.presentationType === "paper" ? "paper" : data.presentationType === "poster" ? "poster" : null,
+            presentationType: data.presentationType === "paper" ? "paper" : data.presentationType === "poster" ? "poster" : data.presentationType === "online_paper" ? "online_paper" : null,
             referenceType: data.motivatedBy,
             amount: payableAmount.toString(),
             paymentStatus: "pending"

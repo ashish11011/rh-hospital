@@ -259,7 +259,7 @@ const SeminarClient = () => {
     const isNait = form.isNaitMember === "yes";
 
     if (form.presentationType === "online_paper") {
-      return isNait ? 900 : 1400;
+      return isNait ? 1400 : 1400;
     }
 
     if (form.registrationMode === "online") {
@@ -288,7 +288,9 @@ const SeminarClient = () => {
     const data: any = {
       ...form,
       paperPresentation:
-        form.presentationType === "paper" || form.presentationType === "poster" || form.presentationType === "online_paper",
+        form.presentationType === "paper" ||
+        form.presentationType === "poster" ||
+        form.presentationType === "online_paper",
       isNaitMember: form.isNaitMember === "yes" ? true : false,
     };
     if (data.registrationMode !== "offline" || !data.offlineDuration) {

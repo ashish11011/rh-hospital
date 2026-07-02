@@ -327,7 +327,7 @@ const SeminarClient = () => {
       const isLoaded = await loadRazorpayScript();
       if (!isLoaded) {
         toast.error(
-          "Razorpay SDK failed to load. Please check your connection.",
+          "Razorpay SDK failed to load. Please check your connection, or refresh page.",
         );
         setLoading(false);
         return;

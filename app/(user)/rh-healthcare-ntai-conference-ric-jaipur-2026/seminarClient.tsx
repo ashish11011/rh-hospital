@@ -187,23 +187,24 @@ const SeminarClient = () => {
   const [loading, setLoading] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [designationType, setDesignationType] = useState("");
-  useEffect(() => {
-    const loadScript = () => {
-      return new Promise((resolve) => {
-        const script = document.createElement("script");
-        script.src = "https://checkout.razorpay.com/v1/checkout.js";
-        script.onload = () => {
-          resolve(true);
-        };
-        script.onerror = () => {
-          resolve(false);
-        };
-        document.body.appendChild(script);
-      });
-    };
 
-    loadScript();
-  }, []);
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (typeof window !== "undefined" && (window as any).Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => {
+        resolve(true);
+      };
+      script.onerror = () => {
+        resolve(false);
+      };
+      document.body.appendChild(script);
+    });
+  };
 
   useEffect(() => {
     const utmSource = searchParams.get("utm_source");
@@ -323,6 +324,15 @@ const SeminarClient = () => {
 
       if (!responseData) throw new Error("Request Failed, please try again");
 
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        toast.error(
+          "Razorpay SDK failed to load. Please check your connection.",
+        );
+        setLoading(false);
+        return;
+      }
+
       const options = {
         key: RAZORPAY_KEY, // Replace with your Razorpay key_id
         amount: responseData.amount, // Use dynamic amount
@@ -437,6 +447,7 @@ const SeminarClient = () => {
           <Input
             value={form.mobileNumber}
             onChange={(e) => handleChange("mobileNumber", e.target.value)}
+            placeholder="10 digit mobile number"
           />
         </div>
 

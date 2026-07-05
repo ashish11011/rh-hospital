@@ -33,7 +33,12 @@ export function Navbar({ session }: { session: Session | null }) {
           <nav className="hidden items-center gap-6 md:flex">
             {NAV_LINKS.map((link) => {
               return (
-                <Link key={link.title} href={link.href} className="text-sm">
+                <Link
+                  prefetch={false}
+                  key={link.title}
+                  href={link.href}
+                  className="text-sm"
+                >
                   {link.title}
                 </Link>
               );
@@ -42,15 +47,21 @@ export function Navbar({ session }: { session: Session | null }) {
             <div className="flex items-center gap-2">
               {session ? (
                 <Button className="" asChild>
-                  <Link href="/dashboard">Dashboard</Link>
+                  <Link prefetch={false} href="/dashboard">
+                    Dashboard
+                  </Link>
                 </Button>
               ) : (
                 <>
                   <Button variant={"link"} className="" asChild>
-                    <Link href="/sign-in">Sign in</Link>
+                    <Link prefetch={false} href="/sign-in">
+                      Sign in
+                    </Link>
                   </Button>
                   <Button className="" asChild>
-                    <Link href="/sign-up">Sign up</Link>
+                    <Link prefetch={false} href="/sign-up">
+                      Sign up
+                    </Link>
                   </Button>
                 </>
               )}
@@ -71,6 +82,7 @@ export function Navbar({ session }: { session: Session | null }) {
                   {NAV_LINKS.map((link) => {
                     return (
                       <Link
+                        prefetch={false}
                         key={link.title}
                         href={link.href}
                         className="text-sm"
@@ -83,15 +95,21 @@ export function Navbar({ session }: { session: Session | null }) {
                   <div className="mt-4 flex flex-col gap-2 pr-4">
                     {session ? (
                       <Button className="" asChild>
-                        <Link href="/dashboard">Dashboard</Link>
+                        <Link prefetch={false} href="/dashboard">
+                          Dashboard
+                        </Link>
                       </Button>
                     ) : (
                       <>
                         <Button variant={"outline"} asChild>
-                          <Link href="/sign-in">Sign in</Link>
+                          <Link prefetch={false} href="/sign-in">
+                            Sign in
+                          </Link>
                         </Button>
                         <Button asChild>
-                          <Link href="/sign-up">Sign up</Link>
+                          <Link prefetch={false} href="/sign-up">
+                            Sign up
+                          </Link>
                         </Button>
                       </>
                     )}

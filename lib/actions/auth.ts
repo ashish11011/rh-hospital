@@ -53,12 +53,12 @@ export async function signupWithCognito(data: any) {
     
     await cognitoClient.send(command);
 
-    const existingUser = await db.select().from(user).where(eq(user.email, data.email)).limit(1);
+    const existingUser = await db.select().from(user).where(eq(user.email, data.email.toLowerCase())).limit(1);
     
     if (!existingUser || existingUser.length === 0) {
       await db.insert(user).values({
         name: data.name,
-        email: data.email,
+        email: data.email.toLowerCase(),
         mobileNumber: data.phone || "",
         designation: "",
         instituteName: "",

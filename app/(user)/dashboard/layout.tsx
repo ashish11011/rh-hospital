@@ -37,7 +37,7 @@ export default async function DashboardLayout({
         </div>
 
         <div className="flex flex-col gap-8 md:flex-row">
-          <aside className="hidden w-full flex-shrink-0 md:block md:w-64">
+          <aside className="sticky top-24 hidden h-fit w-full flex-shrink-0 md:block md:w-64">
             <DashboardSidebar />
           </aside>
           <main className="min-h-[60vh] w-full flex-1 rounded-2xl shadow-sm md:border md:border-slate-100 md:bg-white md:p-8">

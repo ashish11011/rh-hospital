@@ -1,59 +1,54 @@
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarGroup,
-    SidebarGroupAction,
-    SidebarGroupContent,
-    SidebarGroupLabel,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { Plus } from "lucide-react"
-import Link from "next/link"
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import Link from "next/link";
 
 export function SidebarAdmin() {
-    const projects = [
-        {
-            name: "Dashboard",
-            url: "/admin",
-        },
-        {
-            name: "Workshops",
-            url: "/admin/workshop",
-        },
-        {
-            name: "Workshop Registrations",
-            url: "/admin/workshop-registration",
-        },
-        {
-            name: "Seminar Registrations",
-            url: "/admin/seminar-registration",
-        },
-        {
-            name: "Generate Certificate",
-            url: "/admin/generate-certificate",
-        },
-    ]
-    return (
-        <Sidebar>
-            <SidebarHeader />
-            <SidebarContent>
-                <SidebarMenu>
-                    {projects.map((project) => (
-                        <SidebarMenuItem key={project.name}>
-                            <SidebarMenuButton asChild>
-                                <Link href={project.url}>
-                                    <span>{project.name}</span>
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    ))}
-                </SidebarMenu>
-            </SidebarContent>
-            <SidebarFooter />
-        </Sidebar>
-    )
+  const projects = [
+    {
+      name: "Dashboard",
+      url: "/admin",
+    },
+    {
+      name: "Workshops",
+      url: "/admin/workshop",
+    },
+    {
+      name: "Workshop Registrations",
+      url: "/admin/workshop-registration",
+    },
+    {
+      name: "Seminar Registrations",
+      url: "/admin/seminar-registration",
+    },
+    {
+      name: "Generate Certificate",
+      url: "/admin/generate-certificate",
+    },
+  ];
+  return (
+    <Sidebar>
+      <SidebarHeader />
+      <SidebarContent>
+        <SidebarMenu>
+          {projects.map((project) => (
+            <SidebarMenuItem key={project.name}>
+              <SidebarMenuButton asChild>
+                <Link href={project.url}>
+                  <span>{project.name}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter />
+    </Sidebar>
+  );
 }

@@ -22,10 +22,10 @@ export default async function OrdersPage() {
           <p className="text-slate-500">You haven't made any purchases yet.</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">
-              <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500">
+              <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-500 uppercase">
                 <tr>
                   <th className="px-6 py-4">Order ID</th>
                   <th className="px-6 py-4">Type</th>
@@ -37,28 +37,39 @@ export default async function OrdersPage() {
               <tbody className="divide-y divide-slate-100">
                 {orders.map((order, i) => (
                   <tr key={i} className="hover:bg-slate-50/50">
-                    <td className="px-6 py-4 font-medium text-slate-900 font-mono text-xs">
+                    <td className="px-6 py-4 font-mono text-xs font-medium text-slate-900">
                       {order.gatewayOrderId || order.id.slice(0, 8)}
                     </td>
-                    <td className="px-6 py-4 capitalize">
-                      {order.orderType}
-                    </td>
+                    <td className="px-6 py-4 capitalize">{order.orderType}</td>
                     <td className="px-6 py-4 font-semibold text-slate-900">
                       <div className="flex items-center">
-                        <IndianRupee className="w-3.5 h-3.5 mr-0.5" />
+                        <IndianRupee className="mr-0.5 h-3.5 w-3.5" />
                         {/* Assuming amount is in paise/cents, adjust if it's already full units */}
                         {order.amount / 100}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString(undefined, {
-                        year: 'numeric', month: 'short', day: 'numeric'
-                      }) : '-'}
+                      {order.createdAt
+                        ? new Date(order.createdAt).toLocaleDateString(
+                            undefined,
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            },
+                          )
+                        : "-"}
                     </td>
                     <td className="px-6 py-4">
-                      <Badge 
-                        variant={order.status === 'completed' ? 'default' : 'secondary'}
-                        className={order.status === 'completed' ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border-emerald-200 capitalize" : "capitalize"}
+                      <Badge
+                        variant={
+                          order.status === "completed" ? "default" : "secondary"
+                        }
+                        className={
+                          order.status === "captured"
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700 capitalize hover:bg-emerald-50"
+                            : "capitalize"
+                        }
                       >
                         {order.status}
                       </Badge>

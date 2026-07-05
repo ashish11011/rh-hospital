@@ -9,9 +9,15 @@ import { Loader2 } from "lucide-react";
 import { updateUserProfile } from "@/lib/actions/profile";
 import { toast } from "sonner";
 
-export function ProfileForm({ initialData, email }: { initialData: any; email: string }) {
+export function ProfileForm({
+  initialData,
+  email,
+}: {
+  initialData: any;
+  email: string;
+}) {
   const router = useRouter();
-  
+
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     mobileNumber: initialData?.mobileNumber || "",
@@ -29,33 +35,32 @@ export function ProfileForm({ initialData, email }: { initialData: any; email: s
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     const res = await updateUserProfile(email, formData);
-    
+
     if (res?.error) {
       toast.error(res.error);
     } else {
       toast.success("Profile updated successfully!");
       router.refresh();
     }
-    
+
     setIsSubmitting(false);
   };
 
   return (
-    <form className="space-y-6 max-w-2xl" onSubmit={onSubmit}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <form className="max-w-2xl space-y-6" onSubmit={onSubmit}>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="space-y-2">
           <Label>Full Name</Label>
           <Input
             name="name"
             value={formData.name}
             onChange={handleChange}
-            placeholder="John Doe"
             required
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label>Email Address</Label>
           <Input
@@ -72,7 +77,6 @@ export function ProfileForm({ initialData, email }: { initialData: any; email: s
             name="mobileNumber"
             value={formData.mobileNumber}
             onChange={handleChange}
-            placeholder="+1234567890"
           />
         </div>
 
@@ -82,7 +86,6 @@ export function ProfileForm({ initialData, email }: { initialData: any; email: s
             name="designation"
             value={formData.designation}
             onChange={handleChange}
-            placeholder="e.g. Doctor, Student"
           />
         </div>
 
@@ -92,22 +95,16 @@ export function ProfileForm({ initialData, email }: { initialData: any; email: s
             name="instituteName"
             value={formData.instituteName}
             onChange={handleChange}
-            placeholder="e.g. City Hospital"
           />
         </div>
 
         <div className="space-y-2">
           <Label>City</Label>
-          <Input
-            name="city"
-            value={formData.city}
-            onChange={handleChange}
-            placeholder="e.g. New York"
-          />
+          <Input name="city" value={formData.city} onChange={handleChange} />
         </div>
       </div>
 
-      <div className="pt-4 flex justify-end">
+      <div className="flex justify-end pt-4">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Save Changes

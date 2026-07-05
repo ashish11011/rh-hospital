@@ -1,7 +1,6 @@
 import { user, payment, seminar, seminarRegistrations } from "@/db";
 import { db } from "@/lib/dbConfig";
 import { eq } from "drizzle-orm";
-import { notFound } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 import { userSchema } from "@/db/userSchema";
 import { paymentClient } from "@/lib/paymentClient";
@@ -16,10 +15,10 @@ export async function POST(req: NextRequest) {
 
     try {
         let userId;
-        const [userDetail] = await db.select({ id: user.id }).from(user).where(eq(user.email, email));
+        const [userDetail] = await db.select({ id: user.id }).from(user).where(eq(user.email, email.toLowerCase()));
         if (!userDetail) {
             const [newUser] = await db.insert(userSchema).values({
-                email,
+                email: email.toLowerCase(),
                 name,
                 mobileNumber,
                 designation,
@@ -76,7 +75,7 @@ export async function POST(req: NextRequest) {
             amount: payableAmount,
             amountDue: payableAmount,
             currency: gatewayPaymentOrder.currency,
-            email: email,
+            email: email.toLowerCase(),
             contact: mobileNumber,
         });
 

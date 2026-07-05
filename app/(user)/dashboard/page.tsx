@@ -1,7 +1,8 @@
-import { checkAuthGetUser } from "./action";
+import { checkAuthGetUser, getUserRegisteredWorkshops } from "./action";
 
 export default async function DashboardPage() {
   const userProfile = await checkAuthGetUser();
+  const workshops = await getUserRegisteredWorkshops();
 
   return (
     <div className="space-y-6">
@@ -21,7 +22,9 @@ export default async function DashboardPage() {
         </div>
         <div className="rounded-xl border border-slate-100 bg-slate-50 p-6">
           <h3 className="font-semibold text-slate-700">Workshops</h3>
-          <p className="text-primary mt-2 text-3xl font-bold">0</p>
+          <p className="text-primary mt-2 text-3xl font-bold">
+            {workshops.length}
+          </p>
         </div>
         <div className="rounded-xl border border-slate-100 bg-slate-50 p-6">
           <h3 className="font-semibold text-slate-700">Certificates</h3>

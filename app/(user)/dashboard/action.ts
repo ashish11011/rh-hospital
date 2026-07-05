@@ -59,7 +59,10 @@ export async function getUserRegisteredWorkshops(){
     modeOfAttendance: workshopRegistration.modeOfAttandnace,
     whatsappLink: workshop.whatsappLink
   }).from(workshopRegistration).where(
-    eq(workshopRegistration.userId, userProfile.id)
+    and(
+      eq(workshopRegistration.userId, userProfile.id),
+      eq(workshopRegistration.paymentStatus, "completed")
+    )
   ).innerJoin(workshop, eq(workshop.id, workshopRegistration.workshopId));
   
   return registeredWorkshops;

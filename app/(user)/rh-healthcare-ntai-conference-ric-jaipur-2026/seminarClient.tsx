@@ -24,22 +24,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 export const registrationSchema = z
   .object({
     name: z.string().min(2),
-
     gender: z.enum(["male", "female", "other"]),
 
-    mobileNumber: z.string().regex(/^[6-9]\d{9}$/),
+    mobileNumber: z.string().min(10, "Enter a valid mobile number"),
 
     email: z.string().email(),
-
     designation: z.string().min(2),
 
     // institution: z.string().min(2),
 
     instituteName: z.string().min(2),
-
-    // addressLine1: z.string().min(5),
-
-    // addressLine2: z.string().optional(),
 
     city: z.string().min(2),
 
@@ -49,7 +43,13 @@ export const registrationSchema = z
 
     // pincode: z.string().regex(/^\d{6}$/),
 
-    presentationType: z.enum(["paper", "poster", "online_paper", "no"]),
+    presentationType: z.enum([
+      "paper",
+      "poster",
+      "online_paper",
+      "no",
+      "both_offile",
+    ]),
 
     presentationTitle: z.string().optional(),
 
@@ -79,6 +79,7 @@ export const registrationSchema = z
     if (
       data.presentationType === "paper" ||
       data.presentationType === "poster" ||
+      data.presentationType === "both_offile" ||
       data.presentationType === "online_paper"
     ) {
       if (!data.presentationTitle) {
@@ -88,22 +89,6 @@ export const registrationSchema = z
           message: "Presentation title is required",
         });
       }
-
-      // if (!data.authorName) {
-      //     ctx.addIssue({
-      //         code: "custom",
-      //         path: ["authorName"],
-      //         message: "Author name is required",
-      //     });
-      // }
-
-      // if (!data.paperInstitution) {
-      //     ctx.addIssue({
-      //         code: "custom",
-      //         path: ["paperInstitution"],
-      //         message: "Institution is required",
-      //     });
-      // }
     }
 
     if (data.motivatedBy === "person") {
@@ -114,14 +99,6 @@ export const registrationSchema = z
           message: "Person name is required",
         });
       }
-
-      // if (!data.referencePersonMobile) {
-      //     ctx.addIssue({
-      //         code: "custom",
-      //         path: ["referencePersonMobile"],
-      //         message: "Mobile number is required",
-      //     });
-      // }
     }
 
     if (data.motivatedBy === "social_media" && !data.socialMediaName) {
@@ -152,6 +129,7 @@ export const registrationSchema = z
 
     if (
       (data.presentationType === "paper" ||
+        data.presentationType === "both_offile" ||
         data.presentationType === "poster") &&
       data.registrationMode === "offline" &&
       data.offlineDuration === "one_day"
@@ -171,13 +149,6 @@ export const registrationSchema = z
           message: "NTAI Registration ID is required",
         });
       }
-      // else if (!/^NTA\/\d{4}LM\d{8,9}$/.test(data.naitRegistrationId)) {
-      //   ctx.addIssue({
-      //     code: "custom",
-      //     path: ["naitRegistrationId"],
-      //     message: "Invalid NTAI membership number",
-      //   });
-      // }
     }
   });
 
@@ -292,7 +263,8 @@ const SeminarClient = () => {
       paperPresentation:
         form.presentationType === "paper" ||
         form.presentationType === "poster" ||
-        form.presentationType === "online_paper",
+        form.presentationType === "online_paper" ||
+        form.presentationType === "both_offile",
       isNaitMember: form.isNaitMember === "yes" ? true : false,
     };
     if (data.registrationMode !== "offline" || !data.offlineDuration) {
@@ -377,34 +349,34 @@ const SeminarClient = () => {
       rzp.open();
 
       // clear the form after successfull payment
-      setForm({
-        name: "",
-        gender: "",
-        mobileNumber: "",
-        email: "",
-        designation: "",
-        // institution: "",
-        instituteName: "",
-        addressLine1: "",
-        addressLine2: "",
-        city: "",
-        state: "",
-        country: "",
-        pincode: "",
-        presentationType: "no",
-        presentationTitle: "",
-        // authorName: "",
-        // paperInstitution: "",
-        additionalDetails: "",
-        motivatedBy: "",
-        referencePersonName: "",
-        referencePersonMobile: "",
-        socialMediaName: "",
-        registrationMode: "online",
-        offlineDuration: "",
-        isNaitMember: "no",
-        naitRegistrationId: "",
-      });
+      // setForm({
+      //   name: "",
+      //   gender: "",
+      //   mobileNumber: "",
+      //   email: "",
+      //   designation: "",
+      //   // institution: "",
+      //   instituteName: "",
+      //   addressLine1: "",
+      //   addressLine2: "",
+      //   city: "",
+      //   state: "",
+      //   country: "",
+      //   pincode: "",
+      //   presentationType: "no",
+      //   presentationTitle: "",
+      //   // authorName: "",
+      //   // paperInstitution: "",
+      //   additionalDetails: "",
+      //   motivatedBy: "",
+      //   referencePersonName: "",
+      //   referencePersonMobile: "",
+      //   socialMediaName: "",
+      //   registrationMode: "online",
+      //   offlineDuration: "",
+      //   isNaitMember: "no",
+      //   naitRegistrationId: "",
+      // });
     } catch (error) {
       console.log(error);
     }
@@ -514,27 +486,6 @@ const SeminarClient = () => {
 
         <p className="mt-12 text-xl">Address</p>
         <Separator className="-mt-4" />
-
-        {/* <div className="space-y-1">
-                    <Label>Address Line 1</Label>
-                    <Input
-                        value={form.addressLine1}
-                        onChange={(e) =>
-                            handleChange("addressLine1", e.target.value)
-                        }
-                    />
-                </div>
-
-                <div className="space-y-1">
-                    <Label>Address Line 2</Label>
-                    <Input
-                        value={form.addressLine2}
-                        onChange={(e) =>
-                            handleChange("addressLine2", e.target.value)
-                        }
-                    />
-                </div> */}
-
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label>City</Label>
@@ -551,73 +502,75 @@ const SeminarClient = () => {
               onChange={(e) => handleChange("state", e.target.value)}
             />
           </div>
-
-          {/* <div>
-                        <Label>Country</Label>
-                        <Input
-                            value={form.country}
-                            onChange={(e) =>
-                                handleChange("country", e.target.value)
-                            }
-                        />
-                    </div>
-
-                    <div>
-                        <Label>Pincode</Label>
-                        <Input
-                            value={form.pincode}
-                            onChange={(e) =>
-                                handleChange("pincode", e.target.value)
-                            }
-                        />
-                    </div> */}
         </div>
 
         <p className="mt-12 text-xl">Presentation Participation</p>
         <Separator className="-mt-4" />
 
-        <CustomRadioGroup
-          label="Presentation Participation"
+        <Select
           value={form.presentationType}
-          onChange={(val) => {
+          onValueChange={(val) => {
             handleChange("presentationType", val);
-            if (val === "paper" || val === "poster") {
+            if (val === "paper" || val === "poster" || val === "both_offile") {
               handleChange("registrationMode", "offline");
               handleChange("offlineDuration", "two_day");
             } else if (val === "online_paper") {
               handleChange("registrationMode", "online");
             }
           }}
-          options={[
-            {
-              id: "presentation-paper",
-              value: "paper",
-              title: "Paper Presentation",
-              description: "I will present a paper.",
-            },
-            {
-              id: "presentation-poster",
-              value: "poster",
-              title: "Poster Presentation",
-              description: "I will present a poster.",
-            },
-            {
-              id: "presentation-no",
-              value: "no",
-              title: "No",
-              description: "I will not present.",
-            },
-            {
-              id: "online-presentation",
-              value: "online_paper",
-              title: "Online Paper Presentation",
-              description: "I will present a paper online.",
-            },
-          ]}
-        />
+        >
+          <SelectTrigger className="h-auto! min-h-16 w-full py-3 text-left whitespace-normal [&>span]:line-clamp-none">
+            <SelectValue placeholder="Select presentation participation" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="paper">
+              <div className="flex flex-col items-start text-left">
+                <span className="font-medium">Paper Presentation</span>
+                <span className="text-muted-foreground mt-0.5 text-xs whitespace-normal">
+                  I will present a paper.
+                </span>
+              </div>
+            </SelectItem>
+            <SelectItem value="poster">
+              <div className="flex flex-col items-start text-left">
+                <span className="font-medium">Poster Presentation</span>
+                <span className="text-muted-foreground mt-0.5 text-xs whitespace-normal">
+                  I will present a poster.
+                </span>
+              </div>
+            </SelectItem>
+            <SelectItem value="both_offile">
+              <div className="flex flex-col items-start text-left">
+                <span className="font-medium">
+                  Both Paper & poster presentation
+                </span>
+                <span className="text-muted-foreground mt-0.5 text-xs whitespace-normal">
+                  I will present both paper & poster.
+                </span>
+              </div>
+            </SelectItem>
+            <SelectItem value="no">
+              <div className="flex flex-col items-start text-left">
+                <span className="font-medium">No Presentation</span>
+                <span className="text-muted-foreground mt-0.5 text-xs whitespace-normal">
+                  I will not present.
+                </span>
+              </div>
+            </SelectItem>
+            <SelectItem value="online_paper">
+              <div className="flex flex-col items-start text-left">
+                <span className="font-medium">Online Paper Presentation</span>
+                <span className="text-muted-foreground mt-0.5 text-xs whitespace-normal">
+                  I will present a paper online.
+                </span>
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
 
         {(form.presentationType === "paper" ||
           form.presentationType === "poster" ||
+          form.presentationType === "both_offile" ||
           form.presentationType === "online_paper") && (
           <>
             <div>
@@ -632,29 +585,6 @@ const SeminarClient = () => {
                 }
               />
             </div>
-
-            {/* <div>
-                            <Label>Author Name</Label>
-                            <Input
-                                value={form.authorName}
-                                onChange={(e) =>
-                                    handleChange("authorName", e.target.value)
-                                }
-                            />
-                        </div>
-
-                        <div>
-                            <Label>Institution / Organization</Label>
-                            <Input
-                                value={form.paperInstitution}
-                                onChange={(e) =>
-                                    handleChange(
-                                        "paperInstitution",
-                                        e.target.value
-                                    )
-                                }
-                            />
-                        </div> */}
           </>
         )}
 

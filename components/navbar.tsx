@@ -13,8 +13,9 @@ import {
 import Image from "next/image";
 import CallbackDialog from "./CallbackDialog";
 import { useState } from "react";
+import { type Session } from "next-auth";
 
-export function Navbar() {
+export function Navbar({ session }: { session: Session | null }) {
     const [open, setOpen] = useState(false);
     return (
         <div className="border-b bg-white sticky top-0 z-50">
@@ -36,12 +37,20 @@ export function Navbar() {
                         })}
 
                         <div className=" flex gap-2 items-center">
-                            <Button variant={"link"} className="">
-                                Sign in
-                            </Button>
-                            <Button className="">
-                                Sign up
-                            </Button>
+                            {session ? (
+                                <Button className="" asChild>
+                                    <Link href="/dashboard">Dashboard</Link>
+                                </Button>
+                            ) : (
+                                <>
+                                    <Button variant={"link"} className="" asChild>
+                                        <Link href="/sign-in">Sign in</Link>
+                                    </Button>
+                                    <Button className="" asChild>
+                                        <Link href="/sign-up">Sign up</Link>
+                                    </Button>
+                                </>
+                            )}
                         </div>
                     </nav>
 

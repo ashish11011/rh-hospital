@@ -11,12 +11,9 @@ import { SearchIcon } from "lucide-react";
 import React from "react";
 
 const page = () => {
-  return <CommingSoon />;
-
   return (
     <div>
       <HeroSection />
-      <SearchBar />
       <CourseList />
     </div>
   );
@@ -38,30 +35,4 @@ function HeroSection() {
       </div>
     </div>
   );
-}
-
-function SearchBar() {
-  return (
-    <div className="container flex flex-col justify-between gap-6 py-8 md:flex-row">
-      <InputGroup className="max-w-xl">
-        <InputGroupInput placeholder="Search courses..." />
-        <InputGroupAddon>
-          <SearchIcon />
-        </InputGroupAddon>
-      </InputGroup>
-      <div className="flex items-center gap-4">
-        <Badge className="h-7">All Cources</Badge>
-        <Badge className="h-7" variant={"outline"}>
-          Simulators
-        </Badge>
-        <Badge className="h-7" variant={"outline"}>
-          Workshops
-        </Badge>
-      </div>
-    </div>
-  );
-}
-
-function ListCources() {
-  return <div></div>;
 }

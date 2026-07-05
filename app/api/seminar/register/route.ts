@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
             userId,
             ...data,
             qualification: "",
-            presentationType: data.presentationType === "paper" ? "paper" : data.presentationType === "poster" ? "poster" : data.presentationType === "online_paper" ? "online_paper" : null,
+            presentationType: data.presentationType === "paper" ? "paper" : data.presentationType === "poster" ? "poster" : data.presentationType === "online_paper" ? "online_paper" : data.presentationType === "both_offile" ? "both_offile" : null,
             referenceType: data.motivatedBy,
             amount: payableAmount.toString(),
             paymentStatus: "pending"

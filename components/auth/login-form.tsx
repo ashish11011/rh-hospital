@@ -100,7 +100,7 @@ export default function LoginForm() {
         {form.formState.isSubmitting ? "Signing In..." : "Sign In"}
       </Button>
 
-      <div className="relative">
+      {/* <div className="relative">
         <Separator />
 
         <span className="text-muted-foreground absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs tracking-widest whitespace-nowrap uppercase">
@@ -108,7 +108,7 @@ export default function LoginForm() {
         </span>
       </div>
 
-      <GoogleButton />
+      <GoogleButton /> */}
 
       <p className="text-muted-foreground text-center text-sm">
         Don't have an account?{" "}

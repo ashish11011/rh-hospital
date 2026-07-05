@@ -16,6 +16,10 @@ export function SidebarAdmin() {
       url: "/admin",
     },
     {
+      name: "Users",
+      url: "/admin/users",
+    },
+    {
       name: "Workshops",
       url: "/admin/workshop",
     },

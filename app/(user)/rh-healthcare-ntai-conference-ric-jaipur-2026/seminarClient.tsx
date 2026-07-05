@@ -519,6 +519,7 @@ const SeminarClient = () => {
             }
           }}
         >
+          <Label className="-mb-2">Select presentation type</Label>
           <SelectTrigger className="h-auto! min-h-16 w-full py-3 text-left whitespace-normal [&>span]:line-clamp-none">
             <SelectValue placeholder="Select presentation participation" />
           </SelectTrigger>

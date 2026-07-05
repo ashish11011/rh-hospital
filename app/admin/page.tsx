@@ -1,81 +1,86 @@
-import { db } from "@/lib/dbConfig"
-import { workshop } from "@/db"
-import Link from "next/link"
-import { desc } from "drizzle-orm"
+import { 
+  getTodayStats, 
+  getUserGrowthData, 
+  getRevenueData, 
+  getRecentWorkshopAnalytics 
+} from "@/actions/dashboardActions";
+import { UserGrowthChart, RevenueChart, WorkshopAnalyticsChart } from "./DashboardCharts";
+import { Users, IndianRupee, BookOpen, GraduationCap } from "lucide-react";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-export default async function Page() {
-    const workshops = await db.select().from(workshop).orderBy(desc(workshop.startTime));
+export const dynamic = "force-dynamic";
 
-    const formatDate = (dateValue: Date | null) => {
-        if (!dateValue) return "N/A";
-        return new Intl.DateTimeFormat("en-US", {
-            dateStyle: "medium",
-            timeStyle: "short",
-        }).format(dateValue);
-    };
+export default async function AdminDashboardPage() {
+  const [stats, userGrowth, revenueData, workshopAnalytics] = await Promise.all([
+    getTodayStats(),
+    getUserGrowthData(),
+    getRevenueData(),
+    getRecentWorkshopAnalytics(),
+  ]);
 
-    return (
-        <div className="space-y-6 w-full">
-            <div className="flex justify-between items-center bg-gray-50 p-4 shadow-sm border">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Workshops</h1>
-                    <p className="text-sm text-gray-500 mt-1">Select a workshop to view its registrations.</p>
-                </div>
-            </div>
+  return (
+    <div className="w-full space-y-6 py-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard Overview</h1>
+        <p className="text-muted-foreground mt-2">
+          Monitor your key metrics and recent performance.
+        </p>
+      </div>
 
-            <div className="border bg-white shadow-sm overflow-hidden">
-                <Table>
-                    <TableHeader className="bg-gray-50">
-                        <TableRow>
-                            <TableHead className="font-semibold text-gray-600">Image</TableHead>
-                            <TableHead className="font-semibold text-gray-600">Name</TableHead>
-                            <TableHead className="font-semibold text-gray-600">Start Time</TableHead>
-                            <TableHead className="font-semibold text-gray-600">End Time</TableHead>
-                            <TableHead className="text-right font-semibold text-gray-600">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {workshops.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                                    No workshops found.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            workshops.map((ws) => (
-                                <TableRow key={ws.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <TableCell>
-                                        {ws.bannerImage ? (
-                                            <img src={ws.bannerImage} alt={ws.name} className="w-16 h-10 object-cover rounded" />
-                                        ) : (
-                                            <div className="w-16 h-10 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">No Img</div>
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="font-medium text-gray-900">{ws.name}</TableCell>
-                                    <TableCell className="text-gray-600">{formatDate(ws.startTime)}</TableCell>
-                                    <TableCell className="text-gray-600">{formatDate(ws.endTime)}</TableCell>
-                                    <TableCell className="text-right">
-                                        <Link href={`/admin/workshop-registration?workshopId=${ws.id}`}>
-                                            <Button variant="outline" size="sm">
-                                                View Registrations
-                                            </Button>
-                                        </Link>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-        </div>
-    )
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">New Users Today</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.newUsers}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Revenue Today</CardTitle>
+            <IndianRupee className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">₹{stats.revenue.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Workshop Registrations</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.workshopRegistrations}</div>
+            <p className="text-xs text-muted-foreground">Today</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Seminar Registrations</CardTitle>
+            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.seminarRegistrations}</div>
+            <p className="text-xs text-muted-foreground">Today</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <UserGrowthChart data={userGrowth} />
+        <RevenueChart data={revenueData} />
+      </div>
+      
+      <div className="grid gap-4 md:grid-cols-2">
+        <WorkshopAnalyticsChart data={workshopAnalytics} />
+      </div>
+    </div>
+  );
 }

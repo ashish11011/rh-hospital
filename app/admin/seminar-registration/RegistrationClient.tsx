@@ -49,15 +49,17 @@ export function RegistrationClient({ data, total, seminars, limit }: Registratio
 
   const [emailFilter, setEmailFilter] = useState(searchParams.get("email") || "");
   const [seminarId, setSeminarId] = useState(searchParams.get("seminarId") || "");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState(searchParams.get("paymentStatus") || "");
   const [isExporting, setIsExporting] = useState(false);
 
   const currentPage = Number(searchParams.get("page")) || 1;
   const totalPages = Math.ceil(total / limit);
 
-  const applyFilters = (newEmail: string, newSeminarId: string) => {
+  const applyFilters = (newEmail: string, newSeminarId: string, newPaymentStatus: string) => {
     const params = new URLSearchParams();
     if (newEmail) params.set("email", newEmail);
     if (newSeminarId) params.set("seminarId", newSeminarId);
+    if (newPaymentStatus) params.set("paymentStatus", newPaymentStatus);
     params.set("page", "1"); // Reset to page 1 on filter
     router.push(`/admin/seminar-registration?${params.toString()}`);
   };
@@ -72,7 +74,7 @@ export function RegistrationClient({ data, total, seminars, limit }: Registratio
   const handleExport = async () => {
     try {
       setIsExporting(true);
-      const allData = await getAllSeminarRegistrations(seminarId);
+      const allData = await getAllSeminarRegistrations(seminarId, paymentStatusFilter);
 
       const worksheetData = allData.map(reg => ({
         ID: reg.id,
@@ -127,7 +129,7 @@ export function RegistrationClient({ data, total, seminars, limit }: Registratio
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (emailFilter !== (searchParams.get("email") || "")) {
-        applyFilters(emailFilter, seminarId);
+        applyFilters(emailFilter, seminarId, paymentStatusFilter);
       }
     }, 500);
 
@@ -155,7 +157,7 @@ export function RegistrationClient({ data, total, seminars, limit }: Registratio
               value={seminarId}
               onChange={(e) => {
                 setSeminarId(e.target.value);
-                applyFilters(emailFilter, e.target.value);
+                applyFilters(emailFilter, e.target.value, paymentStatusFilter);
               }}
             >
               <option value="">All Seminars</option>
@@ -164,6 +166,23 @@ export function RegistrationClient({ data, total, seminars, limit }: Registratio
                   {w.name}
                 </option>
               ))}
+            </select>
+          </div>
+
+          <div className="max-w-xs w-full">
+            <select
+              title="Filter by payment status"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={paymentStatusFilter}
+              onChange={(e) => {
+                setPaymentStatusFilter(e.target.value);
+                applyFilters(emailFilter, seminarId, e.target.value);
+              }}
+            >
+              <option value="">All Payment Statuses</option>
+              <option value="completed">Completed</option>
+              <option value="pending">Pending</option>
+              <option value="paid">Paid</option>
             </select>
           </div>
         </div>

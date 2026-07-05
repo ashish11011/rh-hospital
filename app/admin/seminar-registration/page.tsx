@@ -19,10 +19,11 @@ export default async function SeminarRegistrationsPage({ searchParams }: PagePro
     const page = Number(resolvedParams.page) || 1;
     const emailFilter = typeof resolvedParams.email === "string" ? resolvedParams.email : "";
     const seminarId = typeof resolvedParams.seminarId === "string" ? resolvedParams.seminarId : "";
+    const paymentStatus = typeof resolvedParams.paymentStatus === "string" ? resolvedParams.paymentStatus : "";
     const limit = 15;
 
     const [{ data, total }, seminars] = await Promise.all([
-        getSeminarRegistrations({ page, limit, emailFilter, seminarId }),
+        getSeminarRegistrations({ page, limit, emailFilter, seminarId, paymentStatus }),
         getSeminarsList()
     ]);
 

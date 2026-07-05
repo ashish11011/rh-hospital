@@ -8,12 +8,14 @@ export async function getSeminarRegistrations({
   page = 1,
   limit = 20,
   emailFilter = "",
-  seminarId = ""
+  seminarId = "",
+  paymentStatus = ""
 }) {
   try {
     const conditions = [];
     if (emailFilter) conditions.push(ilike(seminarRegistrations.email, `%${emailFilter}%`));
     if (seminarId) conditions.push(eq(seminarRegistrations.seminarId, seminarId));
+    if (paymentStatus) conditions.push(eq(seminarRegistrations.paymentStatus, paymentStatus));
 
     const offset = (page - 1) * limit;
 
@@ -49,10 +51,11 @@ export async function getSeminarRegistrations({
   }
 }
 
-export async function getAllSeminarRegistrations(seminarId?: string) {
+export async function getAllSeminarRegistrations(seminarId?: string, paymentStatus?: string) {
   try {
     const conditions = [];
     if (seminarId) conditions.push(eq(seminarRegistrations.seminarId, seminarId));
+    if (paymentStatus) conditions.push(eq(seminarRegistrations.paymentStatus, paymentStatus));
     const data = db.select({
       id: seminarRegistrations.id,
       name: seminarRegistrations.name,

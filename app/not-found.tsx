@@ -1,13 +1,14 @@
-"use client"
 import Link from "next/link";
 import { Home, ArrowLeft } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import Footer from "@/components/Footer";
+import { auth } from "@/auth";
 
-export default function NotFound() {
+export default async function NotFound() {
+    const session = await auth();
     return (
         <div>
-            <Navbar />
+            <Navbar session={session} />
             <div className="min-h-screen bg-linear-to-b from-white to-slate-50 flex items-center justify-center px-6">
                 <div className="max-w-2xl text-center">
 

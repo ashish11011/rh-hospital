@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
     const body = await req.json();
-    const { name, email, message, mobileNumber } = body;
+    const { name, email, message, mobileNumber, formSource } = body;
     try {
         await db.insert(contact).values({
-            name, email, message, mobileNumber
+            name, email, message, mobileNumber, formSource
         })
         return NextResponse.json({ message: "Message sent successfully", status: 200 })
     } catch (error) {

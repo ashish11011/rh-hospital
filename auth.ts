@@ -1,7 +1,8 @@
 import NextAuth from "next-auth"
 import Cognito from "next-auth/providers/cognito"
 import Credentials from "next-auth/providers/credentials"
-import { USER_POOL_CLIENT_ID, USER_POOL_ID, AWS_COGNITO_REGION } from "./env"
+import { USER_POOL_CLIENT_ID, USER_POOL_ID, AWS_COGNITO_REGION, USER_POOL_CLIENT_SECRET } from "./env"
+import crypto from "crypto";
 import { CognitoIdentityProviderClient, InitiateAuthCommand } from "@aws-sdk/client-cognito-identity-provider"
 
 const cognitoClient = new CognitoIdentityProviderClient({
@@ -28,12 +29,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
 
         try {
+          const secretHash = crypto
+            .createHmac("sha256", USER_POOL_CLIENT_SECRET)
+            .update((credentials.email as string) + USER_POOL_CLIENT_ID)
+            .digest("base64");
+
           const command = new InitiateAuthCommand({
             AuthFlow: "USER_PASSWORD_AUTH",
             ClientId: USER_POOL_CLIENT_ID,
             AuthParameters: {
               USERNAME: credentials.email as string,
               PASSWORD: credentials.password as string,
+              SECRET_HASH: secretHash,
             },
           });
 
@@ -46,8 +53,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             };
           }
           return null;
-        } catch (error) {
-          console.error("Cognito auth error", error);
+        } catch (error: any) {
+          console.error("Cognito auth error", error.name);
+          if (error.name === "UserNotConfirmedException") {
+            throw new Error("UserNotConfirmedException");
+          }
           return null;
         }
       }

@@ -12,6 +12,7 @@ const SideForm = () => {
     const [form, setForm] = useState({
         name: "",
         email: "",
+        mobileNumber: "",
         message: "",
     });
 
@@ -32,7 +33,7 @@ const SideForm = () => {
             const data = await res.json();
             if (data.status === 200) {
                 toast.success(data.message)
-                setForm({ name: "", email: "", message: "" });
+                setForm({ name: "", email: "", mobileNumber: "", message: "" });
             }
         } catch (error) {
             toast.error("Something went wrong")
@@ -50,6 +51,7 @@ const SideForm = () => {
             <div className="space-y-5">
                 <Input
                     name="name"
+                    value={form.name}
                     placeholder="Full Name"
                     onChange={handleChange}
                     required
@@ -59,7 +61,18 @@ const SideForm = () => {
                 <Input
                     type="email"
                     name="email"
+                    value={form.email}
                     placeholder="Email Address"
+                    onChange={handleChange}
+                    required
+                    className="h-11"
+                />
+
+                <Input
+                    type="tel"
+                    name="mobileNumber"
+                    value={form.mobileNumber}
+                    placeholder="Mobile Number"
                     onChange={handleChange}
                     required
                     className="h-11"
@@ -67,6 +80,7 @@ const SideForm = () => {
 
                 <Textarea
                     name="message"
+                    value={form.message}
                     placeholder="Write your message..."
                     rows={5}
                     onChange={handleChange}

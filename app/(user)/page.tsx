@@ -36,6 +36,7 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
+import { COURSE_DATA } from "@/const/courceData";
 
 export const metadata: Metadata = {
   title: {
@@ -89,7 +90,7 @@ export default function Home() {
     <>
       <HeroSection />
       <CurrentWorkshop />
-      {/* <CertifiedModules /> */}
+      <CertifiedModules />
       <CatalogContainer />
       {/* <div className=" container grid grid-cols-1 md:grid-cols-2 gap-4 py-12">
         <ProductCategory />
@@ -193,15 +194,13 @@ function HeroSection() {
             </Link>
           </div>
         </div>
-        <div className="hidden h-full max-h-64 w-full max-w-80 md:block">
-          <Image
-            src="/group-doctor.png"
-            alt="group-doctor"
-            width={500}
-            height={500}
-            className="h-auto w-auto object-contain"
-          />
-        </div>
+        <Image
+          src="https://rh-healthcare.s3.ap-south-1.amazonaws.com/website-image/Hero1.png"
+          alt="group-doctor"
+          width={500}
+          height={500}
+          className="h-64 w-auto object-contain"
+        />
       </div>
     </div>
   );
@@ -210,11 +209,11 @@ function HeroSection() {
 function CurrentWorkshop() {
   return (
     <div className="container w-full py-12">
-      <div className="bg-primary/10 grid grid-cols-1 overflow-hidden rounded-xl md:grid-cols-2">
-        <div className="">
+      <div className="bg-primary/10 grid grid-cols-1 overflow-hidden rounded-xl md:grid-cols-12">
+        <div className="col-span-5">
           <Image
             src={
-              "https://d2c3lsl35lix55.cloudfront.net/globalnursing_sumbit_c.png"
+              "https://rh-healthcare.s3.ap-south-1.amazonaws.com/website-image/Registration+Page.png"
             }
             alt="current-workshop"
             height={800}
@@ -222,7 +221,7 @@ function CurrentWorkshop() {
             className="h-full w-full object-cover"
           />
         </div>
-        <div className="flex flex-col gap-8 p-8 md:p-12">
+        <div className="col-span-7 flex flex-col gap-8 p-8 md:p-12">
           <h2 className="text-primary text-xl font-bold md:text-3xl">
             GLOBAL NURSING LEADERSHIP & EDUCATION SUMMIT 2026
           </h2>
@@ -294,30 +293,29 @@ function CertifiedModules() {
       </div>
       <div className="mt-12">
         <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-3">
-          {[1, 2, 3].map((item) => (
-            <div
-              key={item}
+          {COURSE_DATA.map((item) => (
+            <Link
+              href={item.slug}
+              key={item.slug}
               className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border"
             >
               <Image
-                src={"https://d2c3lsl35lix55.cloudfront.net/course-tmn.jpg"}
-                height={200}
-                width={200}
+                src={item.bannerImage}
+                height={500}
+                width={500}
                 alt="sample image"
                 className="h-full w-full object-contain transition-all duration-300 group-hover:scale-105"
               />
               <div className="flex flex-col gap-2 p-4">
-                <p className="text-lg font-semibold">
-                  Fundamentals of IV Cannulation
-                </p>
+                <p className="text-lg font-semibold">{item.name}</p>
                 <div className="flex items-center gap-4 text-sm">
                   <p className="flex items-center gap-1">
                     <Clock size={14} />
-                    12 hrs
+                    {item.courseHour}
                   </p>
                   <p className="flex items-center gap-1">
                     <PlayCircleIcon size={14} />
-                    24 video lessons
+                    {item.numberOfLacture} video lessons
                   </p>
                 </div>
                 <Separator className="mt-1 h-0.5 w-full" />
@@ -328,7 +326,7 @@ function CertifiedModules() {
                   </p>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

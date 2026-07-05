@@ -11,3 +11,5 @@ export const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET!;
 export const USER_POOL_ID = process.env.USER_POOL_ID!;
 export const USER_POOL_CLIENT_ID = process.env.USER_POOL_CLIENT_ID!;
 export const AWS_COGNITO_REGION = process.env.AWS_COGNITO_REGION!;
+export const USER_POOL_CLIENT_SECRET = process.env.USER_POOL_CLIENT_SECRET!;
+export const SECRET_HASH = process.env.SECRET_HASH!;

@@ -273,9 +273,24 @@ function Content() {
           Rajasthan
         </p>
         <div className="ml-auto flex gap-5">
-          <IconBrandInstagram />
-          <IconBrandFacebook />
-          <IconBrandYoutube />
+          <Link
+            target="_blank"
+            href={"https://www.facebook.com/rhhealthcaresimulationcenter/"}
+          >
+            <IconBrandFacebook />
+          </Link>
+          <Link
+            target="_blank"
+            href={"https://www.instagram.com/rhhealthcare_in/"}
+          >
+            <IconBrandInstagram />
+          </Link>
+          <Link
+            target="_blank"
+            href={"https://www.youtube.com/@RHHealthcareINDIA"}
+          >
+            <IconBrandYoutube />
+          </Link>
         </div>
       </div>
       <div className="grid w-full grid-cols-1 gap-6 bg-gray-50 p-4 md:grid-cols-4">

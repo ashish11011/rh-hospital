@@ -180,7 +180,7 @@ RH Healthcare Simulation Team<br/>
         },
         Message: {
             Subject: {
-                Data: "Workshop Registration Confirmation - RH Healthcare",
+                Data: "Seminar Registration Confirmation - RH Healthcare",
             },
             Body: {
                 Html: { Data: html },

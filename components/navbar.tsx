@@ -127,6 +127,7 @@ export function Navbar({ session }: { session: Session | null }) {
 }
 
 const NAV_LINKS = [
+  { title: "RH Healthcare", href: "/" },
   { title: "Courses", href: "/courses" },
   { title: "Workshops", href: "/workshops" },
   {

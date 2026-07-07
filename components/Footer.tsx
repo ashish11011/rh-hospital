@@ -49,9 +49,18 @@ const footerLinks = [
   {
     title: "Courses",
     links: [
-      { label: "Basic Nursing Skills", href: "/courses/basic" },
-      { label: "Intermediate Nursing Skills", href: "/courses/intermediate" },
-      { label: "Advanced Nursing Skills", href: "/courses/advanced" },
+      {
+        label: "NRP (Neonatal Resuscitation Program)",
+        href: "/courses/nrp-for-nurses",
+      },
+      {
+        label: "Triage Emergencies",
+        href: "/courses/triage-emergencies-for-nurses",
+      },
+      {
+        label: "PALS (Pediatric Advanced Life Support)",
+        href: "/courses/pals-for-nurses",
+      },
     ],
   },
   {

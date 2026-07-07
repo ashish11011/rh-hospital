@@ -213,7 +213,7 @@ function CurrentWorkshop() {
         <div className="col-span-5">
           <Image
             src={
-              "https://rh-healthcare.s3.ap-south-1.amazonaws.com/website-image/Registration+Page.png"
+              "https://d2c3lsl35lix55.cloudfront.net/website-image/Registration+Page.png"
             }
             alt="current-workshop"
             height={800}

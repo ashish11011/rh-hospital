@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
+import { UserCircle } from "lucide-react";
 
 export const registrationSchema = z
   .object({
@@ -384,10 +385,18 @@ const SeminarClient = () => {
   };
 
   return (
-    <div className="">
-      <div className="grid gap-4 py-4">
-        <p className="mt-6 text-xl">Basic Information</p>
-        <Separator className="-mt-4" />
+    <div className="mx-auto w-full max-w-3xl px-4 py-10 md:py-16">
+      <div id="registration-form" className="grid gap-4 py-4">
+        <div className="flex gap-3">
+          <UserCircle className="mt-2 size-10" />
+          <div className="space-y-2">
+            <h4 className="text-xl font-semibold">Participant Registration</h4>
+            <p className="text-muted-foreground text-sm">
+              Please fill your details to register for the submit
+            </p>
+          </div>
+        </div>
+        <Separator />
 
         <div className="space-y-1">
           <Label>Name</Label>
@@ -465,16 +474,6 @@ const SeminarClient = () => {
             </div>
           )}
         </div>
-
-        {/* <div className="space-y-1">
-                    <Label>Qualification</Label>
-                    <Input
-                        value={form.qualification}
-                        onChange={(e) =>
-                            handleChange("qualification", e.target.value)
-                        }
-                    />
-                </div> */}
 
         <div className="space-y-1">
           <Label>Institution / Organization</Label>
@@ -763,29 +762,24 @@ const SeminarClient = () => {
       </div>
 
       <div className="pt-4">
+        {" "}
+        Please join{" "}
         <Link
+          target="_blank"
           className="text-blue-600 underline"
           href="https://chat.whatsapp.com/ElsWv1MjOBHBLeYWVEJbg9?s=cl&p=a&mlu=3"
         >
-          Join WhatsApp Group
-        </Link>
-      </div>
-
-      <div className="mt-4 flex items-center space-x-2">
-        <Checkbox
-          checked={isChecked}
-          onCheckedChange={(checked) => setIsChecked(checked === true)}
-          id="terms"
-        />
-        <Label htmlFor="terms">Yes, i have joinded whatsapp group.</Label>
+          WhatsApp Group
+        </Link>{" "}
+        for latest updates.
       </div>
 
       <Button
         onClick={handleSubmit}
-        disabled={loading || !isChecked}
-        className="mt-4 h-10 w-full"
+        disabled={loading}
+        className="mt-4 h-10 w-full font-semibold"
       >
-        {loading ? "Processing..." : `₹ ${amount} Pay`}
+        {loading ? "Processing..." : `Register and pay ₹ ${amount}`}
       </Button>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { loginWithCredentials } from "@/lib/actions/auth";
 
@@ -20,7 +20,9 @@ import { useForm } from "react-hook-form";
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
+  const callbackUrl = getSafeCallbackUrl(searchParams.get("callbackUrl"));
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -39,7 +41,7 @@ export default function LoginForm() {
     } else if (res?.error) {
       setError(res.error);
     } else if (res?.success) {
-      router.push("/dashboard");
+      router.push(callbackUrl);
       router.refresh();
     }
   };
@@ -118,4 +120,20 @@ export default function LoginForm() {
       </p>
     </form>
   );
+}
+
+function getSafeCallbackUrl(value: string | null) {
+  if (!value) return "/dashboard";
+
+  try {
+    const decodedValue = decodeURIComponent(value);
+
+    if (!decodedValue.startsWith("/") || decodedValue.startsWith("//")) {
+      return "/dashboard";
+    }
+
+    return decodedValue;
+  } catch {
+    return "/dashboard";
+  }
 }

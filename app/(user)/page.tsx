@@ -280,7 +280,7 @@ function HeroSection() {
           </div>
         </div>
         <Image
-          src="https://rh-healthcare.s3.ap-south-1.amazonaws.com/website-image/Hero1.png"
+          src="https://d2c3lsl35lix55.cloudfront.net/website-image/Hero1.png"
           alt="group-doctor"
           width={500}
           height={500}
@@ -463,8 +463,8 @@ function CTASection() {
 function CatalogContainer() {
   return (
     <div className="container grid max-w-6xl! grid-cols-2 gap-6 py-8 pt-20 md:grid-cols-3">
-      {CATELOG_ITEMS.map((item) => {
-        return <CatelogBox {...item} />;
+      {CATELOG_ITEMS.map(({ key, ...item }) => {
+        return <CatelogBox key={key} {...item} />;
       })}
     </div>
   );

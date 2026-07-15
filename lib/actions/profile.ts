@@ -1,5 +1,6 @@
 "use server";
 
+import { auth } from "@/auth";
 import { db } from "@/lib/dbConfig";
 import { user } from "@/db";
 import { eq } from "drizzle-orm";
@@ -17,10 +18,21 @@ export async function getUserProfile(email: string) {
 
 export async function updateUserProfile(email: string, data: any) {
   try {
-    const existingUser = await getUserProfile(email);
+    const session = await auth();
+    const sessionEmail = session?.user?.email?.toLowerCase();
+
+    if (!sessionEmail) {
+      return { error: "Unauthorized" };
+    }
+
+    if (email.toLowerCase() !== sessionEmail) {
+      return { error: "Forbidden" };
+    }
+
+    const existingUser = await getUserProfile(sessionEmail);
     if (!existingUser) {
       await db.insert(user).values({
-        email: email,
+        email: sessionEmail,
         name: data.name,
         mobileNumber: data.mobileNumber || "",
         designation: data.designation || "",
@@ -36,7 +48,7 @@ export async function updateUserProfile(email: string, data: any) {
         instituteName: data.instituteName || "",
         city: data.city || "",
         updatedAt: new Date(),
-      }).where(eq(user.email, email));
+      }).where(eq(user.email, sessionEmail));
     }
 
     revalidatePath("/dashboard/profile");

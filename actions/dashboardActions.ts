@@ -4,9 +4,11 @@ import { db } from "@/lib/dbConfig";
 import { user, workshopRegistration, seminarRegistrations, workshop } from "@/db/index";
 import { sql, eq, desc, and, gte, lte, inArray } from "drizzle-orm";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export async function getTodayStats() {
   try {
+    await requireAdmin("full");
     const todayStart = startOfDay(new Date());
     const todayEnd = endOfDay(new Date());
 
@@ -86,6 +88,7 @@ export async function getTodayStats() {
 
 export async function getUserGrowthData() {
   try {
+    await requireAdmin("full");
     const thirtyDaysAgo = subDays(new Date(), 30);
 
     const data = await db
@@ -113,6 +116,7 @@ export async function getUserGrowthData() {
 
 export async function getRevenueData() {
   try {
+    await requireAdmin("full");
     const thirtyDaysAgo = subDays(new Date(), 30);
 
     const workshopRevenue = await db
@@ -172,6 +176,7 @@ export async function getRevenueData() {
 
 export async function getRecentWorkshopAnalytics() {
   try {
+    await requireAdmin("full");
     // Top 5 recent workshops
     const recentWorkshops = await db
       .select({ id: workshop.id, name: workshop.name })

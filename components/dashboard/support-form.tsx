@@ -8,7 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export function SupportForm() {
+type SupportFormUser = {
+  name: string;
+  email: string;
+  mobileNumber: string;
+};
+
+export function SupportForm({ user }: { user: SupportFormUser }) {
   const [formData, setFormData] = useState({
     subject: "",
     message: "",
@@ -24,17 +30,39 @@ export function SupportForm() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // As per requirement, logging the query to console for now
-    console.log("New Support Ticket Raised:", formData);
-    
-    // Simulate network request
-    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    toast.success("Ticket raised successfully! Support will contact you soon.");
-    
-    setFormData({ subject: "", message: "" });
-    setIsSubmitting(false);
+    try {
+      const subject = formData.subject.trim();
+      const message = formData.message.trim();
+
+      const response = await fetch("/api/contact-form", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: user.name,
+          email: user.email,
+          mobileNumber: user.mobileNumber,
+          formSource: `support - ${subject}`,
+          message,
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || data.status !== 200) {
+        throw new Error(data.message || "Failed to submit support ticket");
+      }
+
+      toast.success("Ticket raised successfully! Support will contact you soon.");
+      setFormData({ subject: "", message: "" });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to submit support ticket",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

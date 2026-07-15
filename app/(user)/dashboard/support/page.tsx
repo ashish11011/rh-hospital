@@ -5,8 +5,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { checkAuthGetUser } from "../action";
 
-export default function SupportPage() {
+export default async function SupportPage() {
+  const userProfile = await checkAuthGetUser();
+
   return (
     <div className="space-y-8">
       <div>
@@ -73,7 +76,13 @@ export default function SupportPage() {
           <h2 className="mb-4 text-lg font-semibold text-slate-800">
             Raise a Ticket
           </h2>
-          <SupportForm />
+          <SupportForm
+            user={{
+              name: userProfile?.name || "Dashboard User",
+              email: userProfile?.email || "",
+              mobileNumber: userProfile?.mobileNumber || "",
+            }}
+          />
         </div>
       </div>
     </div>

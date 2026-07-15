@@ -8,11 +8,46 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import Image from "next/image";
 import CallbackDialog from "./CallbackDialog";
-import { useState } from "react";
-import { type Session } from "next-auth";
+import { useEffect, useState } from "react";
 
-export function Navbar({ session }: { session: Session | null }) {
+type AuthSessionResponse = {
+  user?: {
+    email?: string | null;
+    name?: string | null;
+  } | null;
+} | null;
+
+export function Navbar() {
   const [open, setOpen] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadSession() {
+      try {
+        const response = await fetch("/api/auth/session", {
+          cache: "no-store",
+        });
+        const session = (await response.json()) as AuthSessionResponse;
+
+        if (active) {
+          setHasSession(Boolean(session?.user));
+        }
+      } catch {
+        if (active) {
+          setHasSession(false);
+        }
+      }
+    }
+
+    loadSession();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <div className="sticky top-0 z-50 border-b bg-white">
       <header className="container">
@@ -45,7 +80,7 @@ export function Navbar({ session }: { session: Session | null }) {
             })}
 
             <div className="flex items-center gap-2">
-              {session ? (
+              {hasSession ? (
                 <Button className="" asChild>
                   <Link prefetch={false} href="/dashboard">
                     Dashboard
@@ -93,7 +128,7 @@ export function Navbar({ session }: { session: Session | null }) {
                   })}
 
                   <div className="mt-4 flex flex-col gap-2 pr-4">
-                    {session ? (
+                    {hasSession ? (
                       <Button className="" asChild>
                         <Link prefetch={false} href="/dashboard">
                           Dashboard

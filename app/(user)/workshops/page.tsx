@@ -12,6 +12,7 @@ export const metadata = {
 };
 
 export const revalidate = 60; // Revalidate every 60 seconds
+export const dynamic = "force-static";
 
 export default async function WorkshopsPage() {
   const workshops = await getWorkshops();

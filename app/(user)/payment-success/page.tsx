@@ -2,6 +2,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { CheckCircle2 } from 'lucide-react'
 import React from 'react'
 
+export const dynamic = "force-static";
+
 const page = () => {
     return (
         <div className=' w-full flex items-center justify-center py-20'>

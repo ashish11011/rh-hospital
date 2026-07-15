@@ -3,6 +3,7 @@
 import { db } from "@/lib/dbConfig";
 import { user } from "@/db/index";
 import { ilike, desc, count, or } from "drizzle-orm";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export async function getUsers({
   page = 1,
@@ -10,6 +11,7 @@ export async function getUsers({
   search = ""
 }) {
   try {
+    await requireAdmin("full");
     const offset = (page - 1) * limit;
 
     const baseQuery = db.select({

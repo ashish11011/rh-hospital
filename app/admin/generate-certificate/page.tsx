@@ -1,5 +1,6 @@
 import React from 'react'
 import { getWorkshops } from '@/actions/workshopActions'
+import { requireAdmin } from '@/lib/adminAuth'
 import {
   Table,
   TableBody,
@@ -12,6 +13,8 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 const page = async () => {
+    await requireAdmin("full");
+
     const workshops = await getWorkshops()
 
     return (

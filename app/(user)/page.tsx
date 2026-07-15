@@ -37,6 +37,9 @@ import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { COURSE_DATA } from "@/const/courceData";
+import { getFeaturedPublishedBlogs } from "@/lib/blogData";
+import { blogPath } from "@/lib/blogUtils";
+import { getS3AssetUrl } from "@/lib/s3Asset";
 
 export const metadata: Metadata = {
   title: {
@@ -85,7 +88,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
+export const revalidate = 7200;
+
+export default async function Home() {
+  const featuredBlogs = await getFeaturedPublishedBlogs(3);
+
   return (
     <>
       <HeroSection />
@@ -153,7 +160,81 @@ export default function Home() {
         <WorkshopFAQ />
         <div className="h-10"></div>
       </div>
+      <FeaturedBlogs blogs={featuredBlogs} />
     </>
+  );
+}
+
+type FeaturedBlog = Awaited<ReturnType<typeof getFeaturedPublishedBlogs>>[number];
+
+function FeaturedBlogs({ blogs }: { blogs: FeaturedBlog[] }) {
+  if (blogs.length === 0) return null;
+
+  return (
+    <section className="container py-12">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
+        <div className="space-y-2">
+          <Badge variant="secondary">Featured Blogs</Badge>
+          <h2 className="text-primary text-xl font-bold md:text-3xl">
+            Latest Healthcare Insights
+          </h2>
+          <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
+            Read practical articles from RH Healthcare Simulation Centre on
+            nursing education, clinical simulation, and healthcare training.
+          </p>
+        </div>
+        <Button asChild variant="outline">
+          <Link href="/blog">
+            View all blogs
+            <ArrowRight className="size-4" />
+          </Link>
+        </Button>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-3">
+        {blogs.map((item) => {
+          const imageUrl = getS3AssetUrl(item.featuredImage || item.bannerImage);
+
+          return (
+            <Link
+              key={item.id}
+              href={blogPath(item.slug)}
+              className="group flex h-full flex-col overflow-hidden rounded-2xl border bg-white transition hover:-translate-y-1 hover:shadow-lg"
+            >
+              {imageUrl && (
+                <Image
+                  src={imageUrl}
+                  alt={item.title}
+                  width={500}
+                  height={280}
+                  className="aspect-[16/9] w-full object-cover transition duration-300 group-hover:scale-105"
+                />
+              )}
+              <div className="flex flex-1 flex-col gap-3 p-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  {item.category && (
+                    <Badge variant="secondary">{item.category}</Badge>
+                  )}
+                  <Badge>Featured</Badge>
+                </div>
+                <h3 className="line-clamp-2 text-lg font-semibold leading-tight group-hover:text-primary">
+                  {item.title}
+                </h3>
+                {item.shortDescription && (
+                  <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
+                    {item.shortDescription}
+                  </p>
+                )}
+                <div className="mt-auto flex items-center justify-between pt-2 text-sm font-medium text-primary">
+                  <span>Read more</span>
+                  <ArrowRight className="size-4 transition group-hover:translate-x-1" />
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

@@ -18,6 +18,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "../ui/input-group";
+import { getS3AssetUrl } from "@/lib/s3Asset";
 
 export default function CourseList() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,7 +58,7 @@ export default function CourseList() {
               <Link href={course.slug}>
                 <div className="relative h-52">
                   <Image
-                    src={course.bannerImage}
+                    src={getS3AssetUrl(course.bannerImage)}
                     alt={course.name}
                     height={500}
                     width={500}

@@ -14,10 +14,26 @@ const s3Client = new S3Client({
   },
 });
 
-export async function getPresignedUrl(filename: string, fileType: string): Promise<{ url?: string; uploadUrl?: string; key?: string; error?: string }> {
+function createS3Key(filename: string, folder?: string) {
+  const safeFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
+  const cleanFolder = folder
+    ?.replace(/^\/+|\/+$/g, "")
+    .replace(/[^a-zA-Z0-9/_-]/g, "_");
+  const key = `${Date.now()}-${safeFilename}`;
+
+  return cleanFolder ? `${cleanFolder}/${key}` : key;
+}
+
+type PresignedUploadResult = {
+  uploadUrl?: string;
+  key?: string;
+  error?: string;
+};
+
+export async function getPresignedUrl(filename: string, fileType: string, folder?: string): Promise<PresignedUploadResult> {
   try {
     await requireAdmin("full");
-    const key = `${Date.now()}-${filename.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+    const key = createS3Key(filename, folder);
 
     const command = new PutObjectCommand({
       Bucket: AWS_BUCKET,
@@ -26,16 +42,15 @@ export async function getPresignedUrl(filename: string, fileType: string): Promi
     });
 
     const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-    const finalUrl = `https://${AWS_BUCKET}.s3.${AWS_REGION}.amazonaws.com/${key}`;
 
-    return { uploadUrl, url: finalUrl, key };
+    return { uploadUrl, key };
   } catch (error) {
     console.error("Presigned URL Error:", error);
     return { error: "Failed to generate presigned upload URL" };
   }
 }
 
-export async function getBlogImagePresignedUrl(filename: string, fileType: string): Promise<{ url?: string; uploadUrl?: string; key?: string; error?: string }> {
+export async function getBlogImagePresignedUrl(filename: string, fileType: string): Promise<PresignedUploadResult> {
   try {
     await requireAdmin("blog");
 
@@ -43,8 +58,7 @@ export async function getBlogImagePresignedUrl(filename: string, fileType: strin
       return { error: "Only image uploads are allowed" };
     }
 
-    const safeFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const key = `blogs/${Date.now()}-${safeFilename}`;
+    const key = createS3Key(filename, "blogs");
 
     const command = new PutObjectCommand({
       Bucket: AWS_BUCKET,
@@ -53,9 +67,8 @@ export async function getBlogImagePresignedUrl(filename: string, fileType: strin
     });
 
     const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-    const finalUrl = `https://${AWS_BUCKET}.s3.${AWS_REGION}.amazonaws.com/${key}`;
 
-    return { uploadUrl, url: finalUrl, key };
+    return { uploadUrl, key };
   } catch (error) {
     console.error("Presigned URL Error:", error);
     return { error: "Failed to generate presigned upload URL" };

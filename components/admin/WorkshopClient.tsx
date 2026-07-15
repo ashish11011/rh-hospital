@@ -1,18 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { deleteWorkshop } from "@/actions/workshopActions";
-import { Trash2, Pencil, Image } from "lucide-react";
+import { Trash2, Pencil, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 import { WorkshopFormDialog } from "./WorkshopFormDialog";
 import { WorkshopImages } from "./WorkshopImages";
+import { getS3AssetUrl } from "@/lib/s3Asset";
 
 export function WorkshopClient({ workshops }: { workshops: any[] }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this workshop? This action cannot be undone.")) return;
+    if (
+      !confirm(
+        "Are you sure you want to delete this workshop? This action cannot be undone.",
+      )
+    )
+      return;
 
     try {
       setLoadingId(id);
@@ -36,12 +50,12 @@ export function WorkshopClient({ workshops }: { workshops: any[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Workshops</h2>
         <WorkshopFormDialog />
       </div>
 
-      <div className="border rounded-md bg-white">
+      <div className="rounded-md border bg-white">
         <Table>
           <TableHeader>
             <TableRow>
@@ -57,7 +71,10 @@ export function WorkshopClient({ workshops }: { workshops: any[] }) {
           <TableBody>
             {workshops.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-6 text-gray-500">
+                <TableCell
+                  colSpan={7}
+                  className="py-6 text-center text-gray-500"
+                >
                   No workshops found. Create one.
                 </TableCell>
               </TableRow>
@@ -66,9 +83,17 @@ export function WorkshopClient({ workshops }: { workshops: any[] }) {
                 <TableRow key={ws.id}>
                   <TableCell>
                     {ws.bannerImage ? (
-                      <img src={ws.bannerImage} alt={ws.name} className="w-16 h-10 object-cover rounded" />
+                      <Image
+                        width={300}
+                        height={300}
+                        src={getS3AssetUrl(ws.bannerImage)}
+                        alt={ws.name}
+                        className="h-10 w-16 rounded object-cover"
+                      />
                     ) : (
-                      <div className="w-16 h-10 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">No Img</div>
+                      <div className="flex h-10 w-16 items-center justify-center rounded bg-gray-200 text-xs text-gray-500">
+                        No Img
+                      </div>
                     )}
                   </TableCell>
                   <TableCell className="font-medium">{ws.name}</TableCell>
@@ -82,8 +107,12 @@ export function WorkshopClient({ workshops }: { workshops: any[] }) {
                         initialData={ws}
                         isCompleted={ws.isCompleted}
                         trigger={
-                          <Button disabled={!ws.isCompleted} variant="outline" size="icon">
-                            <Image className="w-4 h-4" />
+                          <Button
+                            disabled={!ws.isCompleted}
+                            variant="outline"
+                            size="icon"
+                          >
+                            <ImageIcon className="h-4 w-4" />
                           </Button>
                         }
                       />
@@ -91,7 +120,7 @@ export function WorkshopClient({ workshops }: { workshops: any[] }) {
                         initialData={ws}
                         trigger={
                           <Button variant="outline" size="icon">
-                            <Pencil className="w-4 h-4" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
                         }
                       />
@@ -101,7 +130,7 @@ export function WorkshopClient({ workshops }: { workshops: any[] }) {
                         onClick={() => handleDelete(ws.id)}
                         disabled={loadingId === ws.id}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>

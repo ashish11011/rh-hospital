@@ -1,72 +1,71 @@
-import { formatDate, formatTime } from "@/helper/formatDate"
-import { ArrowRight, Calendar, Clock, IndianRupee } from "lucide-react"
-import Link from "next/link"
-import { Card } from "../ui/card"
+import { formatDate, formatTime } from "@/helper/formatDate";
+import { ArrowRight, Calendar, Clock, IndianRupee } from "lucide-react";
+import Link from "next/link";
+import { Card } from "../ui/card";
+import { getS3AssetUrl } from "@/lib/s3Asset";
+import Image from "next/image";
 
 export const WorkshowListCard = ({ ws, isCompleted }: any) => {
-    return (
-        <Link key={ws.id} href={`/workshops/${ws.id}`} className="group">
-            <Card className=" p-0 overflow-hidden  flex flex-col h-full cursor-pointer">
-                {/* Image */}
-                <div className="relative h-56 w-full overflow-hidden bg-gray-200">
-                    {ws.bannerImage ? (
-                        <img
-                            src={ws.bannerImage}
-                            alt={ws.name}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            No Image Available
-                        </div>
-                    )}
-                </div>
+  const bannerImageUrl = getS3AssetUrl(ws.bannerImage);
+  console.log(bannerImageUrl);
+  return (
+    <Link key={ws.id} href={`/workshops/${ws.id}`} className="group">
+      <Card className="flex h-full cursor-pointer flex-col overflow-hidden p-0">
+        {/* Image */}
+        <div className="relative h-56 w-full overflow-hidden bg-gray-200">
+          {bannerImageUrl ? (
+            <Image
+              src={bannerImageUrl}
+              alt={ws.name}
+              width={500}
+              height={500}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-gray-400">
+              No Image Available
+            </div>
+          )}
+        </div>
 
-                {/* Content */}
-                <div className="p-6 flex flex-col grow">
-                    <h2 className="text-xl capitalize font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                        {ws.name}
-                    </h2>
-                    <p className="text-gray-600 text-sm mb-6 line-clamp-3 grow">
-                        {ws.description}
-                    </p>
+        {/* Content */}
+        <div className="flex grow flex-col p-6">
+          <h2 className="group-hover:text-primary mb-2 line-clamp-2 text-xl font-bold text-gray-900 capitalize transition-colors">
+            {ws.name}
+          </h2>
+          <p className="mb-6 line-clamp-3 grow text-sm text-gray-600">
+            {ws.description}
+          </p>
 
-                    {
-                        !isCompleted && (
-                            <div className="space-y-3 mb-6 pt-4 border-t border-gray-100">
-                                <div className="flex items-center text-sm text-gray-600">
-                                    <Calendar className="w-4 h-4 mr-3 text-primary" />
-                                    <span>{formatDate(ws.startTime)}</span>
-                                </div>
-                                <div className="flex items-center text-sm text-gray-600">
-                                    <Clock className="w-4 h-4 mr-3 text-primary" />
-                                    <span>
-                                        {formatTime(ws.startTime)} - {formatTime(ws.endTime)}
-                                    </span>
-                                </div>
-                            </div>
-                        )
-                    }
+          {!isCompleted && (
+            <div className="mb-6 space-y-3 border-t border-gray-100 pt-4">
+              <div className="flex items-center text-sm text-gray-600">
+                <Calendar className="text-primary mr-3 h-4 w-4" />
+                <span>{formatDate(ws.startTime)}</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <Clock className="text-primary mr-3 h-4 w-4" />
+                <span>
+                  {formatTime(ws.startTime)} - {formatTime(ws.endTime)}
+                </span>
+              </div>
+            </div>
+          )}
 
-
-
-                    {/* Price and Action */}
-                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-                        {
-                            !isCompleted && (
-                                <div className="flex items-center font-semibold text-lg text-gray-900">
-                                    <IndianRupee className="w-4 h-4 mr-1 text-gray-600" />
-                                    {ws.onlinePrice}
-                                </div>
-                            )
-                        }
-                        <span className="text-primary font-medium text-sm flex gap-2 items-center group-hover:underline">
-                            View Details <ArrowRight className="w-4 h-4" />
-                        </span>
-                    </div>
-                </div>
-            </Card>
-        </Link>
-    )
-}
-
+          {/* Price and Action */}
+          <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4">
+            {!isCompleted && (
+              <div className="flex items-center text-lg font-semibold text-gray-900">
+                <IndianRupee className="mr-1 h-4 w-4 text-gray-600" />
+                {ws.onlinePrice}
+              </div>
+            )}
+            <span className="text-primary flex items-center gap-2 text-sm font-medium group-hover:underline">
+              View Details <ArrowRight className="h-4 w-4" />
+            </span>
+          </div>
+        </div>
+      </Card>
+    </Link>
+  );
+};

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { ClientForm } from './ClientForm'
 import Image from 'next/image'
 import { requireAdmin } from '@/lib/adminAuth'
+import { getS3AssetUrl } from '@/lib/s3Asset'
 
 const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     await requireAdmin("full");
@@ -14,6 +15,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     if (!workshop) {
         notFound()
     }
+    const bannerImageUrl = getS3AssetUrl(workshop.bannerImage)
 
     return (
         <div className="p-6 max-w-2xl mx-auto space-y-12">
@@ -24,11 +26,11 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
 
             <div className="border rounded-md p-6 space-y-10 bg-card">
                 <div className="flex flex-col justify-start items-start gap-8 w-full space-x-6">
-                    {workshop.bannerImage ? (
+                    {bannerImageUrl ? (
                         <Image
                             width={300}
                             height={300}
-                            src={workshop.bannerImage}
+                            src={bannerImageUrl}
                             alt={workshop.name}
                             className="w-auto h-28 object-contain"
                         />

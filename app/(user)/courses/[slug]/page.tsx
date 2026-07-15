@@ -7,6 +7,7 @@ import { CourseWaitlistDialog } from "@/components/course/CourseWaitlistDialog";
 import Image from "next/image";
 import { COURSE_DATA } from "@/const/courceData";
 import { notFound } from "next/navigation";
+import { getS3AssetUrl } from "@/lib/s3Asset";
 
 export default async function Page({
   params,
@@ -48,7 +49,7 @@ function Header({ bannerImage }: { bannerImage: string }) {
       <Image
         alt="course image"
         className="h-auto w-full object-contain md:object-cover"
-        src={bannerImage}
+        src={getS3AssetUrl(bannerImage)}
         height={1200}
         width={1600}
       />

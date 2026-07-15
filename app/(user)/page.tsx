@@ -165,7 +165,9 @@ export default async function Home() {
   );
 }
 
-type FeaturedBlog = Awaited<ReturnType<typeof getFeaturedPublishedBlogs>>[number];
+type FeaturedBlog = Awaited<
+  ReturnType<typeof getFeaturedPublishedBlogs>
+>[number];
 
 function FeaturedBlogs({ blogs }: { blogs: FeaturedBlog[] }) {
   if (blogs.length === 0) return null;
@@ -178,7 +180,7 @@ function FeaturedBlogs({ blogs }: { blogs: FeaturedBlog[] }) {
           <h2 className="text-primary text-xl font-bold md:text-3xl">
             Latest Healthcare Insights
           </h2>
-          <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
+          <p className="text-muted-foreground max-w-2xl text-sm md:text-base">
             Read practical articles from RH Healthcare Simulation Centre on
             nursing education, clinical simulation, and healthcare training.
           </p>
@@ -193,7 +195,9 @@ function FeaturedBlogs({ blogs }: { blogs: FeaturedBlog[] }) {
 
       <div className="grid gap-6 md:grid-cols-3">
         {blogs.map((item) => {
-          const imageUrl = getS3AssetUrl(item.featuredImage || item.bannerImage);
+          const imageUrl = getS3AssetUrl(
+            item.featuredImage || item.bannerImage,
+          );
 
           return (
             <Link
@@ -217,15 +221,15 @@ function FeaturedBlogs({ blogs }: { blogs: FeaturedBlog[] }) {
                   )}
                   <Badge>Featured</Badge>
                 </div>
-                <h3 className="line-clamp-2 text-lg font-semibold leading-tight group-hover:text-primary">
+                <h3 className="group-hover:text-primary line-clamp-2 text-lg leading-tight font-semibold">
                   {item.title}
                 </h3>
                 {item.shortDescription && (
-                  <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
+                  <p className="text-muted-foreground line-clamp-3 text-sm leading-6">
                     {item.shortDescription}
                   </p>
                 )}
-                <div className="mt-auto flex items-center justify-between pt-2 text-sm font-medium text-primary">
+                <div className="text-primary mt-auto flex items-center justify-between pt-2 text-sm font-medium">
                   <span>Read more</span>
                   <ArrowRight className="size-4 transition group-hover:translate-x-1" />
                 </div>
@@ -381,7 +385,7 @@ function CertifiedModules() {
               className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border"
             >
               <Image
-                src={item.bannerImage}
+                src={getS3AssetUrl(item.bannerImage)}
                 height={500}
                 width={500}
                 alt="sample image"
@@ -495,57 +499,6 @@ function CatelogBox({ title, icon: Icon }: { title: string; icon: any }) {
       </div> */}
       </CardContent>
     </Card>
-  );
-}
-
-function ProductCategory() {
-  return (
-    <div className="py-4">
-      {/* <Carousel opts={{ align: "start" }}>
-        <CarouselContent>
-          <CarouselItem
-            key={1}
-            className="basis-full"
-          >
-      
-          </CarouselItem>
-          <CarouselItem
-            key={2}
-            className="basis-full"
-          >
-            <div className=" grid grid-cols-2 gap-4">
-              {PRODUCT_CATEGORY.slice(4, 8).map((item) => (
-                <ProductCategoryCatelogCard key={item.name} category={item} />))}
-            </div>
-          </CarouselItem>
-        </CarouselContent>
-
-        <CarouselPrevious className=" -top-4 left-[100%-4rem] right-12" />
-        <CarouselNext className=" -top-4 right-0" />
-      </Carousel> */}
-      <div className="grid grid-cols-2 gap-4">
-        {PRODUCT_CATEGORY.slice(0, 4).map((item) => (
-          <ProductCategoryCatelogCard key={item.name} category={item} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ProductCategoryCatelogCard({ category }: any) {
-  return (
-    <div className="h-full w-full p-1">
-      <Card className="h-full w-full duration-200 hover:shadow-xl">
-        <CardContent className="flex flex-col items-center gap-3 text-center">
-          <img
-            src={category.image}
-            alt={category.name}
-            className="size-20 object-contain md:size-32"
-          />
-          <p className="text-sm font-medium md:text-lg">{category.name}</p>
-        </CardContent>
-      </Card>
-    </div>
   );
 }
 
@@ -885,72 +838,6 @@ const PRODUCT_CAT = [
     ],
   },
 ];
-
-function HomeProductCrousel() {
-  return (
-    <div className="bg-primary/10 w-full py-12">
-      <div className="container space-y-6">
-        <div className="">
-          <h2 className="text-primary text-2xl font-semibold break-keep">
-            World Class Technology
-          </h2>
-          <p className="text-gray-600">
-            We use the latest technology to provide the best healthcare
-            services.
-          </p>
-        </div>
-        <div className="hidden w-full md:block">
-          <Carousel>
-            <CarouselContent className="p-1">
-              {PRODUCT_CAT.map((cat) => {
-                return (
-                  <CarouselItem
-                    key={cat.link}
-                    className="group h-fit basis-1/5 cursor-pointer"
-                  >
-                    <Card className="duration-200 hover:shadow-lg">
-                      <CardContent className="flex flex-col items-center gap-4">
-                        <img
-                          className="size-32 duration-200 group-hover:scale-110"
-                          src={cat.image}
-                        />
-                        <p className="text-center text-lg">{cat.category}</p>
-                      </CardContent>
-                    </Card>
-                  </CarouselItem>
-                );
-              })}
-            </CarouselContent>
-            <CarouselNext />
-            <CarouselPrevious />
-          </Carousel>
-        </div>
-        <div className="grid grid-cols-2 gap-6 md:hidden">
-          {PRODUCT_CAT.map((cat) => {
-            return (
-              <div
-                key={cat.link}
-                className="group h-fit basis-1/5 cursor-pointer"
-              >
-                <Card className="h-full duration-200 hover:shadow-lg">
-                  <CardContent className="flex flex-col items-center gap-4">
-                    <img
-                      className="size-32 duration-200 group-hover:scale-110"
-                      src={cat.image}
-                    />
-                    <p className="text-center text-sm font-medium">
-                      {cat.category}
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function AboutOrg() {
   return <div></div>;

@@ -3,8 +3,11 @@ import { getWorkshopById } from '@/actions/workshopActions'
 import { notFound } from 'next/navigation'
 import { ClientForm } from './ClientForm'
 import Image from 'next/image'
+import { requireAdmin } from '@/lib/adminAuth'
 
 const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
+    await requireAdmin("full");
+
     const resolvedParams = await params
     const workshop = await getWorkshopById(resolvedParams.slug)
 

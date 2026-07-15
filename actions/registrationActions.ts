@@ -3,6 +3,7 @@
 import { db } from "@/lib/dbConfig";
 import { workshopRegistration, workshop } from "@/db/index";
 import { eq, ilike, and, desc, count } from "drizzle-orm";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export async function getRegistrations({
   page = 1,
@@ -11,6 +12,7 @@ export async function getRegistrations({
   workshopId = ""
 }) {
   try {
+    await requireAdmin("full");
     const conditions = [];
     if (emailFilter) conditions.push(ilike(workshopRegistration.email, `%${emailFilter}%`));
     if (workshopId) conditions.push(eq(workshopRegistration.workshopId, workshopId));
@@ -51,6 +53,7 @@ export async function getRegistrations({
 
 export async function getAllRegistrations(workshopId?: string) {
   try {
+    await requireAdmin("full");
     const conditions = [];
     if (workshopId) conditions.push(eq(workshopRegistration.workshopId, workshopId));
     const data = db.select({
@@ -81,6 +84,7 @@ export async function getAllRegistrations(workshopId?: string) {
 
 export async function getWorkshopsList() {
   try {
+    await requireAdmin("full");
     return await db.select({ id: workshop.id, name: workshop.name }).from(workshop);
   } catch (err) {
     console.error(err);

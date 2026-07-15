@@ -1,5 +1,6 @@
 import { getWorkshops } from "@/actions/workshopActions";
 import { WorkshopClient } from "@/components/admin/WorkshopClient";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,8 @@ export const metadata = {
 };
 
 export default async function AdminWorkshopPage() {
+  await requireAdmin("full");
+
   const workshops = await getWorkshops();
 
   return (

@@ -2,6 +2,7 @@ import { getRegistrations, getWorkshopsList } from "@/actions/registrationAction
 import { RegistrationClient } from "./RegistrationClient";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,8 @@ interface PageProps {
 }
 
 export default async function WorkshopRegistrationsPage({ searchParams }: PageProps) {
+    await requireAdmin("full");
+
     // Await the searchParams as Next.js 15+ requires
     const resolvedParams = await searchParams;
 

@@ -2,6 +2,7 @@ import { getUsers } from "@/actions/userAdminActions";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { UserClient } from "./UserClient";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,8 @@ interface PageProps {
 }
 
 export default async function UsersPage({ searchParams }: PageProps) {
+  await requireAdmin("full");
+
   const resolvedParams = await searchParams;
 
   const page = Number(resolvedParams.page) || 1;

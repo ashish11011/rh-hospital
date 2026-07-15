@@ -2,6 +2,8 @@ import AuthLayout from "@/components/auth/auth-layout";
 import VerifyEmailForm from "@/components/auth/verify-email-form";
 import { Suspense } from "react";
 
+export const dynamic = "force-static";
+
 export default function Page() {
   return (
     <AuthLayout

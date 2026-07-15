@@ -3,6 +3,7 @@
 import { db } from "@/lib/dbConfig";
 import { seminarRegistrations, seminar } from "@/db/index";
 import { eq, ilike, and, desc, count } from "drizzle-orm";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export async function getSeminarRegistrations({
   page = 1,
@@ -12,6 +13,7 @@ export async function getSeminarRegistrations({
   paymentStatus = ""
 }) {
   try {
+    await requireAdmin("full");
     const conditions = [];
     if (emailFilter) conditions.push(ilike(seminarRegistrations.email, `%${emailFilter}%`));
     if (seminarId) conditions.push(eq(seminarRegistrations.seminarId, seminarId));
@@ -53,6 +55,7 @@ export async function getSeminarRegistrations({
 
 export async function getAllSeminarRegistrations(seminarId?: string, paymentStatus?: string) {
   try {
+    await requireAdmin("full");
     const conditions = [];
     if (seminarId) conditions.push(eq(seminarRegistrations.seminarId, seminarId));
     if (paymentStatus) conditions.push(eq(seminarRegistrations.paymentStatus, paymentStatus));
@@ -113,6 +116,7 @@ export async function getAllSeminarRegistrations(seminarId?: string, paymentStat
 
 export async function getSeminarsList() {
   try {
+    await requireAdmin("full");
     return await db.select({ id: seminar.id, name: seminar.name }).from(seminar);
   } catch (err) {
     console.error(err);

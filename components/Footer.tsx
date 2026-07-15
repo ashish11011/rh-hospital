@@ -14,6 +14,7 @@ const footerLinks = [
       { label: "Contact Us", href: "/contact-us" },
       // { label: "Certifications", href: "/certifications" },
       { label: "Workshops", href: "/workshops" },
+      { label: "Blog", href: "/blog" },
       { label: "Workshop Certificate", href: "/course-certificate" },
     ],
   },

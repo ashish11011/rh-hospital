@@ -21,6 +21,8 @@ import {
 } from "@tabler/icons-react";
 import { MapPin } from "lucide-react";
 
+export const dynamic = "force-static";
+
 export const metadata: Metadata = {
   title: "Global Nursing Leadership & Education Summit 2026 | RH Healthcare",
   description:

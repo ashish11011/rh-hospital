@@ -2,6 +2,7 @@ import { getSeminarRegistrations, getSeminarsList } from "@/actions/seminarAdmin
 import { RegistrationClient } from "./RegistrationClient";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,8 @@ interface PageProps {
 }
 
 export default async function SeminarRegistrationsPage({ searchParams }: PageProps) {
+    await requireAdmin("full");
+
     const resolvedParams = await searchParams;
 
     const page = Number(resolvedParams.page) || 1;

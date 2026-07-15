@@ -4,6 +4,7 @@ import { CalendarDays, ExternalLink, MapPin, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { getS3AssetUrl } from "@/lib/s3Asset";
 
 export default async function WorkshopsPage() {
   const workshops = await getUserRegisteredWorkshops();
@@ -33,10 +34,10 @@ export default async function WorkshopsPage() {
               key={i}
               className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
             >
-              {workshop.workshopImage ? (
+              {getS3AssetUrl(workshop.workshopImage) ? (
                 <div className="relative h-40 w-full bg-slate-100">
                   <Image
-                    src={workshop.workshopImage}
+                    src={getS3AssetUrl(workshop.workshopImage)}
                     alt={workshop.workshopName}
                     fill
                     className="object-cover"

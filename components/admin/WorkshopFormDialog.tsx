@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,10 +18,12 @@ import { getPresignedUrl } from "@/actions/uploadAction";
 import { createWorkshop, updateWorkshop } from "@/actions/workshopActions";
 import { Plus, Pencil } from "lucide-react";
 import { Checkbox } from "../ui/checkbox";
+import { getS3AssetUrl } from "@/lib/s3Asset";
+import Image from "next/image";
 
 export function WorkshopFormDialog({
   initialData,
-  trigger
+  trigger,
 }: {
   initialData?: any;
   trigger?: React.ReactNode;
@@ -24,26 +33,47 @@ export function WorkshopFormDialog({
 
   // Form State
   const [name, setName] = useState(initialData?.name || "");
-  const [description, setDescription] = useState(initialData?.description || "");
+  const [description, setDescription] = useState(
+    initialData?.description || "",
+  );
   const [content, setContent] = useState(initialData?.content || "");
-  const [startTime, setStartTime] = useState(initialData ? new Date(initialData.startTime).toISOString().slice(0, 16) : "");
-  const [endTime, setEndTime] = useState(initialData ? new Date(initialData.endTime).toISOString().slice(0, 16) : "");
+  const [startTime, setStartTime] = useState(
+    initialData
+      ? new Date(initialData.startTime).toISOString().slice(0, 16)
+      : "",
+  );
+  const [endTime, setEndTime] = useState(
+    initialData ? new Date(initialData.endTime).toISOString().slice(0, 16) : "",
+  );
   const [onlinePrice, setOnlinePrice] = useState(initialData?.onlinePrice || 0);
-  const [offlinePrice, setOfflinePrice] = useState(initialData?.offlinePrice || 0);
+  const [offlinePrice, setOfflinePrice] = useState(
+    initialData?.offlinePrice || 0,
+  );
   const [file, setFile] = useState<File | null>(null);
-  const [isCompleted, setIsCompleted] = useState(initialData?.isCompleted || false);
+  const [isCompleted, setIsCompleted] = useState(
+    initialData?.isCompleted || false,
+  );
+  const currentBannerPreviewUrl = getS3AssetUrl(initialData?.bannerImage);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      let bannerImageUrl = initialData?.bannerImage;
+      let bannerImageKey = initialData?.bannerImage;
 
       if (file) {
-        const presignedResult = await getPresignedUrl(file.name, file.type);
+        const presignedResult = await getPresignedUrl(
+          file.name,
+          file.type,
+          "workshops/banner",
+        );
 
-        if (presignedResult.error || !presignedResult.uploadUrl) {
+        if (
+          presignedResult.error ||
+          !presignedResult.uploadUrl ||
+          !presignedResult.key
+        ) {
           alert(presignedResult.error || "Failed to get upload URL");
           setLoading(false);
           return;
@@ -61,7 +91,7 @@ export function WorkshopFormDialog({
           throw new Error("Failed to upload image directly to S3");
         }
 
-        bannerImageUrl = presignedResult.url;
+        bannerImageKey = presignedResult.key;
       }
 
       const workshopData = {
@@ -73,7 +103,7 @@ export function WorkshopFormDialog({
         onlinePrice: Number(onlinePrice),
         offlinePrice: Number(offlinePrice),
         isCompleted,
-        ...(bannerImageUrl && { bannerImage: bannerImageUrl }),
+        ...(bannerImageKey && { bannerImage: bannerImageKey }),
       };
 
       if (initialData?.id) {
@@ -108,25 +138,32 @@ export function WorkshopFormDialog({
       <DialogTrigger asChild>
         {trigger || (
           <Button>
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Add Workshop
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-5xl! w-full max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] w-full max-w-5xl! overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{initialData ? "Edit Workshop" : "Create Workshop"}</DialogTitle>
+          <DialogTitle>
+            {initialData ? "Edit Workshop" : "Create Workshop"}
+          </DialogTitle>
           <DialogDescription>
-            Fill out the details below to {initialData ? "update" : "create"} a workshop.
+            Fill out the details below to {initialData ? "update" : "create"} a
+            workshop.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-6">
           <div className="flex items-center gap-2">
-            <Checkbox id="iscompleted" checked={isCompleted} onCheckedChange={setIsCompleted} />
+            <Checkbox
+              id="iscompleted"
+              checked={isCompleted}
+              onCheckedChange={setIsCompleted}
+            />
             <Label htmlFor="iscompleted">Workshop Completed</Label>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Workshop Name</Label>
               <Input
@@ -143,8 +180,19 @@ export function WorkshopFormDialog({
                 accept="image/*"
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
               />
-              {initialData?.bannerImage && !file && (
-                <p className="text-sm text-gray-500">Current file exists. Uploading new replaces it.</p>
+              {currentBannerPreviewUrl && !file && (
+                <div className="space-y-2">
+                  <Image
+                    width={400}
+                    height={400}
+                    src={currentBannerPreviewUrl}
+                    alt="Current workshop banner"
+                    className="h-24 w-40 rounded-md border object-cover"
+                  />
+                  <p className="text-sm text-gray-500">
+                    Current file exists. Uploading new replaces it.
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -159,7 +207,7 @@ export function WorkshopFormDialog({
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Start Time</Label>
               <Input
@@ -180,7 +228,7 @@ export function WorkshopFormDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Online Price (INR)</Label>
               <Input
@@ -207,7 +255,11 @@ export function WorkshopFormDialog({
           </div>
 
           <div className="flex justify-end gap-4 pt-10">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>

@@ -53,6 +53,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 function toDateTimeLocal(value?: Date | string | null) {
   if (!value) return "";
@@ -612,7 +613,9 @@ function ImageUploadField({
           <p className="text-muted-foreground text-xs break-all">
             Preview URL: {previewUrl}
           </p>
-          <img
+          <Image
+            width={1200}
+            height={1000}
             src={previewUrl}
             alt="Blog upload preview"
             className="h-auto w-full rounded-md object-cover"

@@ -8,6 +8,7 @@ import { WorkshopRegistration } from "@/components/workshop/takeRegistratoinDial
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Image from "next/image";
+import { getS3AssetUrl } from "@/lib/s3Asset";
 
 export const revalidate = 600;
 export const dynamic = "force-static"
@@ -41,16 +42,17 @@ export default async function WorkshopDetailsPage({ params }: { params: { id: st
 
 
   const cleanContent = ws.content?.replace(/&nbsp;/g, " ");
+  const bannerImageUrl = getS3AssetUrl(ws.bannerImage);
 
   return (
     <div className="bg-white min-h-screen">
       {/* Banner Section */}
       <div className="w-full h-[40vh] md:h-[50vh] bg-gray-900 relative">
-        {ws.bannerImage ? (
+        {bannerImageUrl ? (
           <Image
             height={700}
             width={1280}
-            src={ws.bannerImage}
+            src={bannerImageUrl}
             alt={ws.name}
             className="w-full h-full object-cover opacity-60"
           />
@@ -192,7 +194,7 @@ async function WorkshopImages({ workshopId }: any) {
                 className=" w-full h-auto"
               >
                 <Image
-                  src={img.image}
+                  src={getS3AssetUrl(img.image)}
                   alt={`Workshop ${img.displayOrder}`}
                   width={1920}
                   height={1080}

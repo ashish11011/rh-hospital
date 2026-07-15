@@ -2,6 +2,7 @@ import { getUserCertificate } from "../action";
 import { Button } from "@/components/ui/button";
 import { Download, FileBadge } from "lucide-react";
 import Image from "next/image";
+import { getS3AssetUrl } from "@/lib/s3Asset";
 
 export default async function CertificatesPage() {
   const { workshopCertificates, seminarCertificates } =
@@ -34,13 +35,14 @@ export default async function CertificatesPage() {
               key={i}
               className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
             >
-              {cert.workshopImage ? (
-                <div className="relative h-40 w-full bg-slate-100">
+              {getS3AssetUrl(cert.workshopImage) ? (
+                <div className="relative h-auto w-full bg-slate-100">
                   <Image
-                    src={cert.workshopImage}
+                    src={getS3AssetUrl(cert.workshopImage)}
                     alt={cert.workshopName}
-                    fill
-                    className="object-cover"
+                    height={400}
+                    width={500}
+                    className="h-auto w-full object-contain"
                   />
                 </div>
               ) : (
@@ -66,7 +68,7 @@ export default async function CertificatesPage() {
                 <Button className="mt-auto w-full gap-2" asChild>
                   <a
                     href={
-                      `https://rh-healthcare.s3.ap-south-1.amazonaws.com${cert.certificate}`!
+                      `https://d2c3lsl35lix55.cloudfront.net/${cert.certificate}`!
                     }
                     target="_blank"
                     rel="noreferrer download"

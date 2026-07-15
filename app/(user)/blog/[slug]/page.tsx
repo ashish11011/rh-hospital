@@ -4,6 +4,7 @@ import { blogPath } from "@/lib/blogUtils";
 import { getS3AssetUrl } from "@/lib/s3Asset";
 import { CalendarDays } from "lucide-react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
 export const revalidate = 7200;
@@ -38,8 +39,12 @@ export async function generateMetadata({
     "Read RH Healthcare Simulation Centre insights on healthcare simulation, nursing education, and clinical training.";
   const imageUrl = getS3AssetUrl(blog.bannerImage || blog.featuredImage);
   const canonicalPath = blogPath(blog.slug);
-  const publishedTime = blog.publishedAt ? new Date(blog.publishedAt).toISOString() : undefined;
-  const modifiedTime = blog.updatedAt ? new Date(blog.updatedAt).toISOString() : undefined;
+  const publishedTime = blog.publishedAt
+    ? new Date(blog.publishedAt).toISOString()
+    : undefined;
+  const modifiedTime = blog.updatedAt
+    ? new Date(blog.updatedAt).toISOString()
+    : undefined;
 
   return {
     alternates: {
@@ -96,18 +101,20 @@ export default async function BlogDetailPage({
       <header className="border-b bg-gray-50 py-10 md:py-14">
         <div className="container max-w-4xl">
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            {blog.category && <Badge variant="secondary">{blog.category}</Badge>}
+            {blog.category && (
+              <Badge variant="secondary">{blog.category}</Badge>
+            )}
             {blog.isFeatured && <Badge>Featured</Badge>}
           </div>
           <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
             {blog.title}
           </h1>
           {blog.shortDescription && (
-            <p className="mt-4 text-lg leading-8 text-muted-foreground">
+            <p className="text-muted-foreground mt-4 text-lg leading-8">
               {blog.shortDescription}
             </p>
           )}
-          <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          <div className="text-muted-foreground mt-5 flex flex-wrap items-center gap-3 text-sm">
             <span>By {blog.authorName}</span>
             <span className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4" />
@@ -121,7 +128,9 @@ export default async function BlogDetailPage({
 
       <div className="container max-w-4xl py-10">
         {imageUrl && (
-          <img
+          <Image
+            width={1600}
+            height={900}
             src={imageUrl}
             alt={blog.title}
             className="mb-8 aspect-[16/7] w-full rounded-xl object-cover"
@@ -133,7 +142,7 @@ export default async function BlogDetailPage({
             dangerouslySetInnerHTML={{ __html: blog.content }}
           />
         ) : (
-          <div className="whitespace-pre-wrap text-base leading-8 text-slate-700">
+          <div className="text-base leading-8 whitespace-pre-wrap text-slate-700">
             {blog.content}
           </div>
         )}

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { sendSeminarEmail, sendWorkshopEmail } from "@/lib/sesClient";
+import { sendCoursePurchaseEmail, sendSeminarEmail, sendWorkshopEmail } from "@/lib/sesClient";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/dbConfig";
-import { payment, seminarRegistrations, workshop, workshopRegistration } from "@/db";
+import { course, courseEnrolment, payment, seminarRegistrations, user, workshopRegistration } from "@/db";
 import { RAZORPAY_WEBHOOK_SECRET } from "@/env";
 export async function POST(req: NextRequest) {
     const rawBody = await req.text();
@@ -110,6 +110,32 @@ export async function POST(req: NextRequest) {
                 // send email conformation.
                 await sendSeminarEmail({ toEmail: paymentUpdateResponse.email! });
                 console.log("Email sent")
+            }
+
+            else if (paymentUpdateResponse.orderType === "course") {
+                await db.update(courseEnrolment).set({ enrolmentStatus: "enrolled", updatedAt: new Date() }).where(eq(courseEnrolment.id, paymentUpdateResponse.registrationId));
+
+                const [coursePurchase] = await db
+                    .select({
+                        courseTitle: course.title,
+                        userName: user.name,
+                        userEmail: user.email,
+                    })
+                    .from(courseEnrolment)
+                    .innerJoin(course, eq(course.id, courseEnrolment.courseId))
+                    .innerJoin(user, eq(user.id, courseEnrolment.userId))
+                    .where(eq(courseEnrolment.id, paymentUpdateResponse.registrationId))
+                    .limit(1);
+
+                const coursePurchaseEmail = paymentUpdateResponse.email || coursePurchase?.userEmail;
+                if (coursePurchaseEmail) {
+                    await sendCoursePurchaseEmail({
+                        toEmail: coursePurchaseEmail,
+                        name: coursePurchase?.userName,
+                        courseTitle: coursePurchase?.courseTitle || "Your RH Healthcare course",
+                    });
+                    console.log("Course enrolment confirmed and email sent")
+                }
             }
 
 

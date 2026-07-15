@@ -39,7 +39,9 @@ export default function LoginForm() {
     } else if (res?.error) {
       setError(res.error);
     } else if (res?.success) {
-      router.push("/dashboard");
+      const searchParams = new URLSearchParams(window.location.search);
+      const callbackUrl = searchParams.get("callbackUrl");
+      router.push(callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/dashboard");
       router.refresh();
     }
   };

@@ -1,9 +1,26 @@
-import { getUserOrders } from "../action";
 import { Badge } from "@/components/ui/badge";
+import { fetchMobileApi } from "@/lib/serverMobileApi";
 import { CreditCard, IndianRupee } from "lucide-react";
 
+type PurchasesApiResponse = {
+  success: boolean;
+  purchases: {
+    id: string;
+    orderType: string;
+    orderId: string;
+    currency: string;
+    gatewayPaymentEventId: string | null;
+    modeOfPayment: string | null;
+    amount: number;
+    transactionDate: string | Date | null;
+    status: string;
+    createdAt: string | Date | null;
+    gatewayOrderId: string | null;
+  }[];
+};
+
 export default async function OrdersPage() {
-  const orders = await getUserOrders();
+  const { purchases: orders } = await fetchMobileApi<PurchasesApiResponse>("/api/auth/mobile/purchases");
 
   return (
     <div className="space-y-6">
@@ -44,8 +61,7 @@ export default async function OrdersPage() {
                     <td className="px-6 py-4 font-semibold text-slate-900">
                       <div className="flex items-center">
                         <IndianRupee className="mr-0.5 h-3.5 w-3.5" />
-                        {/* Assuming amount is in paise/cents, adjust if it's already full units */}
-                        {order.amount / 100}
+                        {order.amount}
                       </div>
                     </td>
                     <td className="px-6 py-4">

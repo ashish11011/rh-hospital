@@ -7,7 +7,6 @@ import Image from "next/image";
 
 export const WorkshowListCard = ({ ws, isCompleted }: any) => {
   const bannerImageUrl = getS3AssetUrl(ws.bannerImage);
-  console.log(bannerImageUrl);
   return (
     <Link key={ws.id} href={`/workshops/${ws.id}`} className="group">
       <Card className="flex h-full cursor-pointer flex-col overflow-hidden p-0">

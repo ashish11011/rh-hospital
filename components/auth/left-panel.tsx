@@ -4,7 +4,7 @@ export default function LeftPanel() {
   return (
     <section className="relative hidden lg:block">
       <Image
-        src="https://rh-healthcare.s3.ap-south-1.amazonaws.com/website-image/rh-building.webp"
+        src="https://d2c3lsl35lix55.cloudfront.net/website-image/rh-building.webp"
         fill
         priority
         alt="Healthcare"

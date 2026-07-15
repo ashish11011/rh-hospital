@@ -42,13 +42,21 @@ interface RegistrationClientProps {
   limit: number;
 }
 
-export function RegistrationClient({ data, total, workshops, limit }: RegistrationClientProps) {
-  console.log(data)
+export function RegistrationClient({
+  data,
+  total,
+  workshops,
+  limit,
+}: RegistrationClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [emailFilter, setEmailFilter] = useState(searchParams.get("email") || "");
-  const [workshopId, setWorkshopId] = useState(searchParams.get("workshopId") || "");
+  const [emailFilter, setEmailFilter] = useState(
+    searchParams.get("email") || "",
+  );
+  const [workshopId, setWorkshopId] = useState(
+    searchParams.get("workshopId") || "",
+  );
   const [isExporting, setIsExporting] = useState(false);
 
   const currentPage = Number(searchParams.get("page")) || 1;
@@ -74,7 +82,7 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
       setIsExporting(true);
       const allData = await getAllRegistrations(workshopId);
 
-      const worksheetData = allData.map(reg => ({
+      const worksheetData = allData.map((reg) => ({
         ID: reg.id,
         "Workshop Name": reg.workshopName || "N/A",
         Name: reg.name,
@@ -112,10 +120,10 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex flex-col sm:flex-row gap-4 flex-1">
-          <div className="relative max-w-sm w-full">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+        <div className="flex flex-1 flex-col gap-4 sm:flex-row">
+          <div className="relative w-full max-w-sm">
+            <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
             <Input
               placeholder="Search by email..."
               value={emailFilter}
@@ -124,10 +132,10 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
             />
           </div>
 
-          <div className="max-w-xs w-full">
+          <div className="w-full max-w-xs">
             <select
               title="Filter by workshop"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               value={workshopId}
               onChange={(e) => {
                 setWorkshopId(e.target.value);
@@ -144,13 +152,17 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
           </div>
         </div>
 
-        <Button onClick={handleExport} disabled={isExporting} className="whitespace-nowrap">
+        <Button
+          onClick={handleExport}
+          disabled={isExporting}
+          className="whitespace-nowrap"
+        >
           <Download className="mr-2 h-4 w-4" />
           {isExporting ? "Exporting..." : "Export Excel"}
         </Button>
       </div>
 
-      <div className="rounded-md border bg-card">
+      <div className="bg-card rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -166,7 +178,10 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="text-muted-foreground py-8 text-center"
+                >
                   No registrations found
                 </TableCell>
               </TableRow>
@@ -178,9 +193,19 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
                   <TableCell>{reg.mobileNumber}</TableCell>
                   <TableCell>{reg.workshopName}</TableCell>
                   <TableCell>{reg.instituteName}</TableCell>
-                  <TableCell className="capitalize">{reg.modeOfAttandnace}</TableCell>
+                  <TableCell className="capitalize">
+                    {reg.modeOfAttandnace}
+                  </TableCell>
                   <TableCell>
-                    <Badge variant={reg.paymentStatus === "completed" ? "default" : "secondary"}>{reg.paymentStatus}</Badge>
+                    <Badge
+                      variant={
+                        reg.paymentStatus === "completed"
+                          ? "default"
+                          : "secondary"
+                      }
+                    >
+                      {reg.paymentStatus}
+                    </Badge>
                   </TableCell>
                 </TableRow>
               ))
@@ -191,8 +216,9 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
 
       {(totalPages > 1 || total > 0) && (
         <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing {Math.min((currentPage - 1) * limit + 1, total)} to {Math.min(currentPage * limit, total)} of {total} results
+          <div className="text-muted-foreground text-sm">
+            Showing {Math.min((currentPage - 1) * limit + 1, total)} to{" "}
+            {Math.min(currentPage * limit, total)} of {total} results
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -201,7 +227,7 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage <= 1}
             >
-              <ChevronLeft className="h-4 w-4 mr-1" /> Prev
+              <ChevronLeft className="mr-1 h-4 w-4" /> Prev
             </Button>
             <Button
               variant="outline"
@@ -209,7 +235,7 @@ export function RegistrationClient({ data, total, workshops, limit }: Registrati
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
             >
-              Next <ChevronRight className="h-4 w-4 ml-1" />
+              Next <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
           </div>
         </div>

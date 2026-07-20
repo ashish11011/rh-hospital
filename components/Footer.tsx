@@ -12,7 +12,7 @@ const footerLinks = [
     links: [
       { label: "Careers", href: "/careers" },
       { label: "Contact Us", href: "/contact-us" },
-      // { label: "Certifications", href: "/certifications" },
+      { label: "Download certificate", href: "/course-certificate" },
       { label: "Workshops", href: "/workshops" },
       { label: "Blog", href: "/blog" },
     ],

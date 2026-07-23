@@ -16,75 +16,92 @@ export async function sendWorkshopEmail({
     toEmail: string;
     // name: string;
 }) {
-    const html = `
-<p>Dear ${"Participant"},</p>
+const html = `
+<p>Dear Participant,</p>
 
-<p>Greetings from RH Healthcare Simulation Centre.</p>
-
-<p>Thank you for registering for our upcoming workshop:</p>
-
-<h3>🛡️ BIO-SHIELD WORKSHOP 2026</h3>
-<p><b>INFECTION CONTROL EXCELLENCE PROGRAM</b></p>
-<p><i>"Enhancing Infection Prevention & Patient Safety Through Practical Learning"</i></p>
+<p>Greetings from <strong>RH Healthcare Simulation Center</strong>.</p>
 
 <p>
-Join us for <b>BIO-SHIELD WORKSHOP 2026</b>, a specialized infection control workshop designed to equip healthcare professionals and students with essential knowledge and practical skills in infection prevention, hand hygiene, biomedical waste management, and workplace safety.
+Thank you for registering for our upcoming workshop. We are delighted to have you join us for:
+</p>
+
+<h2 style="color:#0b5e2b;margin-bottom:0;">🩺 PULSE 360°</h2>
+<h3 style="margin-top:6px;">National Workshop on Advanced Emergency Care</h3>
+
+<p><em>"Learn. Practice. Respond. Save Lives."</em></p>
+
+<p>
+PULSE 360° is a hands-on workshop designed to strengthen your emergency care skills through practical training and expert guidance. Whether you're a student or a healthcare professional, this workshop will help you build confidence in handling critical medical emergencies.
 </p>
 
 <p>
-<b>📅 Date:</b> 27 June 2026<br/>
-<b>⏰ Time:</b> 9:30 AM – 4:00 PM<br/>
-<b>📍 Venue:</b> RH Healthcare Simulation Center, Triveni Nagar Chouraha, Gopalpura Bypass, Jaipur<br/>
-<b>📘 Mode:</b> Offline and Online
+The workshop will be conducted in <strong>both Online and Offline modes</strong>, allowing participants to join in the way that's most convenient for them.
+</p>
+
+<hr/>
+
+<h3>📅 Workshop Details</h3>
+
+<p>
+<strong>📅 Date:</strong> 8 August<br/>
+<strong>⏰ Time:</strong> 9:00 AM – 4:00 PM<br/>
+<strong>📍 Venue:</strong> RH Healthcare Simulation Center, Triveni Choraha, Gopalpura Road, Jaipur, Rajasthan
 </p>
 
 <p>
-This workshop focuses on strengthening infection control practices, reducing healthcare-associated infections, and promoting a safe clinical environment through evidence-based training.
+The workshop focuses on developing essential emergency care skills through practical demonstrations and evidence-based learning.
 </p>
 
-<h4>🔑 Workshop Topics</h4>
+<h3>🔑 Workshop Topics</h3>
+
 <ul>
-  <li>Hospital Acquired Infections (HAI) & Biomedical Waste Management</li>
-  <li>Hand Hygiene & Personal Protective Equipment (PPE)</li>
-  <li>Body Fluid Spill Management</li>
-  <li>Needle Stick Injury Management</li>
+  <li>ABG Sampling and Interpretation</li>
+  <li>Pressure Injury Assessment and Advanced Wound Dressing</li>
+  <li>DVT Assessment, Prevention and Compression Therapy</li>
+  <li>Anaphylactic Shock and Emergency Response</li>
 </ul>
 
-<h4>🎯 Who Can Participate?</h4>
+<h3>🎯 Who Can Participate?</h3>
+
 <ul>
-  <li>ANM Nursing Students</li>
-  <li>GNM Students</li>
-  <li>B.Sc Nursing Students</li>
-  <li>M.Sc Nursing Students</li>
-  <li>MBBS Students</li>
-  <li>Paramedical Students</li>
-  <li>Healthcare Professionals</li>
-  <li>Research Scholars (PhD)</li>
+  <li>Nursing Students</li>
+  <li>Nursing Faculty</li>
+  <li>Medical Students</li>
+  <li>PhD Scholars</li>
 </ul>
 
-<h4>📜 Certification & Benefits</h4>
+<h3>📜 Certification & Benefits</h3>
+
 <ul>
-  <li>Certificate of Participation</li>
-  <li>5 Credit Hours</li>
+  <li>5 CNE Credit Hours</li>
 </ul>
 
-<h4>Important Instructions</h4>
+<h3>📢 Important Instructions</h3>
+
 <p>
-All participants must join our official WhatsApp group for further communication, workshop updates, and important announcements.
+Please join our official WhatsApp group to receive workshop updates, important announcements, and further communication.
 </p>
 
 <p>
-👉 <a href="https://chat.whatsapp.com/LLmT0ZwQgQyBD8vOgIpGqi?s=cl&p=a&mlu=3">https://chat.whatsapp.com/LLmT0ZwQgQyBD8vOgIpGqi?s=cl&p=a&mlu=3</a>
+👉 <a href="https://chat.whatsapp.com/LLmT0ZwQgQyBD8vOgIpGqi?s=cl&p=a&mlu=3">
+Join the Official WhatsApp Group
+</a>
 </p>
 
-<p>We look forward to your participation.</p>
+<p>
+We look forward to welcoming you to <strong>PULSE 360°</strong> and hope you have a valuable learning experience.
+</p>
+
+<br/>
 
 <p>
-Warm regards,<br/>
-RH Healthcare Simulation Team<br/>
-📞 +91 9928907780, +91 9829507781<br/>
-📧 connect.rhhealth@gmail.com<br/>
-🌐 www.rhhealthcaresimulation.com
+Warm Regards,<br/><br/>
+
+<strong>RH Healthcare Simulation Center</strong><br/>
+
+📞 +91 9928907780<br/>
+📧 rhhealthcaresimulationcenter@gmail.com<br/>
+🌐 https://www.rhhealthcaresimulation.com
 </p>
 `;
 

@@ -83,7 +83,7 @@ Please join our official WhatsApp group to receive workshop updates, important a
 </p>
 
 <p>
-👉 <a href="https://chat.whatsapp.com/LLmT0ZwQgQyBD8vOgIpGqi?s=cl&p=a&mlu=3">
+👉 <a href="https://chat.whatsapp.com/CJ7NRqWx1RL9SCJfuv3x3Q">
 Join the Official WhatsApp Group
 </a>
 </p>

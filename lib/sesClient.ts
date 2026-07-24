@@ -148,8 +148,8 @@ All participants must join our official WhatsApp group for further communication
 </p>
 
 <p>
-👉 <a href="https://chat.whatsapp.com/ElsWv1MjOBHBLeYWVEJbg9?s=cl&p=a&mlu=3">
-https://chat.whatsapp.com/ElsWv1MjOBHBLeYWVEJbg9?s=cl&p=a&mlu=3
+👉 <a href="https://chat.whatsapp.com/GCEWIjqS8exIn6z2UeZKZ4">
+https://chat.whatsapp.com/GCEWIjqS8exIn6z2UeZKZ4
 </a>
 </p>
 

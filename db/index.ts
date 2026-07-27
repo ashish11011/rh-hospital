@@ -1,4 +1,4 @@
-import { courseItemSchema, courseSchema } from "./courseSchema";
+import { courseEnrolmentStatusEnumSchema, courseEnrolmentSchema, lessonProgressSchema, courseItemSchema, courseSchema } from "./courseSchema";
 import { itemEnumSchema, paymentSchema, paymentStatusEnumSchema } from "./paymentSchema";
 import { productCategorySchema, productMediaSchema, productSchema } from "./productSchema";
 import { blogSchema, blogStatusEnumSchema, contactSchema, userSchema } from "./userSchema";
@@ -24,7 +24,9 @@ export const seminarRegistrations = seminarRegistrationsSchema;
 export const payment = paymentSchema;
 export const course = courseSchema;
 export const courseItem = courseItemSchema;
-
+export const courseEnrolment = courseEnrolmentSchema;
+export const lessonProgress = lessonProgressSchema;
+export const courseEnrolmentStatusEnum = courseEnrolmentStatusEnumSchema;
 
 export const productCategory = productCategorySchema
 export const product = productSchema

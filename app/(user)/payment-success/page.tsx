@@ -14,13 +14,12 @@ const page = () => {
                     </div>
 
                     <h1 className="text-3xl font-bold tracking-tight">
-                        Registration Successful
+                        Payment Successful
                     </h1>
 
                     <p className="mt-3 text-sm text-muted-foreground">
-                        Your workshop registration has been completed
-                        successfully. You will receive a confirmation
-                        email shortly with all the workshop details.
+                        Your payment has been completed successfully. You will
+                        receive a confirmation email shortly with the details.
                     </p>
                 </CardContent>
             </Card>

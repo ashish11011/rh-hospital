@@ -701,3 +701,56 @@ export async function sendSeminarEmail({
 
     await sesClient.send(command);
 }
+
+export async function sendCoursePurchaseEmail({
+    toEmail,
+    name,
+    courseTitle,
+}: {
+    toEmail: string;
+    name?: string | null;
+    courseTitle: string;
+}) {
+    const html = `
+<p>Dear ${name || "Participant"},</p>
+
+<p>Greetings from RH Healthcare Simulation Centre.</p>
+
+<p>Your course purchase has been confirmed successfully.</p>
+
+<h3>${courseTitle}</h3>
+
+<p>
+You can now access this course from your RH Healthcare dashboard under <b>My Courses</b>.
+</p>
+
+<p>
+If you have any questions or need help accessing your course, please contact our team.
+</p>
+
+<p>
+Warm regards,<br/>
+RH Healthcare Simulation Team<br/>
+📞 +91 9928907780, +91 9829507781<br/>
+📧 connect.rhhealth@gmail.com<br/>
+🌐 www.rhhealthcaresimulation.com
+</p>
+`;
+
+    const command = new SendEmailCommand({
+        Source: "no-reply@rhhealthcaresimulation.com",
+        Destination: {
+            ToAddresses: [toEmail],
+        },
+        Message: {
+            Subject: {
+                Data: "Course Purchase Confirmation - RH Healthcare",
+            },
+            Body: {
+                Html: { Data: html },
+            },
+        },
+    });
+
+    await sesClient.send(command);
+}

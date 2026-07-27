@@ -13,6 +13,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { cloudfrontAssetUrl } from "@/lib/cloudfront";
 import { publicCoursePath } from "@/lib/course";
+import { getS3AssetUrl } from "@/lib/s3Asset";
 
 export default async function Page({
   params,

@@ -110,94 +110,87 @@ const dayTwoAgenda = [
   {
     time: "10:15 AM-10:20 AM",
     activity: "Welcome Address",
-    details: "-",
+    details: "Prof. (Dr.) Farukh Khan (National President of NTAI)",
   },
   {
     time: "10:20 AM-10:40 AM",
     activity: "Plenary Session - I",
-    details: "-",
+    details: "Prof. (Dr.) Radha Saini, Mr. Anesh Kumar Saini",
   },
   {
-    time: "10:40 AM-11:30 AM",
+    time: "10:40 AM-11:10 AM",
     activity: "Robotic Nursing: Advancing Excellence in Clinical Practice",
-    details: `Prof (Dr.) Manju Chhugani
-(Founder, Dean & Professor
-Jamia Hamdard, New Delhi)`,
+    details: `Prof. (Dr.) Manju Chhugani, Dr. Suresh Kumar Sharma`,
   },
   {
-    time: "11:30 AM-11:40 AM",
+    time: "11:10 AM-11:20 AM",
     activity: "Plenary Session - II",
-    details: "-",
+    details: "Mrs. Rinki Dang, Prof. R.K. Saini",
   },
   {
-    time: "11:40 AM-12:20 PM",
+    time: "11:20 AM-12:00 PM",
     activity:
       "Simulation to Smart Practice: Empowering Future Nurses through Artificial Intelligence",
-    details: `Prof. (Dr.) I Clement
-(Dean & Professor,
-St. Benedicts Group of Institution,
-Bengaluru) `,
+    details: `Prof. (Dr.) Sukhpal Kaur, Mr. Ghanshyam Jangid`,
   },
   {
-    time: "12:20 PM-12:50 PM",
+    time: "12:00 PM-12:30 PM",
     activity:
       "Artificial Intelligence in Surgical Care: The Evolving Role of Nurses",
-    details: "-",
+    details: "Prof. (Dr.) Meryem Yavuz, Prof. (Dr.) Binu Joe",
   },
   {
-    time: "12:50 PM-01:30 PM",
+    time: "12:30 PM-01:00 PM",
     activity:
       "Artificial Intelligence enabled Nursing Education: Transforming Learning for the Future",
-    details: "-",
+    details: "Prof. (Dr.) I Clement, Prof. Dr. Hardeep Kaur",
   },
   {
-    time: "01:30 PM-01:45 PM",
-    activity: "Skit on Artificial Intelligence",
-    details: "-",
+    time: "01:00 PM-01:15 PM",
+    activity: "Plenary Session - III",
+    details: "Prof. (Dr.) Anjali Vijay Kulthe, Ms. Anita K Pawar",
   },
   {
-    time: "01:45 PM-02:30 PM",
+    time: "01:15 PM-02:00 PM",
     activity: "Lunch",
     details: "-",
   },
   {
-    time: "02:30 PM-02:50 PM",
+    time: "02:00 PM-02:20 PM",
     activity: "Plenary Session - IV",
-    details: "-",
+    details: "Prof. (Dr.) Marwa, Prof. Himanshu Trivedi",
   },
   {
-    time: "02:50 PM-03:30 PM",
+    time: "02:20 PM-03:00 PM",
     activity:
       "Transformation Nursing Education through Technology, Leadership & Experience Learning.",
-    details: `Prof. (Dr.) Amandeep Kaur Bajv
-/Vice Principal Cum Dean Nursin
-Faculty Sri Guru Ram Das CON,
-Vallah. Amritsar (Punjab))`,
+    details: `Prof. (Dr.) Amandeep Kaur Bajwa, Prof. (Dr.) Ashok Dhaka Vishnoi`,
   },
   {
-    time: "03:30 PM-03:50 PM",
+    time: "03:00 PM-03:30 PM",
     activity: "Plenary Session - V",
-    details: "-",
+    details: "Prof. S S P Warnakulasuriya, Prof. Navneeta Khrist",
   },
   {
-    time: "03:50 PM-04:10 PM",
-    activity: "Holographic Demonstration",
-    details: "-",
+    time: "03:30 PM-04:00 PM",
+    activity: "Plenary Session - VI",
+    details: "Prof. (Dr.) Niru Shamsum Nahar, Ms. Shanti Teresa",
   },
   {
-    time: "04:10 PM-04:30 PM",
-    activity: "Robotic Based Simulation Skill Training",
-    details: "-",
+    time: "04:00 PM-04:30 PM",
+    activity: "Plenary Session - VII",
+    details: "Holographic Demonstration Robotic based simulation skill traning",
   },
   {
     time: "04:30 PM-05:00 PM",
     activity: "Award Ceremony",
-    details: "Honorable Guests",
+    details: "By Honorable Guests",
   },
   {
     time: "05:00 PM-05:15 PM",
     activity: "Vote of Thanks",
-    details: "-",
+    details:
+      "Mr. Purushottam Kumbhaj (State President, Nursing Teachers Association, Raj.)",
   },
 ];
 
@@ -276,7 +269,7 @@ export function PageContentClient() {
             )}
             onClick={() => setCurrentTab(1)}
           >
-            Confrence Details
+            Conference Details
           </div>
 
           <div
@@ -636,48 +629,157 @@ function SightSeenJaipur() {
 function SpeakerSection() {
   const speakers = [
     {
-      name: "Prof. (Dr.) I Clement",
-      designation: "Founder, Dean & Professor Jamia Hamdard, New Delhi",
-      image: "/website-image/prof.+dr.+I+Clement.png",
+      name: "Prof. (Dr.) Farukh Khan",
+      designation: "National President of NTAI",
+      image: "/website-image/faruk+khan.png",
     },
     {
-      name: "Prof (Dr.) Manju Chhugani",
-      designation:
-        "Dean & Professor, St. Benedicts Group of Institution, Bengaluru",
+      name: "Prof. (Dr.) Radha Saini",
+      designation: "Consultant, World Health Organization, Italy",
+      image: "/website-image/radha+saini.png",
+    },
+    {
+      name: "Mr. Anesh Kumar Saini",
+      designation: "Faculty, Govt. CON, Jaipur",
+      image: "/website-image/anesh+kumar+saini.png",
+    },
+    {
+      name: "Prof. (Dr.) Manju Chhugani",
+      designation: "Dean, Faculty of Nursing, Jamia Hamdard, New Delhi",
       image: "/website-image/prof dr.+manju+chhugani.png",
     },
     {
-      name: "Prof. (Dr.) Amandeep Kaur",
+      name: "Dr. Suresh Kumar Sharma",
+      designation: "Clinical and Nursing Informatics Specialist, CDAC, Pune",
+      image: "/website-image/suresh+kumar.png",
+    },
+    {
+      name: "Mrs. Rinki Dang",
+      designation: "National President, All India Govt. Nurses Federation",
+      image: "/website-image/rinki+dang.png",
+    },
+    {
+      name: "Prof. R.K. Saini",
+      designation: "Principal Nursing, NIMS University",
+      image: "/website-image/rk+saini.png",
+    },
+    {
+      name: "Prof. (Dr.) Sukhpal Kaur",
+      designation: "Principal, NINE, PGIMER, Chandigarh",
+      image: "/website-image/sukhpal+kaur.png",
+    },
+    {
+      name: "Mr. Ghanshyam Jangid",
+      designation: "Dean, Faculty of Nursing, RUHS, Jaipur",
+      image: "/website-image/ghanshyam+jangid.png",
+    },
+    {
+      name: "Prof. (Dr.) Meryem Yavuz",
       designation:
-        "Vice Principal Cum Dean Nursin Faculty Sri Guru Ram Das CON, Vallah. Amritsar (Punjab))",
-      image: "/website-image/prof.+dr.+amandeep+kaur+bajwa.png",
+        "President, International Federation of Perioperative Nurses, Ege University, Izmir, Turkey",
+      image: "/website-image/meryem+yavuz.png",
+    },
+    {
+      name: "Prof. (Dr.) Binu Joe",
+      designation: "National President, Nursing Scholar Society",
+      image: "/website-image/Binu+Joe.png",
+    },
+    {
+      name: "Prof. (Dr.) I Clement",
+      designation:
+        "Dean & Professor, St. Benedicts Group of Institution, Bengaluru",
+      image: "/website-image/dr+i+clement.png",
+    },
+    {
+      name: "Prof. Dr. Hardeep Kaur",
+      designation: "Dean Nursing, Baba Faridkot University",
+      image: "/website-image/hardeep+kaur.png",
+    },
+    {
+      name: "Prof. (Dr.) Anjali Vijay Kulthe",
+      designation:
+        "Nursing Officer, Real Hero of 2008 Terrorist Attack at Bombay, Bharat Bhagya Vidhata",
+      image: "/website-image/anjali+vijay.png",
+    },
+    {
+      name: "Ms. Anita K Pawar",
+      designation:
+        "National General Secretary, All India Govt. Nurses Federation",
+      image: "/website-image/anita+pawar.png",
+    },
+    {
+      name: "Prof. (Dr.) Marwa",
+      designation: "University of Doha, Qatar",
+      image: "/website-image/marwa.png",
+    },
+    {
+      name: "Prof. Himanshu Trivedi",
+      designation: "State President, NTAI, Gujarat",
+      image: "/website-image/himanshu+trivedi.png",
+    },
+    {
+      name: "Prof. (Dr.) Amandeep Kaur Bajwa",
+      designation:
+        "Vice Principal Cum Dean Nursing Faculty, Sri Guru Ram Das CON, Vallah, Amritsar, Punjab",
+      image: "/website-image/amandeep+kaur.png",
+    },
+    // {
+    //   name: "Prof. (Dr.) Ashok Dhaka Vishnoi",
+    //   designation: "CEO, JINC, Jodhpur",
+    //   image: "",
+    // },
+    {
+      name: "Prof. S S P Warnakulasuriya",
+      designation: "Faculty of Nursing, University of Colombo, Sri Lanka",
+      image: "/website-image/ssp+warnakulasuriya.png",
+    },
+    {
+      name: "Prof. Navneeta Khrist",
+      designation: "Principal, Arogyam Nursing College, Roorkee, Uttarakhand",
+      image: "/website-image/navneeta+khrist.png",
+    },
+    {
+      name: "Prof. (Dr.) Niru Shamsum Nahar",
+      designation: "Advisor, Grameen Caledonian College of Nursing, Bangladesh",
+      image: "/website-image/niru+nahar.png",
+    },
+    {
+      name: "Ms. Shanti Teresa",
+      designation:
+        "Sole Padma Shri Awardee – 2011, Andaman and Nicobar Islands",
+      image: "/website-image/shanti+teresa.png",
+    },
+    {
+      name: "Mr. Purushottam Kumbhaj",
+      designation: "State President, Nursing Teachers Association, Rajasthan",
+      image: "/website-image/purushottam+kumbhaj.png",
     },
   ];
   const visionaries = [
     {
       name: "Dr. Rahul Sharma",
       designation: `CEO (RH Healthcare Pvt. Ltd, jaipur)`,
-      image: "/website-image/dr.+rahul+sharma.png",
+      image: "/website-image/rahul+sharma.jpg",
     },
     {
       name: "Mr. Purushottam Kumbhaj",
       designation: "State President (Nursing Teacher Association)",
-      image: "/website-image/mr.+purushottam+kumbhaj.png",
+      image: "/website-image/purushottam+kumbhaj.png",
     },
     {
       name: "Dr. Farukh Khan",
       designation: "National President (Nursing Teacher Association)",
-      image: "/website-image/dr.+farukh+khan.png",
+      image: "/website-image/faruk+khan.png",
     },
     {
       name: "Mr. Meghwahan Singh",
       designation: `State President (Rajasthan Rajya Karmchari Mahasangh, BMS)`,
-      image: "/website-image/mr.+meghwahan+singh.png",
+      image: "/website-image/meghwahan+singh.png",
     },
     {
       name: "Mr. Mahesh Kumar Sharma",
       designation: "Former Registrar (Rajasthan Nursing Council)",
-      image: "/website-image/mr.+mahesh+kumar+sharma.png",
+      image: "/website-image/mahesh+sharma.png",
     },
     {
       name: "Dr. Vishnu K Swarnkar",
@@ -693,12 +795,12 @@ function SpeakerSection() {
     {
       name: "Dr. Manoj Kumar Sharma",
       designation: "Sr. State Vice President (NTAI, Rajasthan)",
-      image: "/website-image/manoj.png",
+      image: "/website-image/manoj+kumar.png",
     },
     {
       name: "Prof. Minakshi Sharma",
       designation: "Principal (Liberty College Of Nursing, Jaipur)",
-      image: "/website-image/prof.+Minakshi+sharma.png",
+      image: "/website-image/menakshi+sharma1.png",
     },
   ];
   return (

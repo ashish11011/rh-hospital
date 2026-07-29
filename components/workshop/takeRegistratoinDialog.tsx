@@ -9,11 +9,10 @@ import { CustomRadioGroup } from "@/components/custom-radio-group";
 import axios from "axios";
 import { z } from "zod";
 import { toast } from "sonner";
-import { RAZORPAY_KEY } from "@/env";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "../ui/input-group";
 import { SourceOfRegistraion } from "./sourceOfRegistration";
 import { sourceOfRegistraion } from "@/const/workshopRegistration";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 const schema = z.object({
     workshopId: z.string(),
@@ -63,25 +62,6 @@ export function WorkshopRegistration({
 
     const [loading, setLoading] = useState(false);
     const [hasJoinedWhatsapp, setHasJoinedWhatsapp] = useState(false);
-    const router = useRouter()
-
-    useEffect(() => {
-        const loadScript = () => {
-            return new Promise((resolve) => {
-                const script = document.createElement("script");
-                script.src = "https://checkout.razorpay.com/v1/checkout.js";
-                script.onload = () => {
-                    resolve(true);
-                };
-                script.onerror = () => {
-                    resolve(false);
-                };
-                document.body.appendChild(script);
-            });
-        };
-
-        loadScript();
-    }, []);
 
     useEffect(() => {
 
@@ -161,68 +141,19 @@ export function WorkshopRegistration({
 
             // }
             if (!responseData) throw new Error("Request Failed, please try again")
+            if (!responseData.paymentUrl) throw new Error("Payment link was not generated. Please try again.");
 
-            const options = {
-                key: RAZORPAY_KEY, // Replace with your Razorpay key_id
-                amount: responseData.amount, // Use dynamic amount
-                currency: responseData.currency,
-                name: form.name,
-                description: "Registration for workshop",
-                order_id: responseData.id, // Use backend order_id
-                handler: async function (response: any) {
-                    const res = await fetch("/api/verify-payment", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(response),
-                    });
-
-                    const data = await res.json();
-
-                    if (data.success) {
-                        toast.success("Payment successful, your registration is confirmed");
-                        router.push("/payment-success");
-                    } else if (data.status == 400) {
-                        toast.error("Payment failed")
-                    }
-                },
-                prefill: {
-                    name: form.name,
-                    email: form.email,
-                    contact: form.mobileNumber,
-                },
-                theme: {
-                    color: "#2e7d32",
-                },
-            };
-
-            const rzp = new (window as any).Razorpay(options);
-            rzp.on("payment.failed", function (response: any) {
-                console.log("Payment Failed:", response);
-                toast.error("Payment failed");
-            });
-
-            rzp.open();
-
-            // clear the form after successfull payment
-            setForm({
-                workshopId: workshopId,
-                email: "",
-                name: "",
-                mobileNumber: "",
-                designation: "",
-                instituteName: "",
-                city: "",
-                couponCode: "",
-                modeOfAttandnace: "online",
-                registrationSource: "website"
-            });
+            window.sessionStorage.setItem(
+                "hdfcPaymentOrder",
+                JSON.stringify({ orderId: responseData.orderId, type: "workshop" })
+            );
+            window.location.assign(responseData.paymentUrl);
 
         } catch (error) {
             console.log(error);
+            toast.error(error instanceof Error ? error.message : "Unable to start payment. Please try again.");
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     return (

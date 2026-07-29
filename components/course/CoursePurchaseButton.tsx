@@ -85,63 +85,85 @@ export function CoursePurchaseButton({
         throw new Error(payload.message || "Unable to start course purchase");
       }
 
-      if (payload.freeEnrollment) {
-        toast.success("Course enrolled successfully");
-        router.push("/payment-success");
-        return;
-      }
+      if (!payload) throw new Error("Request Failed, please try again");
+      if (!payload.data)
+        throw new Error("Payment link was not generated. Please try again.");
+      const orderId = payload.data.orderId || payload.data.order_id;
+      const paymentUrl = payload.data.paymentUrl || payload.data.payment_links?.web;
 
-      const order = payload.data;
-      const isLoaded = await loadRazorpayScript();
-      if (!isLoaded) {
-        toast.error("Razorpay SDK failed to load. Please refresh and try again.");
-        return;
-      }
+      if (!orderId || !paymentUrl)
+        throw new Error("Payment link was not generated. Please try again.");
 
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
-        amount: order.amount,
-        currency: order.currency || currency,
-        name: user?.name || "RH Healthcare",
-        description: `Purchase for ${courseTitle}`,
-        order_id: order.id,
-        handler: async function (razorpayResponse: any) {
-          const verifyResponse = await fetch("/api/verify-payment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(razorpayResponse),
-          });
+      window.sessionStorage.setItem(
+        "hdfcPaymentOrder",
+        JSON.stringify({ orderId, type: "course" }),
+      );
+      window.location.assign(paymentUrl);
 
-          const verifyPayload = await verifyResponse.json();
-          if (verifyPayload.success) {
-            toast.success("Payment successful. Your course is being activated.");
-            router.push("/payment-success");
-          } else {
-            toast.error("Payment failed");
-          }
-        },
-        prefill: {
-          name: user?.name || "",
-          email: user?.email || "",
-          contact: user?.contact || "",
-        },
-        theme: { color: "#2e7d32" },
-      };
+      // const order = payload.data;
+      // const isLoaded = await loadRazorpayScript();
+      // if (!isLoaded) {
+      //   toast.error(
+      //     "Razorpay SDK failed to load. Please refresh and try again.",
+      //   );
+      //   return;
+      // }
 
-      const checkout = new window.Razorpay(options);
-      checkout.on("payment.failed", function () {
-        toast.error("Payment failed");
-      });
-      checkout.open();
+      // const options = {
+      //   key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
+      //   amount: order.amount,
+      //   currency: order.currency || currency,
+      //   name: user?.name || "RH Healthcare",
+      //   description: `Purchase for ${courseTitle}`,
+      //   order_id: order.id,
+      //   handler: async function (razorpayResponse: any) {
+      //     const verifyResponse = await fetch("/api/verify-payment", {
+      //       method: "POST",
+      //       headers: { "Content-Type": "application/json" },
+      //       body: JSON.stringify(razorpayResponse),
+      //     });
+
+      //     const verifyPayload = await verifyResponse.json();
+      //     if (verifyPayload.success) {
+      //       toast.success(
+      //         "Payment successful. Your course is being activated.",
+      //       );
+      //       router.push("/payment-success");
+      //     } else {
+      //       toast.error("Payment failed");
+      //     }
+      //   },
+      //   prefill: {
+      //     name: user?.name || "",
+      //     email: user?.email || "",
+      //     contact: user?.contact || "",
+      //   },
+      //   theme: { color: "#2e7d32" },
+      // };
+
+      // const checkout = new window.Razorpay(options);
+      // checkout.on("payment.failed", function () {
+      //   toast.error("Payment failed");
+      // });
+      // checkout.open();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to start course purchase");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Unable to start course purchase",
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Button className="w-full text-base" size="lg" onClick={startPurchase} disabled={loading}>
+    <Button
+      className="w-full text-base"
+      size="lg"
+      onClick={startPurchase}
+      disabled={loading}
+    >
       {loading ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : isLoggedIn ? (
@@ -149,7 +171,13 @@ export function CoursePurchaseButton({
       ) : (
         <LockKeyhole className="mr-2 h-4 w-4" />
       )}
-      {isEnrolled ? "Go to course" : isLoggedIn ? (amount > 0 ? `Pay ${currency} ${amount}` : "Enroll free") : "Sign in to purchase"}
+      {isEnrolled
+        ? "Go to course"
+        : isLoggedIn
+          ? amount > 0
+            ? `Pay ${currency} ${amount}`
+            : "Enroll free"
+          : "Sign in to purchase"}
     </Button>
   );
 }

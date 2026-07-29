@@ -36,10 +36,10 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
-import { COURSE_DATA } from "@/const/courceData";
 import { getFeaturedPublishedBlogs } from "@/lib/blogData";
 import { blogPath } from "@/lib/blogUtils";
 import { getS3AssetUrl } from "@/lib/s3Asset";
+import { getPublicCourses } from "@/actions/courseActions";
 
 export const metadata: Metadata = {
   title: {
@@ -91,13 +91,16 @@ export const metadata: Metadata = {
 export const revalidate = 7200;
 
 export default async function Home() {
-  const featuredBlogs = await getFeaturedPublishedBlogs(3);
+  const [featuredBlogs, courses] = await Promise.all([
+    getFeaturedPublishedBlogs(3),
+    getPublicCourses(),
+  ]);
 
   return (
     <>
       <HeroSection />
       <CurrentWorkshop />
-      <CertifiedModules />
+      <CertifiedModules courses={courses} />
       <CatalogContainer />
       {/* <div className=" container grid grid-cols-1 md:grid-cols-2 gap-4 py-12">
         <ProductCategory />
@@ -168,6 +171,7 @@ export default async function Home() {
 type FeaturedBlog = Awaited<
   ReturnType<typeof getFeaturedPublishedBlogs>
 >[number];
+type HomeCourse = Awaited<ReturnType<typeof getPublicCourses>>[number];
 
 function FeaturedBlogs({ blogs }: { blogs: FeaturedBlog[] }) {
   if (blogs.length === 0) return null;
@@ -359,7 +363,9 @@ function CurrentWorkshop() {
   );
 }
 
-function CertifiedModules() {
+function CertifiedModules({ courses }: { courses: HomeCourse[] }) {
+  if (courses.length === 0) return null;
+
   return (
     <div className="container pt-8">
       <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
@@ -371,36 +377,37 @@ function CertifiedModules() {
             Self-paced learning modules designed by clinicians for clinicians.
           </p>
         </div>
-        <Button variant={"link"}>
-          {" "}
-          View All Modules <ArrowRight />{" "}
+        <Button variant={"link"} asChild>
+          <Link href="/courses">
+            View All Modules <ArrowRight />
+          </Link>
         </Button>
       </div>
       <div className="mt-12">
         <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-3">
-          {COURSE_DATA.map((item) => (
+          {courses.map((course) => (
             <Link
-              href={item.slug}
-              key={item.slug}
+              href={course.path}
+              key={course.id}
               className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border"
             >
               <Image
-                src={getS3AssetUrl(item.bannerImage)}
+                src={course.bannerImageUrl}
                 height={500}
                 width={500}
-                alt="sample image"
+                alt={course.title}
                 className="h-full w-full object-contain transition-all duration-300 group-hover:scale-105"
               />
               <div className="flex flex-col gap-2 p-4">
-                <p className="text-lg font-semibold">{item.name}</p>
+                <p className="text-lg font-semibold">{course.title}</p>
                 <div className="flex items-center gap-4 text-sm">
                   <p className="flex items-center gap-1">
                     <Clock size={14} />
-                    {item.courseHour}
+                    {course.courseDuration || `${course.courseHours} hours`}
                   </p>
                   <p className="flex items-center gap-1">
                     <PlayCircleIcon size={14} />
-                    {item.numberOfLacture} video lessons
+                    {course.totalLectures} video lessons
                   </p>
                 </div>
                 <Separator className="mt-1 h-0.5 w-full" />
@@ -626,218 +633,6 @@ function AwardSection() {
     </div>
   );
 }
-
-const CERTIFICATES = [
-  "/cert1.jpg",
-  "/cert2.jpg",
-  "/cert3.jpg",
-  "/cert4.jpg",
-  "/cert5.jpg",
-  "/cert6.jpg",
-  "/cert7.jpg",
-  "/cert8.jpg",
-];
-
-const PRODUCT_CAT = [
-  {
-    category: "Medical Models",
-    link: "medical-models.html",
-    image:
-      "https://5.imimg.com/data5/SELLER/Default/2024/9/452377257/PG/FQ/AL/187849559/cpr-training-manikins-250x250.png",
-    items: [
-      {
-        name: "CPR Training Manikins",
-        link: "medical-models.html#cpr-training-manikins",
-      },
-      {
-        name: "RH Fetal Skull Models",
-        link: "medical-models.html#rh-fetal-skull-models",
-      },
-      {
-        name: "Intra Uterine Device Insertion Model",
-        link: "medical-models.html#intra-uterine-device-insertion-model",
-      },
-    ],
-  },
-  {
-    category: "Anatomical Models",
-    link: "anatomical-models.html",
-    image:
-      "https://5.imimg.com/data5/SELLER/Default/2023/9/345969032/QC/CJ/HY/187849559/multifunctional-female-manikin-250x250.jpg",
-    items: [
-      {
-        name: "Multifunctional Female Manikin",
-        link: "anatomical-models.html#multifunctional-female-manikin",
-      },
-      {
-        name: "Breast Examination Model",
-        link: "anatomical-models.html#breast-examination-model",
-      },
-      {
-        name: "Human Skin Anatomical Models",
-        link: "anatomical-models.html#human-skin-anatomical-models",
-      },
-    ],
-  },
-  {
-    category: "Nursing Manikins",
-    link: "nursing-manikins.html",
-    image:
-      "https://5.imimg.com/data5/SELLER/Default/2023/12/372944599/DT/HR/ZK/187849559/multifunctional-child-manikin-250x250.png",
-    items: [
-      {
-        name: "Multifunctional Child Manikin",
-        link: "nursing-manikins.html#multifunctional-child-manikin",
-      },
-      {
-        name: "PVC Trauma Manikin",
-        link: "nursing-manikins.html#pvc-trauma-manikin",
-      },
-      {
-        name: "Trachea Intubation Model Without Monitor",
-        link: "nursing-manikins.html#trachea-intubation-model-without-monitor",
-      },
-    ],
-  },
-
-  {
-    category: "Medical Equipment",
-    link: "medical-equipment.html",
-    image:
-      "https://5.imimg.com/data5/SELLER/Default/2025/4/502909607/TP/XI/IR/187849559/bmc-y30t-bipap-machine-250x250.jpg",
-    items: [
-      {
-        name: "Bmc Y30t Bipap Machine",
-        link: "medical-equipment.html#bmc-y30t-bipap-machine",
-      },
-      {
-        name: "RH Nursing Lab Setup",
-        link: "medical-equipment.html#rh-nursing-lab-setup-best-price-in-india",
-      },
-      { name: "Model Of Teeth", link: "medical-equipment.html#model-of-teeth" },
-    ],
-  },
-  {
-    category: "Hospital Equipment",
-    link: "hospital-equipment.html",
-    image:
-      "https://5.imimg.com/data5/SELLER/Default/2024/8/441010101/KZ/FS/WT/187849559/infant-radiant-baby-warmer-250x250.jpg",
-    items: [
-      {
-        name: "Infant Radiant Baby Warmer",
-        link: "hospital-equipment.html#infant-radiant-baby-warmer",
-      },
-      {
-        name: "Contec 3 Para Monitor",
-        link: "hospital-equipment.html#contec-3-para-monitor",
-      },
-      {
-        name: "5 Para Monitor",
-        link: "hospital-equipment.html#5-para-monitor",
-      },
-    ],
-  },
-  {
-    category: "Laboratory Equipment",
-    link: "laboratory-equipment.html",
-    image:
-      "https://5.imimg.com/data5/SELLER/Default/2024/5/417698780/TI/HH/ZN/187849559/human-torso-unisex-model-250x250.jpeg",
-    items: [
-      {
-        name: "Human Torso Unisex Model",
-        link: "laboratory-equipment.html#human-torso-unisex-model",
-      },
-      {
-        name: "Zoology Lab Equipment",
-        link: "laboratory-equipment.html#zoology-lab-equipment",
-      },
-      {
-        name: "Nursing College Dummy Supplier",
-        link: "laboratory-equipment.html#nursing-college-dummy-supplier",
-      },
-    ],
-  },
-  {
-    category: "Pharmacy Instruments",
-    link: "pharmacy-instruments.html",
-    image:
-      "https://5.imimg.com/data5/SELLER/PDFImage/2023/9/347441069/GR/KF/PV/187849559/rh-l-1-250x250.png",
-    items: [
-      {
-        name: "Hospital Laboratory Equipment",
-        link: "pharmacy-instruments.html#hospital-laboratory-equipment",
-      },
-      {
-        name: "Dmlt Lab Equipment",
-        link: "pharmacy-instruments.html#dmlt-lab-equipment",
-      },
-      {
-        name: "Pharmacy College Lab Equipments",
-        link: "pharmacy-instruments.html#pharmacy-college-lab-equipments",
-      },
-    ],
-  },
-  {
-    category: "Biological Models",
-    link: "biological-models.html",
-    image:
-      "https://5.imimg.com/data5/SELLER/Default/2026/1/573034989/IQ/QB/DH/187849559/pvc-teeth-model-250x250.png",
-    items: [
-      {
-        name: "PVC Teeth Model",
-        link: "biological-models.html#pvc-teeth-model",
-      },
-      {
-        name: "Ovary Macroscopic Model",
-        link: "biological-models.html#ovary-macroscopic-model",
-      },
-      {
-        name: "RHE Heart Model",
-        link: "biological-models.html#rhe-heart-with-4-detachable-part",
-      },
-    ],
-  },
-  {
-    category: "Hospital Bed",
-    link: "hospital-bed.html",
-    image:
-      "https://5.imimg.com/data5/SELLER/Default/2024/1/379034114/SS/ST/UO/187849559/child-hospital-bed-250x250.jpg",
-    items: [
-      {
-        name: "Child Hospital Bed",
-        link: "hospital-bed.html#child-hospital-bed",
-      },
-      {
-        name: "I V and Saline Stand",
-        link: "hospital-bed.html#i-v-and-saline-stand",
-      },
-      {
-        name: "Waiting Chair 3 Seater SS",
-        link: "hospital-bed.html#waiting-chair-3-seater-ss",
-      },
-    ],
-  },
-  {
-    category: "Human Anatomical Models",
-    link: "human-anatomical-models.html",
-    image:
-      "https://5.imimg.com/data5/SELLER/Default/2024/4/414802039/DC/HU/VF/187849559/human-larynx-model-250x250.jpg",
-    items: [
-      {
-        name: "Human Larynx Model",
-        link: "human-anatomical-models.html#human-larynx-model",
-      },
-      {
-        name: "Female Urogenital System Models",
-        link: "human-anatomical-models.html#female-urogenital-system-models",
-      },
-      {
-        name: "Internal Muscles of Organ Human Body Models",
-        link: "human-anatomical-models.html#internal-muscles-of-organ-human-body-models",
-      },
-    ],
-  },
-];
 
 function AboutOrg() {
   return <div></div>;

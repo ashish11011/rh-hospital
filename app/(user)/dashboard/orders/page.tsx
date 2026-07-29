@@ -82,7 +82,7 @@ export default async function OrdersPage() {
                           order.status === "completed" ? "default" : "secondary"
                         }
                         className={
-                          order.status === "captured"
+                          order.status === "completed"
                             ? "border-emerald-200 bg-emerald-50 text-emerald-700 capitalize hover:bg-emerald-50"
                             : "capitalize"
                         }

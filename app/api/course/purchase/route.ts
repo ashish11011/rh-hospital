@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { course, courseEnrolment, payment, user } from "@/db";
 import { db } from "@/lib/dbConfig";
-import { paymentClient } from "@/lib/paymentClient";
+import { createHdfcCustomerId, createHdfcGatewayOrderId, createHdfcPaymentSession } from "@/lib/hdfcGateway";
 import { sendCoursePurchaseEmail } from "@/lib/sesClient";
 import { and, desc, eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
@@ -67,25 +67,62 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Course enrolled successfully", freeEnrollment: true });
     }
 
-    const gatewayPaymentOrder = await paymentClient.orders.create({
-      amount: courseDetail.price * 100,
-      currency: courseDetail.currency || "INR",
-      receipt: enrolment.id,
+
+    const gatewayOrderId = createHdfcGatewayOrderId();
+    const hdfcPaymentSession = await createHdfcPaymentSession({
+      gatewayOrderId,
+      amount: courseDetail.price,
+      customerId: createHdfcCustomerId(profile.id),
+      customerEmail: email.toLowerCase(),
+      customerPhone: profile.mobileNumber,
+      customerName: profile.name,
+      description: "Course purchase payment",
     });
 
     await db.insert(payment).values({
       orderType: "course",
       orderId: enrolment.id,
-      gatewayOrderId: gatewayPaymentOrder.id,
+      gatewayOrderId,
+      gatewayInvoiceId: hdfcPaymentSession.id,
       amount: courseDetail.price,
       amountDue: courseDetail.price,
-      currency: gatewayPaymentOrder.currency,
-      email,
+      currency: "INR",
+      email: email.toLowerCase(),
       contact: profile.mobileNumber,
-      description: `Course purchase: ${courseDetail.title}`,
+      status: hdfcPaymentSession.status || "pending",
+      responseObject: hdfcPaymentSession as any,
     });
 
-    return NextResponse.json({ message: "Course purchase started", data: gatewayPaymentOrder });
+    // const gatewayPaymentOrder = await paymentClient.orders.create({
+    //   amount: courseDetail.price * 100,
+    //   currency: courseDetail.currency || "INR",
+    //   receipt: enrolment.id,
+    // });
+
+    // await db.insert(payment).values({
+    //   orderType: "course",
+    //   orderId: enrolment.id,
+    //   gatewayOrderId: gatewayPaymentOrder.id,
+    //   amount: courseDetail.price,
+    //   amountDue: courseDetail.price,
+    //   currency: gatewayPaymentOrder.currency,
+    //   email,
+    //   contact: profile.mobileNumber,
+    //   description: `Course purchase: ${courseDetail.title}`,
+    // });
+
+    return NextResponse.json({
+      message: "Course purchase started",
+      data: {
+        orderId: gatewayOrderId,
+        gatewaySessionId: hdfcPaymentSession.id,
+        amount: courseDetail.price,
+        currency: courseDetail.currency || "INR",
+        status: hdfcPaymentSession.status,
+        paymentUrl: hdfcPaymentSession.payment_links?.web,
+        expiresAt: hdfcPaymentSession.payment_links?.expiry || hdfcPaymentSession.order_expiry,
+      },
+    });
   } catch (error) {
     console.error("Course purchase error:", error);
     return NextResponse.json({ message: "Course purchase failed" }, { status: 500 });

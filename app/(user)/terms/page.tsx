@@ -40,7 +40,7 @@ export default function PrivacyPolicy() {
                         All prices are listed in INR and are subject to change without prior notice. Payments for products, workshops, or services must be completed before order confirmation.
                     </p>
                     <p className="mb-2">
-                        We use secure third-party payment gateways such as Razorpay for processing payments.
+                        We use secure third-party payment gateways such as HDFC SmartGateway for processing payments.
                     </p>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>Payments can be made via UPI, debit/credit cards, net banking, or other supported methods</li>

@@ -4,8 +4,8 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 import { userSchema } from "@/db/userSchema";
-import { paymentClient } from "@/lib/paymentClient";
 import { getCouponCodeDetails } from "@/helper/workshop/getCouponCodeDetails";
+import { createHdfcCustomerId, createHdfcGatewayOrderId, createHdfcPaymentSession } from "@/lib/hdfcGateway";
 
 
 export async function POST(req: NextRequest) {
@@ -66,27 +66,43 @@ export async function POST(req: NextRequest) {
             utmContent
         }).returning({ id: workshopRegistration.id });
 
-        var options = {
-            amount: payableAmount * 100,
-            currency: "INR",
-            receipt: registrationDetail.id
-        };
-
-        const gatewayPaymentOrder = await paymentClient.orders.create(options);
-        console.log(gatewayPaymentOrder);
+        const gatewayOrderId = createHdfcGatewayOrderId();
+        const hdfcPaymentSession = await createHdfcPaymentSession({
+            gatewayOrderId,
+            amount: payableAmount,
+            customerId: createHdfcCustomerId(userId),
+            customerEmail: email.toLowerCase(),
+            customerPhone: mobileNumber,
+            customerName: name,
+            description: "Workshop registration payment",
+        });
 
         await db.insert(payment).values({
             orderType: "workshop",
             orderId: registrationDetail.id,
-            gatewayOrderId: gatewayPaymentOrder.id,
+            gatewayOrderId,
+            gatewayInvoiceId: hdfcPaymentSession.id,
             amount: payableAmount,
             amountDue: payableAmount,
-            currency: gatewayPaymentOrder.currency,
+            currency: "INR",
             email: email.toLowerCase(),
             contact: mobileNumber,
+            status: hdfcPaymentSession.status || "pending",
+            responseObject: hdfcPaymentSession as any,
         });
 
-        return NextResponse.json({ message: "Registration successful", data: gatewayPaymentOrder });
+        return NextResponse.json({
+            message: "Registration successful",
+            data: {
+                orderId: gatewayOrderId,
+                gatewaySessionId: hdfcPaymentSession.id,
+                amount: payableAmount,
+                currency: "INR",
+                status: hdfcPaymentSession.status,
+                paymentUrl: hdfcPaymentSession.payment_links?.web,
+                expiresAt: hdfcPaymentSession.payment_links?.expiry || hdfcPaymentSession.order_expiry,
+            }
+        });
 
     } catch (error) {
         console.log(error);

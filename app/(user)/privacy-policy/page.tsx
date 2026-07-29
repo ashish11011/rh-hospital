@@ -48,7 +48,7 @@ export default function PrivacyPolicy() {
                 <div>
                     <h2 className="text-2xl font-semibold text-gray-800 mb-2">3. Payment Processing</h2>
                     <p className="mb-2">
-                        We use secure third-party payment gateways such as Razorpay to process payments.
+                        We use secure third-party payment gateways such as HDFC SmartGateway to process payments.
                     </p>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>Your payment details (card, UPI, net banking) are not stored on our servers</li>
@@ -61,7 +61,7 @@ export default function PrivacyPolicy() {
                     <h2 className="text-2xl font-semibold text-gray-800 mb-2">4. Data Sharing</h2>
                     <p className="mb-2">We do not sell or rent your personal data. However, information may be shared with:</p>
                     <ul className="list-disc pl-6 space-y-1">
-                        <li>Payment processors (e.g., Razorpay) for transaction completion</li>
+                        <li>Payment processors (e.g., HDFC SmartGateway) for transaction completion</li>
                         <li>Service providers for order fulfillment and technical operations</li>
                         <li>Legal authorities if required by applicable laws</li>
                     </ul>

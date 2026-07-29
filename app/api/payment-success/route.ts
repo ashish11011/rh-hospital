@@ -1,251 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
-import { sendCoursePurchaseEmail, sendSeminarEmail, sendWorkshopEmail } from "@/lib/sesClient";
-import { eq } from "drizzle-orm";
-import { db } from "@/lib/dbConfig";
-import { course, courseEnrolment, payment, seminarRegistrations, user, workshopRegistration } from "@/db";
-import { RAZORPAY_WEBHOOK_SECRET } from "@/env";
+import { getHdfcTransactionId, normalizeHdfcOrderStatus, type HdfcOrderStatusResponse } from "@/lib/hdfcGateway";
+import { updatePaymentFromGatewayStatus } from "@/lib/paymentConfirmation";
+
 export async function POST(req: NextRequest) {
-    const rawBody = await req.text();
+    const expectedAuthorization = process.env.HDFC_SMARTGATEWAY_WEBHOOK_AUTHORIZATION;
 
-    const signature = req.headers.get("x-razorpay-signature") || "";
-    const secret = RAZORPAY_WEBHOOK_SECRET;
+    if (expectedAuthorization) {
+        const authorization = req.headers.get("authorization");
 
-    // ✅ Verify signature
-    const expectedSignature = crypto
-        .createHmac("sha256", secret)
-        .update(rawBody)
-        .digest("hex");
-
-    if (expectedSignature !== signature) {
-        return NextResponse.json(
-            { success: false, message: "Invalid signature" },
-            { status: 400 }
-        );
-    }
-
-    const event = JSON.parse(rawBody);
-    console.log("Signature conformed")
-    // ✅ Handle payment.captured
-    if (event.event === "payment.captured") {
-        try {
-            const paymentEventId = req.headers.get("x-razorpay-event-id");
-            const [isAlreadyProcessed] = await db.select().from(payment).where(eq(payment.gatewayPaymentEventId, paymentEventId!));
-            if (isAlreadyProcessed) return NextResponse.json({ received: false, message: "Already processed" }, { status: 200 });
-
-
-            const gatewayPaymentResponse = event.payload.payment.entity;
-
-            const dataToStore = {
-                razorpay_payment_id: gatewayPaymentResponse.id,
-                order_id: gatewayPaymentResponse.order_id,
-                amount: gatewayPaymentResponse.amount, // in paise
-                amount_in_rupees: gatewayPaymentResponse.amount / 100,
-                invoice_id: gatewayPaymentResponse.invoice_id,
-                currency: gatewayPaymentResponse.currency,
-                status: gatewayPaymentResponse.status,
-                modeOfgatewayPaymentResponse: gatewayPaymentResponse.method,
-                captured: gatewayPaymentResponse.captured,
-                email: gatewayPaymentResponse.email,
-                contact: gatewayPaymentResponse.contact,
-                fee: gatewayPaymentResponse.fee,
-                tax: gatewayPaymentResponse.tax,
-                wallet: gatewayPaymentResponse.wallet,
-                vpa: gatewayPaymentResponse.vpa,
-                bank: gatewayPaymentResponse.bank,
-                card_id: gatewayPaymentResponse.card_id,
-                notes: gatewayPaymentResponse.notes,
-                description: gatewayPaymentResponse.description,
-                created_at: new Date(gatewayPaymentResponse.created_at * 1000),
-                raw_payload: gatewayPaymentResponse, // optional: store full object
-            };
-
-            // save to db.
-
-            const [paymentUpdateResponse] = await db.update(payment).set({
-                gatewayPaymentEventId: paymentEventId,
-                modeOfPayment: dataToStore.modeOfgatewayPaymentResponse,
-                status: dataToStore.status,
-                amountPaid: dataToStore.amount,
-                amountDue: 0,
-                getewayPaymentId: dataToStore.razorpay_payment_id,
-                gatewayInvoiceId: dataToStore.invoice_id,
-                transactionId: dataToStore.razorpay_payment_id,
-
-
-                email: dataToStore.email,
-                contact: dataToStore.contact,
-                fee: dataToStore.fee,
-                tax: dataToStore.tax,
-
-                vpa: dataToStore.vpa,
-                bank: dataToStore.bank,
-                cardId: dataToStore.card_id,
-                notes: dataToStore.notes,
-                description: dataToStore.description,
-                createdAt: dataToStore.created_at,
-
-            }).where(eq(payment.gatewayOrderId, dataToStore.order_id)).returning({
-                id: payment.id,
-                orderId: payment.orderId,
-                email: payment.email,
-                contact: payment.contact,
-                registrationId: payment.orderId,
-                orderType: payment.orderType
-            });
-
-            if (paymentUpdateResponse.orderType === "workshop") {
-                // update status to workshopRegistration Table
-                await db.update(workshopRegistration).set({ paymentStatus: "completed" }).where(eq(workshopRegistration.id, paymentUpdateResponse.registrationId));
-                console.log("Database update done")
-                // send email conformation.
-                await sendWorkshopEmail({ toEmail: paymentUpdateResponse.email! });
-                console.log("Email sent")
-            }
-
-            else if (paymentUpdateResponse.orderType === "seminar") {
-                // update status to seminarRegistration Table
-                await db.update(seminarRegistrations).set({ paymentStatus: "completed" }).where(eq(seminarRegistrations.id, paymentUpdateResponse.registrationId));
-                console.log("Database update done")
-                // send email conformation.
-                await sendSeminarEmail({ toEmail: paymentUpdateResponse.email! });
-                console.log("Email sent")
-            }
-
-            else if (paymentUpdateResponse.orderType === "course") {
-                await db.update(courseEnrolment).set({ enrolmentStatus: "enrolled", updatedAt: new Date() }).where(eq(courseEnrolment.id, paymentUpdateResponse.registrationId));
-
-                const [coursePurchase] = await db
-                    .select({
-                        courseTitle: course.title,
-                        userName: user.name,
-                        userEmail: user.email,
-                    })
-                    .from(courseEnrolment)
-                    .innerJoin(course, eq(course.id, courseEnrolment.courseId))
-                    .innerJoin(user, eq(user.id, courseEnrolment.userId))
-                    .where(eq(courseEnrolment.id, paymentUpdateResponse.registrationId))
-                    .limit(1);
-
-                const coursePurchaseEmail = paymentUpdateResponse.email || coursePurchase?.userEmail;
-                if (coursePurchaseEmail) {
-                    await sendCoursePurchaseEmail({
-                        toEmail: coursePurchaseEmail,
-                        name: coursePurchase?.userName,
-                        courseTitle: coursePurchase?.courseTitle || "Your RH Healthcare course",
-                    });
-                    console.log("Course enrolment confirmed and email sent")
-                }
-            }
-
-
-            return NextResponse.json({ received: true }, { status: 200 });
-        } catch (error) {
-            console.log(error);
-            return NextResponse.json({ received: false }, { status: 500 });
+        if (authorization !== expectedAuthorization) {
+            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
     }
 
-    return NextResponse.json({ message: "Not conformed" }, { status: 300 });
+    const body = await req.json() as HdfcOrderStatusResponse;
+    const orderId = body.order_id || body.orderId;
+
+    if (!orderId) {
+        return NextResponse.json({ success: false, message: "Order ID is required" }, { status: 400 });
+    }
+
+    try {
+        const normalizedStatus = normalizeHdfcOrderStatus(body.status);
+
+        await updatePaymentFromGatewayStatus({
+            gatewayOrderId: String(orderId),
+            gatewayStatus: body.status || "UNKNOWN",
+            normalizedStatus,
+            gatewayPaymentId: getHdfcTransactionId(body),
+            responseObject: body,
+        });
+
+        return NextResponse.json({ success: true, received: true });
+    } catch (error) {
+        console.error("HDFC webhook processing error:", error);
+        return NextResponse.json(
+            {
+                success: false,
+                message: error instanceof Error ? error.message : "Unable to process payment webhook",
+            },
+            { status: 500 }
+        );
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// x-razorpay-event-id
-
-
-// {
-//   "entity": "event",
-//   "account_id": "acc_BFQ7uQEaa7j2z7",
-//   "event": "payment.captured",
-//   "contains": [
-//     "payment"
-//   ],
-//   "payload": {
-//     "payment": {
-//       "entity": {
-//         "id": "pay_DESlfW9H8K9uqM",
-//         "entity": "payment",
-//         "amount": 100,
-//         "currency": "<currency>",
-//         "base_amount": 100,
-//         "status": "captured",
-//         "order_id": "order_DESlLckIVRkHWj",
-//         "invoice_id": null,
-//         "international": false,
-//         "method": "netbanking",
-//         "amount_refunded": 0,
-//         "amount_transferred": 0,
-//         "refund_status": null,
-//         "captured": true,
-//         "description": null,
-//         "card_id": null,
-//         "bank": "HDFC",
-//         "wallet": null,
-//         "vpa": null,
-//         "email": "<email>",
-//         "contact": "<phone>",
-//         "notes": [],
-//         "fee": 2,
-//         "tax": 0,
-//         "error_code": null,
-//         "error_description": null,
-//         "error_source": null,
-//         "error_step": null,
-//         "error_reason": null,
-//         "acquirer_data": {
-//           "bank_transaction_id": "0125836177"
-//         },
-//         "created_at": 1567674599
-//       }
-//     }
-//   },
-//   "created_at": 1567674606
-// }

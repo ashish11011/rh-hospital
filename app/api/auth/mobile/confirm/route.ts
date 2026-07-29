@@ -14,30 +14,32 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
 
-    if (!data.email || !data.code) {
+    if (typeof data.email !== "string" || typeof data.code !== "string" || !data.email || !data.code) {
        return NextResponse.json({ error: "Email and code are required" }, { status: 400 });
     }
 
-    const existingUser = await db.select().from(user).where(eq(user.email, data.email)).limit(1);
+    const cognitoUsername = data.email.trim();
+    const normalizedEmail = cognitoUsername.toLowerCase();
+    const existingUser = await db.select().from(user).where(eq(user.email, normalizedEmail)).limit(1);
     if (!existingUser || existingUser.length === 0) {
       return NextResponse.json({ error: "User not found in database" }, { status: 404 });
     }
 
     const secretHash = crypto
       .createHmac("sha256", USER_POOL_CLIENT_SECRET)
-      .update(data.email + USER_POOL_CLIENT_ID)
+      .update(cognitoUsername + USER_POOL_CLIENT_ID)
       .digest("base64");
 
     const command = new ConfirmSignUpCommand({
       ClientId: USER_POOL_CLIENT_ID,
-      Username: data.email,
+      Username: cognitoUsername,
       ConfirmationCode: data.code,
       SecretHash: secretHash,
     });
     
     await cognitoClient.send(command);
 
-    await db.update(user).set({ isVarifiedEmail: true }).where(eq(user.email, data.email));
+    await db.update(user).set({ isVarifiedEmail: true }).where(eq(user.email, normalizedEmail));
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error: any) {

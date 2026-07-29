@@ -2,6 +2,7 @@ import { boolean, index, pgEnum, pgTable, text, timestamp, uuid, varchar } from 
 
 export const userSchema = pgTable("user", {
     id: uuid("id").defaultRandom().primaryKey(),
+    rhId: varchar("rh_id"),
     name: varchar("name").notNull(),
     email: varchar("email").notNull().unique(),
     mobileNumber: varchar("mobile_number").notNull(),
@@ -12,6 +13,9 @@ export const userSchema = pgTable("user", {
     isVarifiedEmail: boolean("is_varified_email").default(false),
     isVarifiedMobileNumber: boolean("is_varified_mobile_number").default(false),
     password: varchar("password").notNull(),
+    fcmToken: varchar("fcm_token"),
+    deviceId: varchar("device_id"),
+    lastActive: timestamp("last_active"),
     role: varchar("role").notNull().default("user"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),

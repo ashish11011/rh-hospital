@@ -3,7 +3,7 @@ import { randomBytes, randomUUID } from "crypto";
 
 const DEFAULT_HDFC_SESSION_URL = "https://smartgateway.hdfcuat.bank.in/session";
 const LOCAL_PAYMENT_RETURN_URL = "http://localhost:3000/payment-status";
-const PRODUCTION_PAYMENT_RETURN_URL = "https://www.rhhealthcaresimulation.com/payment-status";
+const PRODUCTION_PAYMENT_RETURN_URL = "https://rh-hospital-hw5t-two.vercel.app/payment-status";
 
 type HdfcSessionInput = {
   gatewayOrderId: string;

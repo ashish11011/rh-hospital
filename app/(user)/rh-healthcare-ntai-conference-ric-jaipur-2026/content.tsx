@@ -25,8 +25,8 @@ const cardReveal: Variants = {
     opacity: 1,
     y: 0,
     transition: {
-      delay: index * 0.12,
-      duration: 0.5,
+      delay: index * 0.04,
+      duration: 0.3,
       ease: "easeOut" as const,
     },
   }),
@@ -723,11 +723,11 @@ function SpeakerSection() {
         "Vice Principal Cum Dean Nursing Faculty, Sri Guru Ram Das CON, Vallah, Amritsar, Punjab",
       image: "/website-image/amandeep+kaur.png",
     },
-    // {
-    //   name: "Prof. (Dr.) Ashok Dhaka Vishnoi",
-    //   designation: "CEO, JINC, Jodhpur",
-    //   image: "",
-    // },
+    {
+      name: "Prof. (Dr.) Ashok Dhaka Vishnoi",
+      designation: "CEO, JINC, Jodhpur",
+      image: "/website-image/dhaka1.jpg",
+    },
     {
       name: "Prof. S S P Warnakulasuriya",
       designation: "Faculty of Nursing, University of Colombo, Sri Lanka",
@@ -785,7 +785,7 @@ function SpeakerSection() {
       name: "Dr. Vishnu K Swarnkar",
       designation:
         "HOD (Mental Health Nursing) (Upchar College Of Nursing, Jaipur) (State Legal Advisor, NTAI)",
-      image: "/website-image/dr.+vishnu+k+swarnkar.png",
+      image: "/website-image/vishnuji1.jpg",
     },
     {
       name: "Dr. Hemlata Sharma",

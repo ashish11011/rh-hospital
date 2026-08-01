@@ -120,6 +120,13 @@
       "when": 1785171687755,
       "tag": "0016_robust_blacklash",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1785438042622,
+      "tag": "0017_add_user_card",
+      "breakpoints": true
     }
   ]
 }

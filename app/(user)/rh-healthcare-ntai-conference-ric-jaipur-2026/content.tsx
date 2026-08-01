@@ -148,7 +148,7 @@ const dayTwoAgenda = [
   {
     time: "01:00 PM-01:15 PM",
     activity: "Plenary Session - III",
-    details: "Prof. (Dr.) Anjali Vijay Kulthe, Ms. Anita K Pawar",
+    details: "Ms. Anjali Vijay Kulthe, Ms. Anita K Pawar",
   },
   {
     time: "01:15 PM-02:00 PM",
@@ -174,7 +174,7 @@ const dayTwoAgenda = [
   {
     time: "03:30 PM-04:00 PM",
     activity: "Plenary Session - VI",
-    details: "Prof. (Dr.) Niru Shamsum Nahar, Ms. Shanti Teresa",
+    details: "Ms. Niru Shamsum Nahar, Ms. Shanti Teresa",
   },
   {
     time: "04:00 PM-04:30 PM",
@@ -696,7 +696,7 @@ function SpeakerSection() {
       image: "/website-image/hardeep+kaur.png",
     },
     {
-      name: "Prof. (Dr.) Anjali Vijay Kulthe",
+      name: "Ms. Anjali Vijay Kulthe",
       designation:
         "Nursing Officer, Real Hero of 2008 Terrorist Attack at Bombay, Bharat Bhagya Vidhata",
       image: "/website-image/anjali+vijay.png",
@@ -739,7 +739,7 @@ function SpeakerSection() {
       image: "/website-image/navneeta+khrist.png",
     },
     {
-      name: "Prof. (Dr.) Niru Shamsum Nahar",
+      name: "Ms. Niru Shamsum Nahar",
       designation: "Advisor, Grameen Caledonian College of Nursing, Bangladesh",
       image: "/website-image/niru+nahar.png",
     },

@@ -10,10 +10,7 @@ export default function Header() {
               href={"/rh-healthcare-ntai-conference-ric-jaipur-2026"}
               className="cursor-pointer text-sm font-semibold text-white"
             >
-              🌍{" "}
-              <span className="underline">
-                GLOBAL NURSING LEADERSHIP & EDUCATION SUMMIT 2026
-              </span>
+              🌍 <span className="underline">GLOBAL NURSING SUMMIT 2026</span>
             </Link>
           </div>
         </div>

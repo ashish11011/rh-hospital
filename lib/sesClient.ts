@@ -378,7 +378,7 @@ export async function sendSeminarEmail({
                   "
                 >
                   <em>
-                    Global Nursing Leadership &amp; Education Summit 2026
+                    Global Nursing &amp; Summit 2026
                   </em>
                 </p>
               </td>

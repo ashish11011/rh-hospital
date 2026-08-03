@@ -1,17 +1,19 @@
 import { course, courseEnrolment, courseItem, lessonProgress, payment, user } from "@/db";
 import { cloudfrontAssetUrl } from "@/lib/cloudfront";
 import { publicCoursePath } from "@/lib/course";
+import { getApprovedCourseReviews } from "@/lib/courseReviewData";
 import { db } from "@/lib/dbConfig";
 import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function getUserEnrolledCoursesByEmail(email: string) {
-  return db
+  const enrolments = await db
     .select({
       enrolmentId: courseEnrolment.id,
       status: courseEnrolment.enrolmentStatus,
       enrolledAt: courseEnrolment.createdAt,
+      userId: user.id,
       courseId: course.id,
       title: course.title,
       description: course.description,
@@ -26,6 +28,52 @@ export async function getUserEnrolledCoursesByEmail(email: string) {
     .innerJoin(user, eq(user.id, courseEnrolment.userId))
     .where(and(eq(courseEnrolment.enrolmentStatus, "enrolled"), eq(user.email, email.toLowerCase())))
     .orderBy(desc(courseEnrolment.createdAt));
+
+  if (enrolments.length === 0) return [];
+
+  const courseIds = enrolments.map((item) => item.courseId);
+  const items = await db
+    .select({
+      id: courseItem.id,
+      courseId: courseItem.courseId,
+      mediaType: courseItem.mediaType,
+    })
+    .from(courseItem)
+    .where(inArray(courseItem.courseId, courseIds));
+
+  const itemIds = items.map((item) => item.id);
+  const progressRows = itemIds.length > 0
+    ? await db
+      .select({
+        courseItemId: lessonProgress.courseItemId,
+        isCompleted: lessonProgress.isCompleted,
+      })
+      .from(lessonProgress)
+      .where(and(eq(lessonProgress.userId, enrolments[0].userId), inArray(lessonProgress.courseItemId, itemIds)))
+    : [];
+
+  const completedItemIds = new Set(progressRows.filter((row) => row.isCompleted).map((row) => row.courseItemId));
+  const progressByCourseId = new Map<string, { completed: number; total: number }>();
+
+  for (const item of items) {
+    if (item.mediaType?.toLowerCase() === "pdf") continue;
+
+    const current = progressByCourseId.get(item.courseId) || { completed: 0, total: 0 };
+    current.total += 1;
+    if (completedItemIds.has(item.id)) current.completed += 1;
+    progressByCourseId.set(item.courseId, current);
+  }
+
+  return enrolments.map(({ userId, ...item }) => {
+    const summary = progressByCourseId.get(item.courseId) || { completed: 0, total: 0 };
+
+    return {
+      ...item,
+      completedLessons: summary.completed,
+      totalTrackableLessons: summary.total,
+      progressPercent: summary.total > 0 ? Math.round((summary.completed / summary.total) * 100) : 0,
+    };
+  });
 }
 
 export async function getUserPurchasesByEmail(email: string) {
@@ -126,6 +174,7 @@ export async function getPurchasedCourseDetailByEmail(email: string, courseIdent
       .select({
         courseItemId: lessonProgress.courseItemId,
         progress: lessonProgress.progress,
+        isCompleted: lessonProgress.isCompleted,
         updatedAt: lessonProgress.updatedAt,
       })
       .from(lessonProgress)
@@ -133,6 +182,9 @@ export async function getPurchasedCourseDetailByEmail(email: string, courseIdent
     : [];
 
   const progressByItemId = new Map(progressRows.map((row) => [row.courseItemId, row]));
+  const trackableItems = items.filter((item) => item.mediaType?.toLowerCase() !== "pdf");
+  const completedLessons = trackableItems.filter((item) => progressByItemId.get(item.id)?.isCompleted).length;
+  const reviews = await getApprovedCourseReviews(courseRecord.id);
 
   const { isActive, ...purchasedCourse } = courseRecord;
 
@@ -148,6 +200,10 @@ export async function getPurchasedCourseDetailByEmail(email: string, courseIdent
       path: publicCoursePath(purchasedCourse.slug),
       bannerImageKey: purchasedCourse.bannerImageUrl,
       bannerImageUrl: cloudfrontAssetUrl(purchasedCourse.bannerImageUrl),
+      completedLessons,
+      totalTrackableLessons: trackableItems.length,
+      progressPercent: trackableItems.length > 0 ? Math.round((completedLessons / trackableItems.length) * 100) : 0,
+      reviews,
       items: items.map((item) => {
         const progress = progressByItemId.get(item.id);
 
@@ -156,6 +212,7 @@ export async function getPurchasedCourseDetailByEmail(email: string, courseIdent
           mediaKey: item.mediaUrl,
           mediaUrl: cloudfrontAssetUrl(item.mediaUrl),
           progress: progress?.progress ?? 0,
+          isCompleted: progress?.isCompleted ?? false,
           progressUpdatedAt: progress?.updatedAt ?? null,
         };
       }),

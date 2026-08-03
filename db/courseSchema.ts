@@ -41,6 +41,7 @@ export const courseEnrolmentSchema = pgTable("course_enrolment", {
     courseId: uuid("course_id").references(() => courseSchema.id, {onDelete:"cascade"}).notNull(),
     userId: uuid("user_id").references(() => userSchema.id , {onDelete:"cascade"}).notNull(),
     enrolmentStatus: courseEnrolmentStatusEnumSchema("enrolment_status").notNull().default("pending"),
+    courseCertificate: varchar("course_certificate"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -50,5 +51,16 @@ export const lessonProgressSchema = pgTable("lesson_progress", {
     courseItemId: uuid("course_item_id").references(() => courseItemSchema.id, {onDelete:"cascade"}).notNull(),
     userId: uuid("user_id").references(() => userSchema.id , {onDelete:"cascade"}).notNull(),
     progress: integer("progress").notNull().default(0),
+    isCompleted: boolean("is_completed").default(false),
     updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const courseReview = pgTable("course_review",{
+    id: uuid("id").defaultRandom().primaryKey(),
+    courseId: uuid("course_id").references(() => courseSchema.id, {onDelete: "cascade"}).notNull(),
+    userId: uuid("user_id").references(() => userSchema.id, {onDelete: "cascade"}).notNull(),
+    rating: integer("rating").notNull().default(0),
+    feedback: varchar("feedback").notNull(),
+    isApproved: boolean("is_approved").default(false),
+    createdAt: timestamp("created_at").defaultNow(),
 });

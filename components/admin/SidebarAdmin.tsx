@@ -40,6 +40,10 @@ export async function SidebarAdmin() {
       url: "/admin/course-enrolments",
     },
     {
+      name: "Course Reviews",
+      url: "/admin/course-reviews",
+    },
+    {
       name: "Workshop Registrations",
       url: "/admin/workshop-registration",
       access: "full",

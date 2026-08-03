@@ -1,10 +1,11 @@
 "use server";
 
-import { course, courseEnrolment, courseItem, user } from "@/db";
+import { course, courseEnrolment, courseItem, courseReviews, user } from "@/db";
 import { db } from "@/lib/dbConfig";
 import { asc, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { cloudfrontAssetKey } from "@/lib/cloudfront";
+import { publicCoursePath } from "@/lib/course";
 
 export type CourseInput = {
   title: string;
@@ -122,4 +123,55 @@ export async function updateCourseEnrolmentStatus(id: string, status: "enrolled"
   if (!allowed.includes(status)) throw new Error("Invalid enrolment status");
   await db.update(courseEnrolment).set({ enrolmentStatus: status, updatedAt: new Date() }).where(eq(courseEnrolment.id, id));
   revalidatePath("/admin/course-enrolments");
+}
+
+export async function getAdminCourseReviews() {
+  return db
+    .select({
+      id: courseReviews.id,
+      rating: courseReviews.rating,
+      feedback: courseReviews.feedback,
+      isApproved: courseReviews.isApproved,
+      createdAt: courseReviews.createdAt,
+      courseId: course.id,
+      courseTitle: course.title,
+      courseSlug: course.slug,
+      userName: user.name,
+      userEmail: user.email,
+      userMobileNumber: user.mobileNumber,
+      userDesignation: user.designation,
+      userInstituteName: user.instituteName,
+    })
+    .from(courseReviews)
+    .innerJoin(course, eq(courseReviews.courseId, course.id))
+    .innerJoin(user, eq(courseReviews.userId, user.id))
+    .orderBy(desc(courseReviews.createdAt));
+}
+
+export async function updateCourseReviewApproval(id: string, isApproved: boolean) {
+  const [reviewCourse] = await db
+    .select({ slug: course.slug })
+    .from(courseReviews)
+    .innerJoin(course, eq(courseReviews.courseId, course.id))
+    .where(eq(courseReviews.id, id))
+    .limit(1);
+
+  await db.update(courseReviews).set({ isApproved }).where(eq(courseReviews.id, id));
+  revalidatePath("/admin/course-reviews");
+  revalidatePath("/courses");
+  if (reviewCourse?.slug) revalidatePath(publicCoursePath(reviewCourse.slug));
+}
+
+export async function deleteCourseReview(id: string) {
+  const [reviewCourse] = await db
+    .select({ slug: course.slug })
+    .from(courseReviews)
+    .innerJoin(course, eq(courseReviews.courseId, course.id))
+    .where(eq(courseReviews.id, id))
+    .limit(1);
+
+  await db.delete(courseReviews).where(eq(courseReviews.id, id));
+  revalidatePath("/admin/course-reviews");
+  revalidatePath("/courses");
+  if (reviewCourse?.slug) revalidatePath(publicCoursePath(reviewCourse.slug));
 }

@@ -7,8 +7,9 @@ import {
 import { CoursePurchaseButton } from "@/components/course/CoursePurchaseButton";
 import CourseOverviewSection from "@/components/course/CourseOverviewSection";
 import { Badge } from "@/components/ui/badge";
+import { getApprovedCourseReviews } from "@/lib/courseReviewData";
 import { IconCertificate } from "@tabler/icons-react";
-import { FileText, IndianRupee, TvMinimalPlay } from "lucide-react";
+import { FileText, IndianRupee, Star, TvMinimalPlay } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { cloudfrontAssetUrl } from "@/lib/cloudfront";
@@ -32,6 +33,7 @@ export default async function Page({
   const currentUser = await getCurrentCourseUser();
   const enrolmentStatus = await getCourseEnrolmentStatus(course.id);
   const coursePath = publicCoursePath(course.slug);
+  const reviews = await getApprovedCourseReviews(course.id);
 
   return (
     <>
@@ -72,6 +74,7 @@ export default async function Page({
           }}
         />
       </div>
+      <CourseReviews reviews={reviews} />
     </>
   );
 }
@@ -178,5 +181,44 @@ function CoursePurchase({
         />
       </div>
     </>
+  );
+}
+
+function CourseReviews({ reviews }: { reviews: Awaited<ReturnType<typeof getApprovedCourseReviews>> }) {
+  if (reviews.length === 0) return null;
+
+  const averageRating = reviews.reduce((total, review) => total + review.rating, 0) / reviews.length;
+
+  return (
+    <section className="container py-12">
+      <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Student reviews</h2>
+          <p className="text-sm text-gray-600">Approved feedback from enrolled learners.</p>
+        </div>
+        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+          <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
+          {averageRating.toFixed(1)} out of 5 from {reviews.length} review{reviews.length === 1 ? "" : "s"}
+        </div>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {reviews.map((review) => (
+          <article key={review.id} className="rounded-lg border p-5">
+            <div className="flex items-center gap-1 text-amber-500">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Star key={index} className={`h-4 w-4 ${index < review.rating ? "fill-current" : ""}`} />
+              ))}
+            </div>
+            <p className="mt-3 text-sm leading-6 text-gray-700">{review.feedback}</p>
+            <div className="mt-4 text-sm">
+              <p className="font-semibold">{review.userName}</p>
+              <p className="text-gray-500">
+                {[review.userDesignation, review.userInstituteName, review.userCity].filter(Boolean).join(", ")}
+              </p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }

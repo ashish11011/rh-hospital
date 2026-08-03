@@ -5,9 +5,9 @@ import { Suspense } from "react";
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
-  title: "Global Nursing Leadership & Education Summit 2026 | RH Healthcare",
+  title: "Global Nursing Summit 2026 | RH Healthcare",
   description:
-    "Join the Global Nursing Leadership & Education Summit 2026 presented by RH Healthcare & NTAI. Celebrate nursing excellence at RIC, Jaipur.",
+    "Join the Global Nursing Summit 2026 presented by RH Healthcare & NTAI. Celebrate nursing excellence at RIC, Jaipur.",
   alternates: {
     canonical: "/rh-healthcare-ntai-conference-ric-jaipur-2026",
   },

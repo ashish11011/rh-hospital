@@ -240,7 +240,7 @@ export function PageContentClient() {
           RH Healthcare Pvt. Ltd. in collaboration with NTAI
         </p>
         <h2 className="mt-2 text-2xl leading-tight font-semibold md:text-4xl">
-          GLOBAL NURSING LEADERSHIP & EDUCATION SUMMIT 2026
+          GLOBAL NURSING SUMMIT 2026
         </h2>
 
         <p className="mt-4 max-w-3xl text-base leading-7 text-slate-700">

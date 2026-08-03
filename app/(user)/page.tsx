@@ -308,7 +308,7 @@ function CurrentWorkshop() {
         </div>
         <div className="col-span-7 flex flex-col gap-8 p-8 md:p-12">
           <h2 className="text-primary text-xl font-bold md:text-3xl">
-            GLOBAL NURSING LEADERSHIP & EDUCATION SUMMIT 2026
+            GLOBAL NURSING SUMMIT 2026
           </h2>
           <p className="flex flex-col gap-1">
             <span>

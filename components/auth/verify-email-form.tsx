@@ -13,7 +13,7 @@ export default function VerifyEmailForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
-  
+
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,9 +27,9 @@ export default function VerifyEmailForm() {
 
     setIsSubmitting(true);
     setError(null);
-    
+
     const res = await confirmWithCognito({ email, code });
-    
+
     if (res?.error) {
       setError(res.error);
       setIsSubmitting(false);
@@ -57,18 +57,16 @@ export default function VerifyEmailForm() {
             {error}
           </div>
         )}
-        
+
         <Label>Verification Code</Label>
-        
+
         <Input
           placeholder="Enter 6-digit code"
           className="h-12 rounded-xl"
           value={code}
           onChange={(e) => setCode(e.target.value)}
         />
-        <p className="text-sm text-muted-foreground">
-          Code sent to {email}
-        </p>
+        <p className="text-muted-foreground text-sm">Code sent to {email}</p>
       </div>
 
       <Button
@@ -85,18 +83,21 @@ export default function VerifyEmailForm() {
         )}
       </Button>
 
-      <div className="flex flex-col items-center gap-2 mt-4">
+      <div className="mt-4 flex flex-col items-center gap-2">
         <p className="text-muted-foreground text-center text-sm">
           Didn't receive the code?
         </p>
         <button
           type="button"
           onClick={handleResend}
-          className="text-primary font-semibold text-sm hover:underline"
+          className="text-primary text-sm font-semibold hover:underline"
         >
           Resend Code
         </button>
-        <Link href="/sign-up" className="text-sm font-semibold mt-2 hover:underline">
+        <Link
+          href="/sign-up"
+          className="mt-2 text-sm font-semibold hover:underline"
+        >
           Sign up with a different email
         </Link>
       </div>

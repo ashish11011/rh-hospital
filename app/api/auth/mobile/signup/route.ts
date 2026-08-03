@@ -30,13 +30,11 @@ export async function POST(req: Request) {
       SecretHash: secretHash,
       UserAttributes: [
         { Name: "email", Value: data.email },
-        { Name: "name", Value: data.name },
-        ...(data.phone ? [{ Name: "phone_number", Value: data.phone }] : []),
+        { Name: "name", Value: data.name }
       ],
     });
     
     await cognitoClient.send(command);
-
     const existingUser = await db.select().from(user).where(eq(user.email, data.email.toLowerCase())).limit(1);
     
     if (!existingUser || existingUser.length === 0) {

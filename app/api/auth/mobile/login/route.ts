@@ -68,7 +68,10 @@ export async function POST(req: Request) {
         await db.update(user).set(loginUpdate).where(eq(user.email, normalizedEmail));
       }
 
-      return NextResponse.json({ success: true, tokens: response.AuthenticationResult }, { status: 200 });
+      return NextResponse.json(
+        { success: true, tokens: response.AuthenticationResult, username: cognitoUsername },
+        { status: 200 }
+      );
     }
     
     return NextResponse.json({ error: "Authentication failed" }, { status: 401 });

@@ -1,5 +1,5 @@
 import { SES_ACCESS_KEY, SES_SECRET_ACCESS_KEY } from "@/env";
-import { SESClient, ListIdentitiesCommand, SendEmailCommand } from "@aws-sdk/client-ses";
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
 export const sesClient = new SESClient({
     region: "ap-south-1",
@@ -8,6 +8,108 @@ export const sesClient = new SESClient({
         secretAccessKey: SES_SECRET_ACCESS_KEY,
     },
 });
+
+const EMAIL_SOURCE = "no-reply@rhhealthcaresimulation.com";
+const ACCOUNT_REQUEST_ADMIN_EMAIL = "bishnoi11011@gmail.com";
+
+type AccountDeletionRequestUser = {
+    id?: string | null;
+    name?: string | null;
+    email: string;
+    mobileNumber?: string | null;
+    designation?: string | null;
+    instituteName?: string | null;
+    city?: string | null;
+};
+
+function escapeHtml(value: string | null | undefined) {
+    return String(value || "N/A")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+export async function sendAccountDeletionRequestEmails(user: AccountDeletionRequestUser) {
+    const requestedAt = new Date().toLocaleString("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: "Asia/Kolkata",
+    });
+
+    const adminHtml = `
+<p>Hello Admin,</p>
+
+<p>A user has requested account deletion or deactivation from the RH Healthcare dashboard.</p>
+
+<h3>User Details</h3>
+<ul>
+  <li><strong>User ID:</strong> ${escapeHtml(user.id)}</li>
+  <li><strong>Name:</strong> ${escapeHtml(user.name)}</li>
+  <li><strong>Email:</strong> ${escapeHtml(user.email)}</li>
+  <li><strong>Mobile Number:</strong> ${escapeHtml(user.mobileNumber)}</li>
+  <li><strong>Designation:</strong> ${escapeHtml(user.designation)}</li>
+  <li><strong>Institute/Hospital:</strong> ${escapeHtml(user.instituteName)}</li>
+  <li><strong>City:</strong> ${escapeHtml(user.city)}</li>
+  <li><strong>Requested At:</strong> ${escapeHtml(requestedAt)} IST</li>
+</ul>
+
+<p>Please review this request and delete or deactivate the account from the admin systems as appropriate.</p>
+
+<p>Regards,<br/>RH Healthcare Simulation Center</p>
+`;
+
+    const userHtml = `
+<p>Dear ${escapeHtml(user.name || "User")},</p>
+
+<p>Your account deletion or deactivation request has been raised successfully.</p>
+
+<p>Our admin team has been notified and will review your request. You will receive an update once the request has been processed.</p>
+
+<p>
+Warm Regards,<br/>
+<strong>RH Healthcare Simulation Center</strong><br/>
+📧 rhhealthcaresimulationcenter@gmail.com<br/>
+🌐 https://www.rhhealthcaresimulation.com
+</p>
+`;
+
+    await Promise.all([
+        sesClient.send(
+            new SendEmailCommand({
+                Source: EMAIL_SOURCE,
+                Destination: {
+                    ToAddresses: [ACCOUNT_REQUEST_ADMIN_EMAIL],
+                },
+                Message: {
+                    Subject: {
+                        Data: "Account deletion/deactivation request - RH Healthcare",
+                    },
+                    Body: {
+                        Html: { Data: adminHtml },
+                    },
+                },
+            }),
+        ),
+        sesClient.send(
+            new SendEmailCommand({
+                Source: EMAIL_SOURCE,
+                Destination: {
+                    ToAddresses: [user.email],
+                },
+                Message: {
+                    Subject: {
+                        Data: "Account deletion/deactivation request received",
+                    },
+                    Body: {
+                        Html: { Data: userHtml },
+                    },
+                },
+            }),
+        ),
+    ]);
+}
 
 export async function sendWorkshopEmail({
     toEmail,

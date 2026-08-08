@@ -627,22 +627,47 @@ function SightSeenJaipur() {
 }
 
 function SpeakerSection() {
+  const internationalSpeaker = [
+    {
+      name: "Prof. (Dr.) Meryem Yavuz",
+      designation:
+        "President, International Federation of Perioperative Nurses, Ege University, Izmir, Turkey",
+      image: "/website-image/meryem+yavuz.png",
+    },
+    {
+      name: "Ms. Marwa Moghazy",
+      designation: "Nurse Educator, HMC, Qatar",
+      image: "/website-image/marwa.png",
+    },
+    {
+      name: "Prof. S S P Warnakulasuriya",
+      designation: "Faculty of Nursing, University of Colombo, Sri Lanka",
+      image: "/website-image/ssp+warnakulasuriya.png",
+    },
+    {
+      name: "Ms. Zubaida Rohmawati",
+      designation:
+        "(Lecturer in nursing. University, Aisyiyah Yogyakarta, Indonesia)",
+      image: "/website-image/asdf.jpeg",
+    },
+    {
+      name: "Ms. Niru Shamsum Nahar",
+      designation: "Advisor, Grameen Caledonian College of Nursing, Bangladesh",
+      image: "/website-image/niru+nahar.png",
+    },
+  ];
   const speakers = [
-    {
-      name: "Prof. (Dr.) Farukh Khan",
-      designation: "National President of NTAI",
-      image: "/website-image/faruk+khan.png",
-    },
-    {
-      name: "Prof. (Dr.) Radha Saini",
-      designation: "Consultant, World Health Organization, Italy",
-      image: "/website-image/radha+saini.png",
-    },
-    {
-      name: "Mr. Anesh Kumar Saini",
-      designation: "Faculty, Govt. CON, Jaipur",
-      image: "/website-image/anesh+kumar+saini.png",
-    },
+    // {
+    //   name: "Prof. (Dr.) Farukh Khan",
+    //   designation: "National President of NTAI",
+    //   image: "/website-image/faruk+khan.png",
+    // },
+    // {
+    //   name: "Prof. (Dr.) Radha Saini",
+    //   designation: "Consultant, World Health Organization, Italy",
+    //   image: "/website-image/radha+saini.png",
+    // },
+
     {
       name: "Prof. (Dr.) Manju Chhugani",
       designation: "Dean, Faculty of Nursing, Jamia Hamdard, New Delhi",
@@ -653,11 +678,11 @@ function SpeakerSection() {
       designation: "Clinical and Nursing Informatics Specialist, CDAC, Pune",
       image: "/website-image/suresh+kumar.png",
     },
-    {
-      name: "Mrs. Rinki Dang",
-      designation: "National President, All India Govt. Nurses Federation",
-      image: "/website-image/rinki+dang.png",
-    },
+    // {
+    //   name: "Mrs. Rinki Dang",
+    //   designation: "National President, All India Govt. Nurses Federation",
+    //   image: "/website-image/rinki+dang.png",
+    // },
     {
       name: "Prof. R.K. Saini",
       designation: "Principal Nursing, NIMS University",
@@ -673,12 +698,7 @@ function SpeakerSection() {
       designation: "Dean, Faculty of Nursing, RUHS, Jaipur",
       image: "/website-image/ghanshyam+jangid.png",
     },
-    {
-      name: "Prof. (Dr.) Meryem Yavuz",
-      designation:
-        "President, International Federation of Perioperative Nurses, Ege University, Izmir, Turkey",
-      image: "/website-image/meryem+yavuz.png",
-    },
+
     {
       name: "Prof. (Dr.) Binu Joe",
       designation: "National President, Nursing Scholar Society",
@@ -701,17 +721,13 @@ function SpeakerSection() {
         "Nursing Officer, Real Hero of 2008 Terrorist Attack at Bombay, Bharat Bhagya Vidhata",
       image: "/website-image/anjali+vijay.png",
     },
-    {
-      name: "Ms. Anita K Pawar",
-      designation:
-        "National General Secretary, All India Govt. Nurses Federation",
-      image: "/website-image/anita+pawar.png",
-    },
-    {
-      name: "Prof. (Dr.) Marwa",
-      designation: "University of Doha, Qatar",
-      image: "/website-image/marwa.png",
-    },
+    // {
+    //   name: "Ms. Anita K Pawar",
+    //   designation:
+    //     "National General Secretary, All India Govt. Nurses Federation",
+    //   image: "/website-image/anita+pawar.png",
+    // },
+
     {
       name: "Prof. Himanshu Trivedi",
       designation: "State President, NTAI, Gujarat",
@@ -729,30 +745,39 @@ function SpeakerSection() {
       image: "/website-image/dhaka1.jpg",
     },
     {
-      name: "Prof. S S P Warnakulasuriya",
-      designation: "Faculty of Nursing, University of Colombo, Sri Lanka",
-      image: "/website-image/ssp+warnakulasuriya.png",
+      name: "Prof HCL Rawat",
+      designation:
+        "(National President. Paediatric and Neonatal nurses forum.India)",
+      image: "/website-image/asdf2.jpeg",
     },
+
+    {
+      name: "Prof. (Dr.)Reeta Devi",
+      designation: "(SOHS IGNOU, New Delhi)",
+      image: "/website-image/asdf3.jpeg",
+    },
+
     {
       name: "Prof. Navneeta Khrist",
       designation: "Principal, Arogyam Nursing College, Roorkee, Uttarakhand",
       image: "/website-image/navneeta+khrist.png",
     },
-    {
-      name: "Ms. Niru Shamsum Nahar",
-      designation: "Advisor, Grameen Caledonian College of Nursing, Bangladesh",
-      image: "/website-image/niru+nahar.png",
-    },
+
     {
       name: "Ms. Shanti Teresa",
       designation:
         "Sole Padma Shri Awardee – 2011, Andaman and Nicobar Islands",
       image: "/website-image/shanti+teresa.png",
     },
+    // {
+    //   name: "Mr. Purushottam Kumbhaj",
+    //   designation: "State President, Nursing Teachers Association, Rajasthan",
+    //   image: "/website-image/purushottam+kumbhaj.png",
+    // },
     {
-      name: "Mr. Purushottam Kumbhaj",
-      designation: "State President, Nursing Teachers Association, Rajasthan",
-      image: "/website-image/purushottam+kumbhaj.png",
+      name: "Mr. Anesh Kumar Saini",
+      designation: "Faculty, Govt. CON, Jaipur",
+      image: "/website-image/anesh+kumar+saini.png",
     },
   ];
   const visionaries = [
@@ -807,7 +832,17 @@ function SpeakerSection() {
     <div>
       <div>
         <h3 className="mb-6 pb-4 text-center text-2xl font-semibold">
-          Speakers
+          International Speakers
+        </h3>
+        <div className="mb-10 grid w-full grid-cols-2 gap-4 md:grid-cols-3">
+          {internationalSpeaker.map((speaker, index) => (
+            <ImageCard index={index} key={speaker.name} {...speaker} />
+          ))}
+        </div>
+      </div>
+      <div>
+        <h3 className="mb-6 pb-4 text-center text-2xl font-semibold">
+          National Speakers
         </h3>
         <div className="mb-10 grid w-full grid-cols-2 gap-4 md:grid-cols-3">
           {speakers.map((speaker, index) => (

@@ -279,7 +279,7 @@ export function PageContentClient() {
             )}
             onClick={() => setCurrentTab(2)}
           >
-            conference Speakers
+            Conference Speakers
           </div>
           <div
             className={cn(

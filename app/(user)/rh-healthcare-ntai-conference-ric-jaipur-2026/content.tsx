@@ -115,7 +115,7 @@ const dayTwoAgenda = [
   {
     time: "10:20 AM-10:40 AM",
     activity: "Plenary Session - I",
-    details: "Prof. (Dr.) Radha Saini, Mr. Anesh Kumar Saini",
+    details: "_",
   },
   {
     time: "10:40 AM-11:10 AM",

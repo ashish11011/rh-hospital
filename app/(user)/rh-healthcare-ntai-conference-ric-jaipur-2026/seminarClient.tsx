@@ -216,8 +216,8 @@ const SeminarClient = () => {
     referencePersonName: "",
     referencePersonMobile: "",
     socialMediaName: "",
-    registrationMode: "online",
-    offlineDuration: "",
+    registrationMode: "offline",
+    offlineDuration: "one_day",
     isNaitMember: "no",
     naitRegistrationId: "",
   });

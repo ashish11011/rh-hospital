@@ -692,7 +692,7 @@ export async function sendSeminarEmail({
                 </p>
 
                 <a
-                  href="https://chat.whatsapp.com/GCEWIjqS8exIn6z2UeZKZ4"
+                  href="https://chat.whatsapp.com/D700DEYAzTsIfCe8Nh5Uss"
                   target="_blank"
                   class="mobile-button"
                   style="

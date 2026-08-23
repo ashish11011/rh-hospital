@@ -767,7 +767,7 @@ const SeminarClient = () => {
         <Link
           target="_blank"
           className="text-blue-600 underline"
-          href="https://chat.whatsapp.com/GCEWIjqS8exIn6z2UeZKZ4"
+          href="https://chat.whatsapp.com/D700DEYAzTsIfCe8Nh5Uss"
         >
           WhatsApp Group
         </Link>{" "}

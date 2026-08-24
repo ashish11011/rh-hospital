@@ -19,7 +19,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Checkbox } from "@/components/ui/checkbox";
 import { UserCircle } from "lucide-react";
 
 export const registrationSchema = z
@@ -193,6 +192,9 @@ const SeminarClient = () => {
     }));
   }, [searchParams]);
 
+  const [couponCode, setCouponCode] = useState("");
+  const [isCouponApplied, setIsCouponApplied] = useState(false);
+
   const [form, setForm] = useState<any>({
     name: "",
     gender: "",
@@ -289,6 +291,20 @@ const SeminarClient = () => {
       console.log("Validation Errors:", zodResult.error.flatten().fieldErrors);
       setLoading(false);
       return;
+    }
+    if (isCouponApplied) {
+      try {
+        const res = await axios.post("/api/seminar/free", data);
+        const responseData = res.data.data;
+        toast.success(
+          "Registration successful, your registration is confirmed",
+        );
+        router.push("/rh-healthcare-ntai-conference-ric-jaipur-2026/thank-you");
+        return;
+      } catch (error) {
+        console.log(error);
+        return;
+      }
     }
 
     try {
@@ -756,9 +772,32 @@ const SeminarClient = () => {
           </Select>
         )}
       </div>
+      <div className="space-y-2">
+        <p className="text-base font-semibold">Coupon Code:</p>
+        <div className="flex">
+          <Input
+            placeholder="Coupon Code"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value)}
+          />
+          <Button
+            onClick={() => {
+              if (couponCode.toLowerCase() === "globalaccess")
+                setIsCouponApplied(true);
+            }}
+          >
+            Apply
+          </Button>
+        </div>
+        {isCouponApplied && (
+          <p className="text-green-600">Coupon applied successfully</p>
+        )}
+      </div>
 
       <div className="mt-6">
-        <p className="text-lg font-semibold">Registration Fee: ₹{amount}</p>
+        <p className="text-lg font-semibold">
+          Registration Fee: ₹{isCouponApplied ? 0 : amount}
+        </p>
       </div>
 
       <div className="pt-4">
@@ -779,7 +818,11 @@ const SeminarClient = () => {
         disabled={loading}
         className="mt-4 h-10 w-full font-semibold"
       >
-        {loading ? "Processing..." : `Register and pay ₹ ${amount}`}
+        {loading
+          ? "Processing..."
+          : isCouponApplied
+            ? "Register"
+            : `Register and pay ₹ ${amount}`}
       </Button>
     </div>
   );

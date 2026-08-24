@@ -624,7 +624,7 @@ const SeminarClient = () => {
         )}
 
         <div className="h-1"></div>
-        <CustomRadioGroup
+        {/* <CustomRadioGroup
           label="Are You NTAI Member?"
           value={form.isNaitMember}
           onChange={(val) => handleChange("isNaitMember", val)}
@@ -642,9 +642,9 @@ const SeminarClient = () => {
               description: "I am not a NTAI member.",
             },
           ]}
-        />
+        /> */}
 
-        {form.isNaitMember === "yes" && (
+        {/* {form.isNaitMember === "yes" && (
           <div className="mt-4 space-y-1">
             <Label>NTAI Registration ID</Label>
             <Input
@@ -654,7 +654,7 @@ const SeminarClient = () => {
               }
             />
           </div>
-        )}
+        )} */}
 
         {form.registrationMode === "offline" &&
           form.presentationType === "no" && (

@@ -517,6 +517,13 @@ const SeminarClient = () => {
               onChange={(e) => handleChange("state", e.target.value)}
             />
           </div>
+          <div>
+            <Label>Country</Label>
+            <Input
+              value={form.country}
+              onChange={(e) => handleChange("country", e.target.value)}
+            />
+          </div>
         </div>
 
         <p className="mt-12 text-xl">Presentation Participation</p>

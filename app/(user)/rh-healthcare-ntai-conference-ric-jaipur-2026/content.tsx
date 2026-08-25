@@ -650,11 +650,11 @@ function SpeakerSection() {
         "(Lecturer in nursing. University, Aisyiyah Yogyakarta, Indonesia)",
       image: "/website-image/asdf.jpeg",
     },
-    {
-      name: "Ms. Niru Shamsum Nahar",
-      designation: "Advisor, Grameen Caledonian College of Nursing, Bangladesh",
-      image: "/website-image/niru+nahar.png",
-    },
+    // {
+    //   name: "Ms. Niru Shamsum Nahar",
+    //   designation: "Advisor, Grameen Caledonian College of Nursing, Bangladesh",
+    //   image: "/website-image/niru+nahar.png",
+    // },
   ];
   const speakers = [
     // {

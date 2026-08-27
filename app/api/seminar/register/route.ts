@@ -42,9 +42,9 @@ export async function POST(req: NextRequest) {
         if (data.presentationType === "online_paper") {
             payableAmount = isNait ? 1400 : 1400;
         } else if (registrationMode === "online") {
-            payableAmount = isNait ? 400 : 500;
+            payableAmount = isNait ? 500 : 500;
         } else if (registrationMode === "offline" && offlineDuration === "one_day") {
-            payableAmount = isNait ? 1000 : 1500;
+            payableAmount = isNait ? 1200 : 1500;
         } else if (registrationMode === "offline" && offlineDuration === "two_day") {
             payableAmount = isNait ? 2000 : 2500;
         }

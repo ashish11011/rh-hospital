@@ -196,7 +196,7 @@ const dayTwoAgenda = [
 
 const eventStats = [
   {
-    value: "1500+",
+    value: "2000+",
     label: "Nursing professionals",
     note: "Registered so far",
   },
@@ -650,6 +650,18 @@ function SpeakerSection() {
         "(Lecturer in nursing. University, Aisyiyah Yogyakarta, Indonesia)",
       image: "/website-image/asdf.jpeg",
     },
+    {
+      name: "Mr. Babulal Yadav",
+      designation:
+        "Director & Vice Chairman, Federation of Indian Communities, Ireland",
+      image: "/website-image/babulal-yadav.jpeg",
+    },
+    {
+      name: "Sneha Sehrawat",
+      designation:
+        "Specialist Nurse Practitioner in Research, London, United Kingdom",
+      image: "/website-image/sneha-sehrawat.jpeg",
+    },
     // {
     //   name: "Ms. Niru Shamsum Nahar",
     //   designation: "Advisor, Grameen Caledonian College of Nursing, Bangladesh",
@@ -778,6 +790,12 @@ function SpeakerSection() {
       name: "Mr. Anesh Kumar Saini",
       designation: "Faculty, Govt. CON, Jaipur",
       image: "/website-image/anesh+kumar+saini.png",
+    },
+    {
+      name: "Dr. Satish Kumar Avasthi",
+      designation:
+        "Principal, Institute of Medical Technology & Nursing Education, Jaipur",
+      image: "/website-image/satish-avasthi.jpeg",
     },
   ];
   const visionaries = [

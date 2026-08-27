@@ -239,14 +239,14 @@ const SeminarClient = () => {
     }
 
     if (form.registrationMode === "online") {
-      return isNait ? 400 : 500;
+      return isNait ? 500 : 500;
     }
 
     if (
       form.registrationMode === "offline" &&
       form.offlineDuration === "one_day"
     ) {
-      return isNait ? 1000 : 1500;
+      return isNait ? 1300 : 1500;
     }
 
     if (
@@ -647,7 +647,7 @@ const SeminarClient = () => {
         )}
 
         <div className="h-1"></div>
-        {/* <CustomRadioGroup
+        <CustomRadioGroup
           label="Are You NTAI Member?"
           value={form.isNaitMember}
           onChange={(val) => handleChange("isNaitMember", val)}
@@ -665,9 +665,9 @@ const SeminarClient = () => {
               description: "I am not a NTAI member.",
             },
           ]}
-        /> */}
+        />
 
-        {/* {form.isNaitMember === "yes" && (
+        {form.isNaitMember === "yes" && (
           <div className="mt-4 space-y-1">
             <Label>NTAI Registration ID</Label>
             <Input
@@ -677,7 +677,7 @@ const SeminarClient = () => {
               }
             />
           </div>
-        )} */}
+        )}
 
         {form.registrationMode === "offline" &&
           form.presentationType === "no" && (
@@ -696,7 +696,7 @@ const SeminarClient = () => {
                         Attend for a single day.
                         <br />
                         <span className="text-gray-800">
-                          Rs. {form.isNaitMember === "yes" ? 1000 : 1500}
+                          Rs. {form.isNaitMember === "yes" ? 1200 : 1500}
                         </span>
                       </>
                     ),

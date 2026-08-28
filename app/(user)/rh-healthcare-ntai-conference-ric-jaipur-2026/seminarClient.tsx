@@ -219,7 +219,7 @@ const SeminarClient = () => {
     referencePersonMobile: "",
     socialMediaName: "",
     registrationMode: "offline",
-    offlineDuration: "one_day",
+    offlineDuration: "two_day",
     isNaitMember: "no",
     naitRegistrationId: "",
   });
@@ -546,23 +546,23 @@ const SeminarClient = () => {
             <SelectValue placeholder="Select presentation participation" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="paper">
+            {/* <SelectItem value="paper">
               <div className="flex flex-col items-start text-left">
                 <span className="font-medium">Paper Presentation</span>
                 <span className="text-muted-foreground mt-0.5 text-xs whitespace-normal">
                   I will present a paper.
                 </span>
               </div>
-            </SelectItem>
-            <SelectItem value="poster">
+            </SelectItem> */}
+            {/* <SelectItem value="poster">
               <div className="flex flex-col items-start text-left">
                 <span className="font-medium">Poster Presentation</span>
                 <span className="text-muted-foreground mt-0.5 text-xs whitespace-normal">
                   I will present a poster.
                 </span>
               </div>
-            </SelectItem>
-            <SelectItem value="both_offile">
+            </SelectItem> */}
+            {/* <SelectItem value="both_offile">
               <div className="flex flex-col items-start text-left">
                 <span className="font-medium">
                   Both Paper & poster presentation
@@ -571,7 +571,7 @@ const SeminarClient = () => {
                   I will present both paper & poster.
                 </span>
               </div>
-            </SelectItem>
+            </SelectItem> */}
             <SelectItem value="no">
               <div className="flex flex-col items-start text-left">
                 <span className="font-medium">No Presentation</span>
@@ -580,14 +580,14 @@ const SeminarClient = () => {
                 </span>
               </div>
             </SelectItem>
-            <SelectItem value="online_paper">
+            {/* <SelectItem value="online_paper">
               <div className="flex flex-col items-start text-left">
                 <span className="font-medium">Online Paper Presentation</span>
                 <span className="text-muted-foreground mt-0.5 text-xs whitespace-normal">
                   I will present a paper online.
                 </span>
               </div>
-            </SelectItem>
+            </SelectItem> */}
           </SelectContent>
         </Select>
 
@@ -687,21 +687,21 @@ const SeminarClient = () => {
                 value={form.offlineDuration}
                 onChange={(val) => handleChange("offlineDuration", val)}
                 options={[
-                  {
-                    id: "one-day",
-                    value: "one_day",
-                    title: "One Day",
-                    description: (
-                      <>
-                        Attend for a single day.
-                        <br />
-                        <span className="text-gray-800">
-                          Rs. {form.isNaitMember === "yes" ? 1200 : 1500}
-                        </span>
-                      </>
-                    ),
-                    disabled: form.presentationType !== "no",
-                  },
+                  // {
+                  //   id: "one-day",
+                  //   value: "one_day",
+                  //   title: "One Day",
+                  //   description: (
+                  //     <>
+                  //       Attend for a single day.
+                  //       <br />
+                  //       <span className="text-gray-800">
+                  //         Rs. {form.isNaitMember === "yes" ? 1200 : 1500}
+                  //       </span>
+                  //     </>
+                  //   ),
+                  //   disabled: form.presentationType !== "no",
+                  // },
                   {
                     id: "two-day",
                     value: "two_day",

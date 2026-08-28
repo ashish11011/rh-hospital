@@ -219,7 +219,7 @@ const SeminarClient = () => {
     referencePersonMobile: "",
     socialMediaName: "",
     registrationMode: "offline",
-    offlineDuration: "two_day",
+    offlineDuration: "one_day",
     isNaitMember: "no",
     naitRegistrationId: "",
   });
@@ -687,21 +687,21 @@ const SeminarClient = () => {
                 value={form.offlineDuration}
                 onChange={(val) => handleChange("offlineDuration", val)}
                 options={[
-                  // {
-                  //   id: "one-day",
-                  //   value: "one_day",
-                  //   title: "One Day",
-                  //   description: (
-                  //     <>
-                  //       Attend for a single day.
-                  //       <br />
-                  //       <span className="text-gray-800">
-                  //         Rs. {form.isNaitMember === "yes" ? 1200 : 1500}
-                  //       </span>
-                  //     </>
-                  //   ),
-                  //   disabled: form.presentationType !== "no",
-                  // },
+                  {
+                    id: "one-day",
+                    value: "one_day",
+                    title: "One Day",
+                    description: (
+                      <>
+                        Attend for a single day.
+                        <br />
+                        <span className="text-gray-800">
+                          Rs. {form.isNaitMember === "yes" ? 1200 : 1500}
+                        </span>
+                      </>
+                    ),
+                    disabled: form.presentationType !== "no",
+                  },
                   {
                     id: "two-day",
                     value: "two_day",

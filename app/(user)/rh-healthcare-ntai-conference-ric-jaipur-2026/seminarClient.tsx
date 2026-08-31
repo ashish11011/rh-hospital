@@ -246,14 +246,14 @@ const SeminarClient = () => {
       form.registrationMode === "offline" &&
       form.offlineDuration === "one_day"
     ) {
-      return isNait ? 1300 : 1500;
+      return isNait ? 1500 : 1500;
     }
 
     if (
       form.registrationMode === "offline" &&
       form.offlineDuration === "two_day"
     ) {
-      return isNait ? 2000 : 2500;
+      return isNait ? 2500 : 2500;
     }
 
     return 0;
@@ -696,7 +696,7 @@ const SeminarClient = () => {
                         Attend for a single day.
                         <br />
                         <span className="text-gray-800">
-                          Rs. {form.isNaitMember === "yes" ? 1200 : 1500}
+                          Rs. {form.isNaitMember === "yes" ? 1500 : 1500}
                         </span>
                       </>
                     ),
@@ -711,7 +711,7 @@ const SeminarClient = () => {
                         Attend both days.
                         <br />
                         <span className="text-gray-800">
-                          Rs. {form.isNaitMember === "yes" ? 2000 : 2500}
+                          Rs. {form.isNaitMember === "yes" ? 2500 : 2500}
                         </span>
                       </>
                     ),

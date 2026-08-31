@@ -44,9 +44,9 @@ export async function POST(req: NextRequest) {
         } else if (registrationMode === "online") {
             payableAmount = isNait ? 500 : 500;
         } else if (registrationMode === "offline" && offlineDuration === "one_day") {
-            payableAmount = isNait ? 1200 : 1500;
+            payableAmount = isNait ? 1500 : 1500;
         } else if (registrationMode === "offline" && offlineDuration === "two_day") {
-            payableAmount = isNait ? 2000 : 2500;
+            payableAmount = isNait ? 2500 : 2500;
         }
 
         const [registrationDetail] = await db.insert(seminarRegistrations).values({

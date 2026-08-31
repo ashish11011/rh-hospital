@@ -662,6 +662,12 @@ function SpeakerSection() {
         "Specialist Nurse Practitioner in Research, London, United Kingdom",
       image: "/website-image/sneha-sehrawat.jpeg",
     },
+    {
+      name: "Tomoko Komagata",
+      designation:
+        "Specialist Nurse Practitioner in Research, London, United Kingdom",
+      image: "/website-image/Tomoko-Komagata.jpeg",
+    },
     // {
     //   name: "Ms. Niru Shamsum Nahar",
     //   designation: "Advisor, Grameen Caledonian College of Nursing, Bangladesh",

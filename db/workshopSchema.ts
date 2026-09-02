@@ -148,5 +148,16 @@ export const seminarRegistrationsSchema = pgTable(
         utmCampaign: varchar("utm_campaign"),
         utmContent: varchar("utm_content"),
         certificateUrl: varchar("certificate_url"),
+        isFirstDayLogged: boolean("is_first_day_logged").default(false),
+        isSecondDayLogged: boolean("is_second_day_logged").default(false),
+        isFirstDayBreakfast: boolean("is_first_day_breakfast").default(false),
+        isFirstDayLunch: boolean("is_first_day_lunch").default(false),
+        isSecondDayBreakfast: boolean("is_second_day_breakfast").default(false),
+        isSecondDayLunch: boolean("is_second_day_lunch").default(false),
+        isBagGiven: boolean("is_bag_given").default(false),
+        qrPdfUrl: varchar("qr_pdf_url"),
+        qrImgUrl: varchar("qr_img_url"),
+        sesMailId: varchar("ses_mail_id"),
+        verificationUrl: varchar("verification_url"),
     }
 );

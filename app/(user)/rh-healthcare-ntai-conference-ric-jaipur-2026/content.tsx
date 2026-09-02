@@ -634,11 +634,11 @@ function SpeakerSection() {
         "President, International Federation of Perioperative Nurses, Ege University, Izmir, Turkey",
       image: "/website-image/meryem+yavuz.png",
     },
-    {
-      name: "Ms. Marwa Moghazy",
-      designation: "Nurse Educator, HMC, Qatar",
-      image: "/website-image/marwa.png",
-    },
+    // {
+    //   name: "Ms. Marwa Moghazy",
+    //   designation: "Nurse Educator, HMC, Qatar",
+    //   image: "/website-image/marwa.png",
+    // },
     {
       name: "Prof. S S P Warnakulasuriya",
       designation: "Faculty of Nursing, University of Colombo, Sri Lanka",
@@ -665,7 +665,7 @@ function SpeakerSection() {
     {
       name: "Tomoko Komagata",
       designation:
-        "Specialist Nurse Practitioner in Research, London, United Kingdom",
+        "Associate Professor, School of Nursing, Tokyo Womens Medical University, Japan",
       image: "/website-image/Tomoko-Komagata.jpeg",
     },
     // {
@@ -701,11 +701,11 @@ function SpeakerSection() {
     //   designation: "National President, All India Govt. Nurses Federation",
     //   image: "/website-image/rinki+dang.png",
     // },
-    {
-      name: "Prof. R.K. Saini",
-      designation: "Principal Nursing, NIMS University",
-      image: "/website-image/rk+saini.png",
-    },
+    // {
+    //   name: "Prof. R.K. Saini",
+    //   designation: "Principal Nursing, NIMS University",
+    //   image: "/website-image/rk+saini.png",
+    // },
     {
       name: "Prof. (Dr.) Sukhpal Kaur",
       designation: "Principal, NINE, PGIMER, Chandigarh",

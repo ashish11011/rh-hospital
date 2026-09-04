@@ -18,6 +18,7 @@ export default function Page() {
     amount?: string;
   } | null>(null);
   const [fetchingStatus, setFetchingStatus] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
   useEffect(() => {
@@ -107,6 +108,7 @@ export default function Page() {
     field: keyof NonNullable<typeof status>,
   ) => {
     if (!scannedId) return;
+    setLoadingAction(endpoint);
     try {
       const res = await fetch(`/api/seminar/${endpoint}`, {
         method: "POST",
@@ -122,6 +124,8 @@ export default function Page() {
       }
     } catch {
       alert("Network error");
+    } finally {
+      setLoadingAction(null);
     }
   };
 
@@ -243,9 +247,13 @@ export default function Page() {
                 onClick={() =>
                   markAction("mark-entry", "Entry", "isFirstDayLogged")
                 }
-                disabled={!!status?.isFirstDayLogged}
+                disabled={!!status?.isFirstDayLogged || loadingAction !== null}
               >
-                {status?.isFirstDayLogged ? "✓ Entry marked" : "Mark entry"}
+                {loadingAction === "mark-entry"
+                  ? "Loading..."
+                  : status?.isFirstDayLogged
+                    ? "✓ Entry marked"
+                    : "Mark entry"}
               </Button>
               <Button
                 className="h-10 rounded-none"
@@ -256,20 +264,26 @@ export default function Page() {
                     "isFirstDayBreakfast",
                   )
                 }
-                disabled={!!status?.isFirstDayBreakfast}
+                disabled={!!status?.isFirstDayBreakfast || loadingAction !== null}
               >
-                {status?.isFirstDayBreakfast
-                  ? "✓ Breakfast marked"
-                  : "Mark breakfast"}
+                {loadingAction === "mark-breakfast"
+                  ? "Loading..."
+                  : status?.isFirstDayBreakfast
+                    ? "✓ Breakfast marked"
+                    : "Mark breakfast"}
               </Button>
               <Button
                 className="h-10 rounded-none"
                 onClick={() =>
                   markAction("mark-lunch", "Lunch", "isFirstDayLunch")
                 }
-                disabled={!!status?.isFirstDayLunch}
+                disabled={!!status?.isFirstDayLunch || loadingAction !== null}
               >
-                {status?.isFirstDayLunch ? "✓ Lunch marked" : "Mark lunch"}
+                {loadingAction === "mark-lunch"
+                  ? "Loading..."
+                  : status?.isFirstDayLunch
+                    ? "✓ Lunch marked"
+                    : "Mark lunch"}
               </Button>
             </div>
           )}

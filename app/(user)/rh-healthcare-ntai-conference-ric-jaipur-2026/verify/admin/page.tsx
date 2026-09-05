@@ -12,6 +12,7 @@ export default function Page() {
   const [scanning, setScanning] = useState(false);
   const [status, setStatus] = useState<{
     isFirstDayLogged: boolean;
+    isSecondDayLogged: boolean;
     isFirstDayBreakfast: boolean;
     isFirstDayLunch: boolean;
     name?: string;
@@ -255,7 +256,7 @@ export default function Page() {
                     ? "✓ Entry marked"
                     : "Mark entry"}
               </Button>
-              <Button
+              {/* <Button
                 className="h-10 rounded-none"
                 onClick={() =>
                   markAction(
@@ -264,15 +265,17 @@ export default function Page() {
                     "isFirstDayBreakfast",
                   )
                 }
-                disabled={!!status?.isFirstDayBreakfast || loadingAction !== null}
+                disabled={
+                  !!status?.isFirstDayBreakfast || loadingAction !== null
+                }
               >
                 {loadingAction === "mark-breakfast"
                   ? "Loading..."
                   : status?.isFirstDayBreakfast
                     ? "✓ Breakfast marked"
                     : "Mark breakfast"}
-              </Button>
-              <Button
+              </Button> */}
+              {/* <Button
                 className="h-10 rounded-none"
                 onClick={() =>
                   markAction("mark-lunch", "Lunch", "isFirstDayLunch")
@@ -284,6 +287,23 @@ export default function Page() {
                   : status?.isFirstDayLunch
                     ? "✓ Lunch marked"
                     : "Mark lunch"}
+              </Button> */}
+              <Button
+                className="h-10 rounded-none"
+                onClick={() =>
+                  markAction(
+                    "mark-second-day-login",
+                    "Second Day Login",
+                    "isSecondDayLogged",
+                  )
+                }
+                disabled={!!status?.isSecondDayLogged || loadingAction !== null}
+              >
+                {loadingAction === "mark-second-day-login"
+                  ? "Loading..."
+                  : status?.isSecondDayLogged
+                    ? "✓ Day 2 Login marked"
+                    : "Mark Day 2 Login"}
               </Button>
             </div>
           )}

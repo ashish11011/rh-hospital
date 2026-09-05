@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
                 isFirstDayLogged: seminarRegistrations.isFirstDayLogged,
                 isFirstDayBreakfast: seminarRegistrations.isFirstDayBreakfast,
                 isFirstDayLunch: seminarRegistrations.isFirstDayLunch,
+                isSecondDayLogged: seminarRegistrations.isSecondDayLogged,
             })
             .from(seminarRegistrations)
             .where(eq(seminarRegistrations.id, id));

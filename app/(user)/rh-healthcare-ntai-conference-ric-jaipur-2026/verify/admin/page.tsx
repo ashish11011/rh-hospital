@@ -248,7 +248,7 @@ export default function Page() {
                 onClick={() =>
                   markAction("mark-entry", "Entry", "isFirstDayLogged")
                 }
-                disabled={!!status?.isFirstDayLogged || loadingAction !== null}
+                disabled={true}
               >
                 {loadingAction === "mark-entry"
                   ? "Loading..."

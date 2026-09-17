@@ -1,7 +1,8 @@
-import { boolean, index, pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, pgEnum, pgTable, serial, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const userSchema = pgTable("user", {
     id: uuid("id").defaultRandom().primaryKey(),
+    rhId: varchar("rh_id"),
     name: varchar("name").notNull(),
     email: varchar("email").notNull().unique(),
     mobileNumber: varchar("mobile_number").notNull(),
@@ -12,9 +13,100 @@ export const userSchema = pgTable("user", {
     isVarifiedEmail: boolean("is_varified_email").default(false),
     isVarifiedMobileNumber: boolean("is_varified_mobile_number").default(false),
     password: varchar("password"),
+    fcmToken: varchar("fcm_token"),
+    deviceId: varchar("device_id"),
+    lastActive: timestamp("last_active"),
     role: varchar("role").notNull().default("user"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
+});
+export const userIdMemberShipTypeEnum = pgEnum("user_membership_type",["temporary"]);
+export const userProfessionEnum = pgEnum("user_profession", [
+  "nursing_student",
+  "nursing_officer",
+  "nursing_tutor",
+  "assistant_professor",
+  "associate_professor",
+  "professor",
+  "principal",
+  "hospital_administrator",
+  "other",
+]);
+
+export const bloodGroupEnum = pgEnum("blood_group", [
+  "A",
+  "B",
+  "AB",
+  "O",
+]);
+
+export const rhFactorEnum = pgEnum("rh_factor", [
+  "positive",
+  "negative",
+]);
+
+export const userQualificationEnum = pgEnum("user_qualification", [
+  "anm",
+  "gnm",
+  "bsc_nursing",
+  "pbbsc_nursing",
+  "msc_nursing",
+  "phd",
+  "other",
+]);
+
+export const userGenderEnum = pgEnum("user_gender", [
+  "male",
+  "female",
+  "other",
+]);
+
+export const membershipPurchaseTypeEnum = pgEnum("membership_purchase_type", [
+  "free",
+  "paid",
+  "referred",
+  "complimentary",
+  "admin",
+]);
+
+export const userCardSchema = pgTable("user_card", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => userSchema.id),
+
+  memberShipNumber: serial("member_ship_number").notNull(),
+  memberShipId: varchar("member_ship_id"),
+  memberShipType: userIdMemberShipTypeEnum("membership_type").default("temporary").notNull(),
+  fullName: varchar("full_name").notNull(),
+  mobileNumber: varchar("mobile_number").notNull(),
+  email: varchar("email").notNull(),
+  gender: userGenderEnum("gender").notNull(),
+  bloodGroup: bloodGroupEnum("blood_group"),
+  rhFactor: rhFactorEnum("rh_factor"),
+
+  dateOfBirth: timestamp("date_of_birth"),
+
+  state: varchar("state").notNull(),
+  city: varchar("city").notNull(),
+
+  profession: userProfessionEnum("profession").default("other").notNull(),
+  qualification: userQualificationEnum("qualification").default("other").notNull(),
+  organizationName: varchar("organization_name"),
+
+  passportPhoto: varchar("passport_photo"),
+  referralCode: varchar("referral_code"),
+  hearAboutRh: varchar("hear_about_rh"),
+
+  termsAccepted: boolean("terms_accepted").default(false).notNull(),
+
+  activationDate: timestamp("activation_date"),
+  validityDate: timestamp("validity_date"),
+  cardType: varchar("card_type").notNull(),
+
+  isActive: boolean("is_active").default(true).notNull(),
+  membershipPurchaseType: membershipPurchaseTypeEnum("membership_purchase_type").default("free").notNull(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const contactSchema = pgTable("contact", {

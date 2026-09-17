@@ -111,6 +111,100 @@ Warm Regards,<br/>
     ]);
 }
 
+type PaymentEventName =
+    | "ORDER_FAILED"
+    | "ORDER_SUCCEEDED"
+    | "ORDER_REFUNDED"
+    | "ORDER_REFUND_FAILED";
+
+const paymentEventCopy: Record<
+    PaymentEventName,
+    { subject: string; heading: string; body: string }
+> = {
+    ORDER_FAILED: {
+        subject: "Payment Failed - RH Healthcare",
+        heading: "Payment Failed",
+        body: "We could not complete your payment. If any amount was deducted, please contact our support team with your order number.",
+    },
+    ORDER_SUCCEEDED: {
+        subject: "Payment Successful - RH Healthcare",
+        heading: "Payment Successful",
+        body: "Your payment has been confirmed successfully.",
+    },
+    ORDER_REFUNDED: {
+        subject: "Payment Refunded - RH Healthcare",
+        heading: "Payment Refunded",
+        body: "Your payment refund has been processed successfully.",
+    },
+    ORDER_REFUND_FAILED: {
+        subject: "Refund Failed - RH Healthcare",
+        heading: "Refund Failed",
+        body: "We could not complete the refund for this payment. Our team will review this and assist you.",
+    },
+};
+
+export async function sendPaymentEventEmail({
+    toEmail,
+    name,
+    eventName,
+    orderId,
+    amount,
+    currency,
+}: {
+    toEmail: string;
+    name?: string | null;
+    eventName: PaymentEventName;
+    orderId: string;
+    amount: number;
+    currency: string;
+}) {
+    const copy = paymentEventCopy[eventName];
+    const formattedAmount = new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: currency || "INR",
+        maximumFractionDigits: 2,
+    }).format(amount);
+    const html = `
+<p>Dear ${name || "Participant"},</p>
+
+<p>Greetings from RH Healthcare Simulation Centre.</p>
+
+<h3>${copy.heading}</h3>
+
+<p>${copy.body}</p>
+
+<p>
+<strong>Order Number:</strong> ${orderId}<br/>
+<strong>Amount:</strong> ${formattedAmount}
+</p>
+
+<p>
+Warm regards,<br/>
+RH Healthcare Simulation Team<br/>
+Call: +91 9928907780, +91 9829507781<br/>
+Email: connect.rhhealth@gmail.com<br/>
+Website: www.rhhealthcaresimulation.com
+</p>
+`;
+
+    const command = new SendEmailCommand({
+        Source: "no-reply@rhhealthcaresimulation.com",
+        Destination: {
+            ToAddresses: [toEmail],
+        },
+        Message: {
+            Subject: {
+                Data: copy.subject,
+            },
+            Body: {
+                Html: { Data: html },
+            },
+        },
+    });
+
+    await sesClient.send(command);
+}
+
 export async function sendWorkshopEmail({
     toEmail,
     // name,
@@ -803,3 +897,57 @@ export async function sendSeminarEmail({
 
     await sesClient.send(command);
 }
+
+export async function sendCoursePurchaseEmail({
+    toEmail,
+    name,
+    courseTitle,
+}: {
+    toEmail: string;
+    name?: string | null;
+    courseTitle: string;
+}) {
+    const html = `
+<p>Dear ${name || "Participant"},</p>
+
+<p>Greetings from RH Healthcare Simulation Centre.</p>
+
+<p>Your course purchase has been confirmed successfully.</p>
+
+<h3>${courseTitle}</h3>
+
+<p>
+You can now access this course from your RH Healthcare dashboard under <b>My Courses</b>.
+</p>
+
+<p>
+If you have any questions or need help accessing your course, please contact our team.
+</p>
+
+<p>
+Warm regards,<br/>
+RH Healthcare Simulation Team<br/>
+📞 +91 9928907780, +91 9829507781<br/>
+📧 connect.rhhealth@gmail.com<br/>
+🌐 www.rhhealthcaresimulation.com
+</p>
+`;
+
+    const command = new SendEmailCommand({
+        Source: "no-reply@rhhealthcaresimulation.com",
+        Destination: {
+            ToAddresses: [toEmail],
+        },
+        Message: {
+            Subject: {
+                Data: "Course Purchase Confirmation - RH Healthcare",
+            },
+            Body: {
+                Html: { Data: html },
+            },
+        },
+    });
+
+    await sesClient.send(command);
+}
+

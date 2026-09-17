@@ -1,20 +1,14 @@
-import CommingSoon from "@/components/CommingSoon";
 import CourseList from "@/components/course/CourceList";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-import { SearchIcon } from "lucide-react";
+import { getPublicCourses } from "@/actions/courseActions";
 import React from "react";
 
-const page = () => {
+const page = async () => {
+  const courses = await getPublicCourses();
+
   return (
     <div>
       <HeroSection />
-      <CourseList />
+      <CourseList courses={courses} />
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { db } from "@/lib/dbConfig";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { userSchema } from "@/db/userSchema";
-import { paymentClient } from "@/lib/paymentClient";
+import { createHdfcCustomerId, createHdfcGatewayOrderId, createHdfcPaymentSession } from "@/lib/hdfcGateway";
 
 export async function POST(req: NextRequest) {
     const data = await req.json();
@@ -60,26 +60,43 @@ export async function POST(req: NextRequest) {
             paymentStatus: "pending"
         }).returning({ id: seminarRegistrations.id });
 
-        var options = {
-            amount: payableAmount * 100,
-            currency: "INR",
-            receipt: registrationDetail.id
-        };
-
-        const gatewayPaymentOrder = await paymentClient.orders.create(options);
+        const gatewayOrderId = createHdfcGatewayOrderId();
+        const hdfcPaymentSession = await createHdfcPaymentSession({
+            gatewayOrderId,
+            amount: payableAmount,
+            customerId: createHdfcCustomerId(userId),
+            customerEmail: email.toLowerCase(),
+            customerPhone: mobileNumber,
+            customerName: name,
+            description: "Seminar registration payment",
+        });
 
         await db.insert(payment).values({
             orderType: "seminar",
             orderId: registrationDetail.id,
-            gatewayOrderId: gatewayPaymentOrder.id,
+            gatewayOrderId,
+            gatewayInvoiceId: hdfcPaymentSession.id,
             amount: payableAmount,
             amountDue: payableAmount,
-            currency: gatewayPaymentOrder.currency,
+            currency: "INR",
             email: email.toLowerCase(),
             contact: mobileNumber,
+            status: hdfcPaymentSession.status || "pending",
+            responseObject: hdfcPaymentSession as any,
         });
 
-        return NextResponse.json({ message: "Registration successful", data: gatewayPaymentOrder });
+        return NextResponse.json({
+            message: "Registration successful",
+            data: {
+                orderId: gatewayOrderId,
+                gatewaySessionId: hdfcPaymentSession.id,
+                amount: payableAmount,
+                currency: "INR",
+                status: hdfcPaymentSession.status,
+                paymentUrl: hdfcPaymentSession.payment_links?.web,
+                expiresAt: hdfcPaymentSession.payment_links?.expiry || hdfcPaymentSession.order_expiry,
+            }
+        });
 
     } catch (error) {
         console.log("Seminar Registration Error:", error);

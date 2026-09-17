@@ -53,8 +53,8 @@ export default function PrivacyPolicy() {
             completed before order confirmation.
           </p>
           <p className="mb-2">
-            We use secure third-party payment gateways such as Razorpay for
-            processing payments.
+            We use secure third-party payment gateways such as HDFC SmartGateway
+            for processing payments.
           </p>
           <ul className="list-disc space-y-1 pl-6">
             <li>

@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { payment, seminar, seminarRegistrations, workshop, workshopRegistration } from "@/db";
 import { getUserProfile } from "@/lib/actions/profile";
 import { db } from "@/lib/dbConfig";
+import { getUserPurchasesByEmail } from "@/lib/userDashboardData";
 import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
@@ -72,16 +73,5 @@ export async function getUserOrders(){
   const session = await auth();
   if(!session?.user?.email) return redirect('/sign-in');
 
-  const userOrders = await db.select({
-    id: payment.id,
-    orderType: payment.orderType,
-    amount: payment.amount,
-    status: payment.status,
-    createdAt: payment.createdAt,
-    gatewayOrderId: payment.gatewayOrderId,
-  }).from(payment).where(
-    eq(payment.email, session.user.email)
-  ).orderBy(desc(payment.createdAt));
-
-  return userOrders;
+  return getUserPurchasesByEmail(session.user.email);
 }

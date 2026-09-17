@@ -65,8 +65,8 @@ export default function PrivacyPolicy() {
             3. Payment Processing
           </h2>
           <p className="mb-2">
-            We use secure third-party payment gateways such as Razorpay to
-            process payments.
+            We use secure third-party payment gateways such as HDFC SmartGateway
+            to process payments.
           </p>
           <ul className="list-disc space-y-1 pl-6">
             <li>
@@ -94,7 +94,8 @@ export default function PrivacyPolicy() {
           </p>
           <ul className="list-disc space-y-1 pl-6">
             <li>
-              Payment processors (e.g., Razorpay) for transaction completion
+              Payment processors (e.g., HDFC SmartGateway) for transaction
+              completion
             </li>
             <li>
               Service providers for order fulfillment and technical operations

@@ -5,8 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CustomRadioGroup } from "@/components/custom-radio-group";
 import { useMemo, useState, useEffect } from "react";
 import axios from "axios";
-import { useRouter, useSearchParams } from "next/navigation";
-import { RAZORPAY_KEY } from "@/env";
+import { useSearchParams } from "next/navigation";
 import { z } from "zod";
 import { Label } from "@/components/ui/label";
 import {
@@ -153,29 +152,10 @@ export const registrationSchema = z
   });
 
 const SeminarClient = () => {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [designationType, setDesignationType] = useState("");
-
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      if (typeof window !== "undefined" && (window as any).Razorpay) {
-        resolve(true);
-        return;
-      }
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => {
-        resolve(true);
-      };
-      script.onerror = () => {
-        resolve(false);
-      };
-      document.body.appendChild(script);
-    });
-  };
 
   useEffect(() => {
     const utmSource = searchParams.get("utm_source");
@@ -299,7 +279,7 @@ const SeminarClient = () => {
         toast.success(
           "Registration successful, your registration is confirmed",
         );
-        router.push("/rh-healthcare-ntai-conference-ric-jaipur-2026/thank-you");
+        // router.push("/rh-healthcare-ntai-conference-ric-jaipur-2026/thank-you");
         return;
       } catch (error) {
         console.log(error);
@@ -312,58 +292,14 @@ const SeminarClient = () => {
       const responseData = res.data.data;
 
       if (!responseData) throw new Error("Request Failed, please try again");
+      if (!responseData.paymentUrl)
+        throw new Error("Payment link was not generated. Please try again.");
 
-      const isLoaded = await loadRazorpayScript();
-      if (!isLoaded) {
-        toast.error(
-          "Razorpay SDK failed to load. Please check your connection, or refresh page.",
-        );
-        setLoading(false);
-        return;
-      }
-
-      const options = {
-        key: RAZORPAY_KEY, // Replace with your Razorpay key_id
-        amount: responseData.amount, // Use dynamic amount
-        currency: responseData.currency,
-        name: form.name,
-        description: "Registration for seminar",
-        order_id: responseData.id, // Use backend order_id
-        handler: async function (response: any) {
-          const res = await fetch("/api/verify-payment", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(response),
-          });
-
-          const data = await res.json();
-
-          if (data.success) {
-            toast.success("Payment successful, your registration is confirmed");
-            router.push("/payment-success");
-          } else if (data.status == 400) {
-            toast.error("Payment failed");
-          }
-        },
-        prefill: {
-          name: form.name,
-          email: form.email,
-          contact: form.mobileNumber,
-        },
-        theme: {
-          color: "#2e7d32",
-        },
-      };
-
-      const rzp = new (window as any).Razorpay(options);
-      rzp.on("payment.failed", function (response: any) {
-        console.log("Payment Failed:", response);
-        toast.error("Payment failed");
-      });
-
-      rzp.open();
+      window.sessionStorage.setItem(
+        "hdfcPaymentOrder",
+        JSON.stringify({ orderId: responseData.orderId, type: "seminar" }),
+      );
+      window.location.assign(responseData.paymentUrl);
 
       // clear the form after successfull payment
       // setForm({
@@ -396,8 +332,13 @@ const SeminarClient = () => {
       // });
     } catch (error) {
       console.log(error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Unable to start payment. Please try again.",
+      );
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

@@ -1,12 +1,19 @@
-import CommingSoon from "@/components/CommingSoon";
+import { auth } from "@/auth";
+import {
+  getCourseEnrolmentStatus,
+  getCurrentCourseUser,
+  getPublicCourseBySlug,
+} from "@/actions/courseActions";
+import { CoursePurchaseButton } from "@/components/course/CoursePurchaseButton";
 import CourseOverviewSection from "@/components/course/CourseOverviewSection";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { getApprovedCourseReviews } from "@/lib/courseReviewData";
 import { IconCertificate } from "@tabler/icons-react";
-import { FileText, TvMinimalPlay } from "lucide-react";
-import { CourseWaitlistDialog } from "@/components/course/CourseWaitlistDialog";
+import { FileText, IndianRupee, Star, TvMinimalPlay } from "lucide-react";
 import Image from "next/image";
-import { COURSE_DATA } from "@/const/courceData";
 import { notFound } from "next/navigation";
+import { cloudfrontAssetUrl } from "@/lib/cloudfront";
+import { publicCoursePath } from "@/lib/course";
 import { getS3AssetUrl } from "@/lib/s3Asset";
 
 export default async function Page({
@@ -16,29 +23,58 @@ export default async function Page({
 }) {
   const { slug } = await params;
 
-  const course = COURSE_DATA.find((c) => c.slug === `/courses/${slug}`);
+  const course = await getPublicCourseBySlug(slug);
 
   if (!course) {
     notFound();
   }
 
+  const session = await auth();
+  const currentUser = await getCurrentCourseUser();
+  const enrolmentStatus = await getCourseEnrolmentStatus(course.id);
+  const coursePath = publicCoursePath(course.slug);
+  const reviews = await getApprovedCourseReviews(course.id);
+
   return (
     <>
-      <Header bannerImage={course.bannerImage} />
+      <Header bannerImage={cloudfrontAssetUrl(course.bannerImageUrl)} />
       <div className="container flex w-full flex-col-reverse gap-6 md:flex-row">
         <CourseOverviewSection
-          courseOverview={course.courseOverview}
-          whatYoullLearn={course.whatYoullLearn}
-          skillsAcquired={course.skillsAcquired}
-          courseCurriculum={course.courseCurriculum}
-          certificate={course.certificate}
+          courseOverview={course.courseOverview || course.description}
+          whatYoullLearn={course.whatYouWillLearn || []}
+          skillsAcquired={course.skillsAcquired || []}
+          courseCurriculum={course.items.map((item, index) => ({
+            moduleNumber: index + 1,
+            lectureName: item.title || `Lesson ${index + 1}`,
+            duration: item.duration || "Self paced",
+            subTopics: item.mediaType,
+          }))}
+          certificate={{
+            type: "Course completion",
+            description:
+              course.content ||
+              "Validate your expertise with a professional certificate from RH Healthcare Simulation Centre.",
+          }}
         />
         <CoursePurchase
-          title={course.courseTitle}
-          totalHours={course.courseDetails.totalHours}
-          amount={course.courseDetails.amount}
+          courseId={course.id}
+          coursePath={coursePath}
+          title={course.title}
+          totalHours={course.courseDuration || `${course.courseHours} hours`}
+          amount={course.price}
+          currency={course.currency || "INR"}
+          isLoggedIn={Boolean(session?.user?.email)}
+          isEnrolled={enrolmentStatus === "enrolled"}
+          enrolmentStatus={enrolmentStatus}
+          totalLectures={course.totalLectures}
+          user={{
+            name: currentUser?.name || session?.user?.name,
+            email: currentUser?.email || session?.user?.email,
+            contact: currentUser?.mobileNumber,
+          }}
         />
       </div>
+      <CourseReviews reviews={reviews} />
     </>
   );
 }
@@ -59,13 +95,33 @@ function Header({ bannerImage }: { bannerImage: string }) {
 }
 
 function CoursePurchase({
+  courseId,
+  coursePath,
   title,
   totalHours,
   amount,
+  currency,
+  isLoggedIn,
+  isEnrolled,
+  enrolmentStatus,
+  totalLectures,
+  user,
 }: {
+  courseId: string;
+  coursePath: string;
   title: string;
   totalHours: string;
-  amount: string;
+  amount: number;
+  currency: string;
+  isLoggedIn: boolean;
+  isEnrolled: boolean;
+  enrolmentStatus: string | null;
+  totalLectures: number;
+  user: {
+    name?: string | null;
+    email?: string | null;
+    contact?: string | null;
+  };
 }) {
   const IconText = ({
     title,
@@ -84,16 +140,28 @@ function CoursePurchase({
   return (
     <>
       <div className="mt-16 h-fit w-full shrink-0 rounded-xl border p-6 md:sticky md:top-24 md:w-80">
+        {enrolmentStatus && (
+          <Badge
+            className="mb-4 capitalize"
+            variant={isEnrolled ? "default" : "secondary"}
+          >
+            {enrolmentStatus}
+          </Badge>
+        )}
         <h3 className="mb-6 text-2xl font-bold">
           {title.replace("Certificate Course in", "")}
         </h3>
+        <div className="mb-5 flex items-center text-3xl font-bold">
+          <IndianRupee className="h-6 w-6" />
+          {amount}
+        </div>
         <div className="mb-6 space-y-4">
           <IconText
-            title={`Get this course and many more in Nursing and access to ${totalHours} videos sessions`}
+            title={`Access ${totalHours} of course videos and learning material`}
             icon={<TvMinimalPlay size={20} />}
           />
           <IconText
-            title="Course with documents"
+            title={`${totalLectures} course lessons with documents`}
             icon={<FileText size={20} />}
           />
           <IconText
@@ -101,8 +169,56 @@ function CoursePurchase({
             icon={<IconCertificate size={20} />}
           />
         </div>
-        <CourseWaitlistDialog courseTitle={title} amount={amount} />
+        <CoursePurchaseButton
+          courseId={courseId}
+          coursePath={coursePath}
+          courseTitle={title}
+          amount={amount}
+          currency={currency}
+          isLoggedIn={isLoggedIn}
+          isEnrolled={isEnrolled}
+          user={user}
+        />
       </div>
     </>
+  );
+}
+
+function CourseReviews({ reviews }: { reviews: Awaited<ReturnType<typeof getApprovedCourseReviews>> }) {
+  if (reviews.length === 0) return null;
+
+  const averageRating = reviews.reduce((total, review) => total + review.rating, 0) / reviews.length;
+
+  return (
+    <section className="container py-12">
+      <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Student reviews</h2>
+          <p className="text-sm text-gray-600">Approved feedback from enrolled learners.</p>
+        </div>
+        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+          <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
+          {averageRating.toFixed(1)} out of 5 from {reviews.length} review{reviews.length === 1 ? "" : "s"}
+        </div>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {reviews.map((review) => (
+          <article key={review.id} className="rounded-lg border p-5">
+            <div className="flex items-center gap-1 text-amber-500">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Star key={index} className={`h-4 w-4 ${index < review.rating ? "fill-current" : ""}`} />
+              ))}
+            </div>
+            <p className="mt-3 text-sm leading-6 text-gray-700">{review.feedback}</p>
+            <div className="mt-4 text-sm">
+              <p className="font-semibold">{review.userName}</p>
+              <p className="text-gray-500">
+                {[review.userDesignation, review.userInstituteName, review.userCity].filter(Boolean).join(", ")}
+              </p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }

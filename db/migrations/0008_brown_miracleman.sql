@@ -1,1 +1,0 @@
-CREATE INDEX "idx_workshop_id_user_id_created_at" ON "workshop_registration" USING btree ("workshop_id","user_id","created_at");

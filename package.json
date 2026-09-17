@@ -33,6 +33,7 @@
     "drizzle-orm": "^0.45.2",
     "embla-carousel-react": "^8.6.0",
     "html5-qrcode": "^2.3.8",
+    "jose": "^6.2.2",
     "lightningcss": "^1.32.0",
     "lucide-react": "^1.8.0",
     "motion": "^12.42.2",

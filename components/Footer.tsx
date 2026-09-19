@@ -89,7 +89,7 @@ export default function Footer() {
           {footerLinks.map((section) => (
             <div key={section.title}>
               <h3 className="mb-3 font-semibold">{section.title}</h3>
-              <ul className="space-y-2 text-sm text-white/80">
+              <ul className="space-y-2 text-sm text-white">
                 {section.links.map((link) => (
                   <li key={link.label}>
                     <Link
@@ -109,7 +109,7 @@ export default function Footer() {
         <hr className="mb-6 border-white/20" />
 
         {/* Bottom */}
-        <div className="flex flex-col items-center justify-between gap-4 text-sm text-white/70 md:flex-row">
+        <div className="flex flex-col items-center justify-between gap-4 text-sm text-white md:flex-row">
           <p>©2026 RH healthcare Simulation Center. All rights reserved.</p>
 
           <div className="flex gap-4">

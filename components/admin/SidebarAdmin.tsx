@@ -3,15 +3,12 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { adminLogoutAction } from "@/app/admin/actions";
 import { Button } from "@/components/ui/button";
 import { getCurrentAdminAccess } from "@/lib/adminAuth";
 import { LogOut } from "lucide-react";
-import Link from "next/link";
+import { AdminSidebarMenu } from "@/components/admin/AdminSidebarMenu";
 
 export async function SidebarAdmin() {
   const { access } = await getCurrentAdminAccess();
@@ -54,6 +51,11 @@ export async function SidebarAdmin() {
       access: "full",
     },
     {
+      name: "Contact Enquiries",
+      url: "/admin/contact-enquiries",
+      access: "full",
+    },
+    {
       name: "Generate Certificate",
       url: "/admin/generate-certificate",
       access: "full",
@@ -69,17 +71,7 @@ export async function SidebarAdmin() {
     <Sidebar>
       <SidebarHeader />
       <SidebarContent>
-        <SidebarMenu>
-          {projects.map((project) => (
-            <SidebarMenuItem key={project.name}>
-              <SidebarMenuButton asChild>
-                <Link href={project.url}>
-                  <span>{project.name}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        <AdminSidebarMenu items={projects} />
       </SidebarContent>
       <SidebarFooter>
         <form action={adminLogoutAction} className="w-full">

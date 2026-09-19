@@ -3,7 +3,7 @@ import { randomBytes, randomUUID } from "crypto";
 
 const DEFAULT_HDFC_SESSION_URL = "https://smartgateway.hdfcuat.bank.in/session";
 const LOCAL_PAYMENT_RETURN_URL = "http://localhost:3000/payment-status";
-const PRODUCTION_PAYMENT_RETURN_URL = "https://rh-hospital-hw5t-two.vercel.app/payment-status";
+const PRODUCTION_PAYMENT_RETURN_URL = "https://www.rhhealthcaresimulation.com/payment-status";
 
 type HdfcSessionInput = {
   gatewayOrderId: string;
@@ -62,14 +62,13 @@ function getHdfcAuthorizationHeader() {
 }
 
 function getHdfcHeaders(customerId?: string) {
+  console.log(customerId, "customerId");
   const headers: Record<string, string> = {
     Authorization: getHdfcAuthorizationHeader(),
     "Content-Type": "application/json",
     "x-merchantid": getRequiredEnv("HDFC_SMARTGATEWAY_MERCHANT_ID"),
-    "x-customerid":
+    "x-customerid": customerId ||
       process.env.HDFC_SMARTGATEWAY_HEADER_CUSTOMER_ID ||
-      process.env.HDFC_SMARTGATEWAY_CUSTOMER_ID ||
-      customerId ||
       "",
   };
 

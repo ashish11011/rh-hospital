@@ -54,7 +54,7 @@ const WorkshopFAQ = ({ className }: { className?: string }) => {
                 items.map((item) => {
                     return (
                         <AccordionItem key={item.title} className='data-[state=open]:border-primary' value={item.title}>
-                            <AccordionTrigger className=' data-[state=open]:text-primary md:text-lg'>{item.title}</AccordionTrigger>
+                            <AccordionTrigger className=' data-[state=open]:text-primary text-sm md:text-base font-medium no-underline hover:no-underline'>{item.title}</AccordionTrigger>
                             <AccordionContent className=' text-sm md:text-base text-gray-600 h-full'>
                                 {item.content}
                             </AccordionContent>

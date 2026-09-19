@@ -402,12 +402,10 @@ function Content() {
                 </div>
               </div>
 
-              <Link href={"#registration-form"}>
-                <Button className="mt-6 h-11 w-full rounded-sm font-semibold">
+                 <Button disabled={true} className="mt-6 h-11 w-full rounded-sm font-semibold">
                   Register Now
                 </Button>
-              </Link>
-            </div>
+             </div>
           </div>
         </div>
 

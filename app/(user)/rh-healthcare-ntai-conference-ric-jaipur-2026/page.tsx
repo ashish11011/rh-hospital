@@ -28,9 +28,9 @@ const page = () => {
     <>
       <div>
         <PageContentClient />
-        <Suspense>
-          <SeminarClient />
-        </Suspense>
+        <div className="mt-10">
+          {/* <SeminarClient /> */}
+        </div>
       </div>
     </>
   );

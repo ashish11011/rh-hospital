@@ -1,31 +1,47 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Phone, Mail } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
-export default function CallbackDialog({ open, setOpen }: any) {
+export default function CallbackDialog({
+  open,
+  setOpen,
+}: {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}) {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: "",
-    phone: "",
+    mobileNumber: "",
+    message: "",
     email: "",
   });
 
-  const handleChange = (e: any) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (loading) return;
+    if (!form.message.trim()) {
+      toast.error("Please enter your message.");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/contact-form", {
@@ -33,15 +49,25 @@ export default function CallbackDialog({ open, setOpen }: any) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          message: form.message.trim(),
+          formSource: "Homepage callback",
+        }),
       });
       const data = await res.json();
+      if (!res.ok || data.status !== 200) {
+        throw new Error(data.message || "Failed to send message");
+      }
       if (data.status === 200) {
+        setForm({ name: "", mobileNumber: "", email: "", message: "" });
         toast.success(data.message);
         setOpen(false);
       }
     } catch (error) {
-      toast.error("Failed to send message");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to send message",
+      );
     } finally {
       setLoading(false);
     }
@@ -49,7 +75,7 @@ export default function CallbackDialog({ open, setOpen }: any) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="overflow-hidden rounded-xl p-0 sm:max-w-md">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto rounded-xl p-0 sm:max-w-md">
         <div className="space-y-5 p-6">
           {/* Header */}
           <DialogHeader>
@@ -62,35 +88,47 @@ export default function CallbackDialog({ open, setOpen }: any) {
           </DialogHeader>
 
           {/* Form */}
-          <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               name="name"
+              value={form.name}
+              required
               placeholder="Name*"
               onChange={handleChange}
               className="h-11"
             />
             <Input
-              name="phone"
+              name="mobileNumber"
+              type="tel"
+              value={form.mobileNumber}
+              required
               placeholder="Phone*"
               onChange={handleChange}
               className="h-11"
             />
             <Input
               name="email"
+              type="email"
+              value={form.email}
               placeholder="Email"
               onChange={handleChange}
               className="h-11"
             />
-          </div>
+            <Textarea
+              name="message"
+              value={form.message}
+              onChange={handleChange}
+              placeholder="How can we help? (required)"
+              aria-label="Message (required)"
+              rows={4}
+              required
+            />
 
-          {/* Button */}
-          <Button
-            disabled={loading}
-            onClick={handleSubmit}
-            className="h-11 w-full"
-          >
-            {loading ? "Sending..." : "Request a Callback"}
-          </Button>
+            {/* Button */}
+            <Button disabled={loading} type="submit" className="h-11 w-full">
+              {loading ? "Sending..." : "Request a Callback"}
+            </Button>
+          </form>
 
           {/* Terms */}
           <p className="text-center text-xs text-gray-500">

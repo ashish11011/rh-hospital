@@ -1,26 +1,20 @@
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowRight,
-  ArrowRightCircle,
   Award,
+  Calendar,
   BadgeCheck,
   BriefcaseMedical,
   ChevronRight,
   Clock,
   Globe2,
+  Mail,
+  MapPin,
+  Phone,
   PlayCircleIcon,
   ShieldIcon,
   UserIcon,
 } from "lucide-react";
-import { PRODUCT_CATEGORY } from "@/const/product";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { CertificateDialogButton } from "@/components/certificate-dialog-button";
 import {
   IconAugmentedReality,
   IconBodyScan,
@@ -40,6 +34,10 @@ import { getFeaturedPublishedBlogs } from "@/lib/blogData";
 import { blogPath } from "@/lib/blogUtils";
 import { getS3AssetUrl } from "@/lib/s3Asset";
 import { getPublicCourses } from "@/actions/courseActions";
+import { getWorkshops } from "@/actions/workshopActions";
+import { WorkshowListCard } from "@/components/workshop/WorkshowListCard";
+import { formatDate } from "@/helper/formatDate";
+import SideForm from "@/app/(user)/contact-us/SideForm";
 
 export const metadata: Metadata = {
   title: {
@@ -91,17 +89,20 @@ export const metadata: Metadata = {
 export const revalidate = 7200;
 
 export default async function Home() {
-  const [featuredBlogs, courses] = await Promise.all([
+  const [featuredBlogs, courses, workshops] = await Promise.all([
     getFeaturedPublishedBlogs(3),
     getPublicCourses(),
+    getWorkshops(),
   ]);
+
+  const pastWorkshops = workshops.filter((ws) => ws.isCompleted);
 
   return (
     <>
       <HeroSection />
-      <CurrentWorkshop />
+      {/* <CurrentWorkshop /> */}
       <CertifiedModules courses={courses} />
-      <CatalogContainer />
+      <PastWorkshops workshops={pastWorkshops} />
       {/* <div className=" container grid grid-cols-1 md:grid-cols-2 gap-4 py-12">
         <ProductCategory />
         <div className=" p-4">
@@ -112,57 +113,64 @@ export default async function Home() {
         </div>
       </div> */}
       <MedicalEducation />
+      {/* <CatalogContainer /> */}
       <WhyChooseRH />
-      <div className="container flex flex-col gap-6 py-12 pb-24 md:flex-row">
-        <iframe
-          width="345"
-          height="315"
-          src="https://www.youtube.com/embed/PQ6HXDK8Tk0?si=l3n9p1hwTqgKZbil"
-          title="YouTube video player"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-        ></iframe>
-        <iframe
-          width="345"
-          height="315"
-          src="https://www.youtube.com/embed/DwhQItB8u4A?si=Xz06OpAzQvQ11txR"
-          title="YouTube video player"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-        ></iframe>
-        <iframe
-          width="345"
-          height="315"
-          src="https://www.youtube.com/embed/rCLVwwpdZhk?si=WebusDPN89sH0Qbh"
-          title="YouTube video player"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-        ></iframe>
-      </div>
+      <section className="container py-16 md:py-20">
+        <div className="mb-10 text-center">
+          <Badge
+            variant="outline"
+            className="mb-3 border-green-200 bg-green-50 px-3 py-1 text-xs font-semibold tracking-wider text-green-700"
+          >
+            WATCH & LEARN
+          </Badge>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+            Training Videos
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm text-slate-500 md:text-base">
+            Watch our simulation-based training sessions and workshop
+            highlights.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {[
+            "https://www.youtube.com/embed/PQ6HXDK8Tk0?si=l3n9p1hwTqgKZbil",
+            "https://www.youtube.com/embed/DwhQItB8u4A?si=Xz06OpAzQvQ11txR",
+            "https://www.youtube.com/embed/rCLVwwpdZhk?si=WebusDPN89sH0Qbh",
+          ].map((src) => (
+            <div
+              key={src}
+              className="aspect-video w-full overflow-hidden rounded-xl shadow-sm"
+            >
+              <iframe
+                className="h-full w-full"
+                src={src}
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            </div>
+          ))}
+        </div>
+      </section>
       {/* <HomeProductCrousel /> */}
 
       <AwardSection />
-      <AboutOrg />
-      <div className="h-12"></div>
       <CTASection />
-      <div className="container pb-10">
-        <div className="mt-16 mb-8">
-          <h2 className="text-primary text-xl font-bold md:text-3xl">
+      <HomeContactSection />
+      <section className="container mx-auto py-16 md:py-20">
+        <div className="mb-10">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
             Frequently Asked Questions
           </h2>
-          {/* <p className="mt-2 text-base md:text-lg text-gray-600">
-            Here are some common questions about our workshops.
-          </p> */}
+          <p className="mt-2 text-sm text-slate-500 md:text-base">
+            Find answers to common questions about our workshops, courses, and
+            certifications.
+          </p>
         </div>
         <WorkshopFAQ />
-        <div className="h-10"></div>
-      </div>
+      </section>
       <FeaturedBlogs blogs={featuredBlogs} />
     </>
   );
@@ -177,7 +185,7 @@ function FeaturedBlogs({ blogs }: { blogs: FeaturedBlog[] }) {
   if (blogs.length === 0) return null;
 
   return (
-    <section className="container py-12">
+    <section className="container py-16 pb-20 md:py-20 md:pb-24">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
         <div className="space-y-2">
           <Badge variant="secondary">Featured Blogs</Badge>
@@ -246,10 +254,50 @@ function FeaturedBlogs({ blogs }: { blogs: FeaturedBlog[] }) {
   );
 }
 
+type HomeWorkshop = Awaited<ReturnType<typeof getWorkshops>>[number];
+
+function PastWorkshops({ workshops }: { workshops: HomeWorkshop[] }) {
+  if (workshops.length === 0) return null;
+
+  return (
+    <section className="container py-16 md:py-20">
+      <div className="mb-10 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
+        <div className="space-y-2">
+          <Badge
+            variant="outline"
+            className="border-green-200 bg-green-50 px-3 py-1 text-xs font-semibold tracking-wider text-green-700"
+          >
+            OUR WORKSHOPS
+          </Badge>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+            Workshops Conducted So Far
+          </h2>
+          <p className="max-w-2xl text-sm text-slate-500 md:text-base">
+            Explore the hands-on training sessions and certification programs
+            we've successfully delivered.
+          </p>
+        </div>
+        <Button asChild variant="link">
+          <Link href="/workshops">
+            View all workshops
+            <ArrowRight className="ml-1 size-4" />
+          </Link>
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {workshops.slice(0, 6).map((ws) => (
+          <WorkshowListCard isCompleted={true} key={ws.id} ws={ws} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function HeroSection() {
   return (
-    <div className="min-h-72 w-full py-16 md:py-16">
-      <div className="container flex h-full min-h-72 flex-col items-center justify-between gap-6 md:flex-row">
+    <div className="min-h-72 w-full py-16 md:py-20">
+      <div className="container flex h-full min-h-72 flex-col items-center justify-between gap-8 md:flex-row">
         <div className="h-fit max-w-xl space-y-3 text-center md:space-y-6 md:text-left">
           <Badge className="">
             First Simulation Centre in Jaipur, Rajasthan
@@ -263,22 +311,22 @@ function HeroSection() {
             training centre exclusively focused on BSc Nursing students
           </h3>
           <div className="flex flex-col items-center gap-4 md:flex-row">
-            <Link className="w-full md:w-auto" href={"/workshops"}>
-              <Button size={"lg"} className="w-full rounded-sm md:w-auto">
-                View Workshops <ArrowRight />{" "}
+            <Link className="w-full md:w-auto" href={"/courses"}>
+              <Button size={"lg"} className="w-full rounded-sm md:w-auto min-w-48">
+                View Courses <ArrowRight />{" "}
               </Button>
             </Link>
             <Link
               className="w-full md:w-auto"
-              href={"/rh-healthcare-ntai-conference-ric-jaipur-2026"}
+              href={"/workshops"}
             >
               <Button
                 size={"lg"}
-                className="w-full rounded-sm md:w-auto"
+                className="w-full rounded-sm md:w-auto min-w-48"
                 variant={"outline"}
               >
                 {" "}
-                Browse Conference{" "}
+                Browse Workshops{" "}
               </Button>
             </Link>
           </div>
@@ -367,7 +415,7 @@ function CertifiedModules({ courses }: { courses: HomeCourse[] }) {
   if (courses.length === 0) return null;
 
   return (
-    <div className="container pt-8">
+    <div className="container py-8">
       <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
         <div className="space-y-2">
           <h3 className="text-lg font-semibold md:text-2xl">
@@ -396,7 +444,7 @@ function CertifiedModules({ courses }: { courses: HomeCourse[] }) {
                 height={500}
                 width={500}
                 alt={course.title}
-                className="h-full w-full object-contain transition-all duration-300 group-hover:scale-105"
+                className="h-fit w-full object-cover transition-all duration-300 group-hover:scale-105"
               />
               <div className="flex flex-col gap-2 p-4">
                 <p className="text-lg font-semibold">{course.title}</p>
@@ -428,37 +476,32 @@ function CertifiedModules({ courses }: { courses: HomeCourse[] }) {
 
 function CTASection() {
   return (
-    <div className="container py-12">
-      <div className="bg-primary h-full w-full space-y-5 overflow-hidden rounded-2xl p-10 md:p-12">
+    <div className="container py-16 md:py-20">
+      <div className="bg-primary h-full w-full space-y-5 overflow-hidden rounded-2xl p-10 md:p-14">
         <h3 className="text-center text-2xl font-semibold text-white md:text-3xl">
-          Ready to Advance Your Healthcare Career?
+          Start Your Journey in Clinical Simulation
         </h3>
-        <p className="mt-2 text-center text-sm text-gray-100">
-          Join our next batch of clinicians and get certified in the most
-          in-demand medical skills.
+        <p className="mx-auto mt-2 max-w-xl text-center text-sm text-white/90 md:text-base">
+          Browse our certified courses and upcoming workshops to build
+          real-world clinical skills with hands-on training.
         </p>
         <div className="flex flex-col items-center justify-center gap-4 md:flex-row">
-          <Link
-            className="w-full md:w-auto"
-            href={"/rh-healthcare-ntai-conference-ric-jaipur-2026"}
-          >
+          <Link className="w-full md:w-auto" href="/courses">
             <Button
-              size={"lg"}
-              variant={"secondary"}
-              className="w-full rounded-sm md:w-auto"
+              size="lg"
+              variant="secondary"
+              className="w-full min-w-44 rounded-sm md:w-auto"
             >
-              {" "}
-              Enrol Now <ArrowRight />{" "}
+              Explore Courses <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </Link>
-          <Link className="w-full md:w-auto" href={"/contact-us"}>
+          <Link className="w-full md:w-auto" href="/workshops">
             <Button
-              size={"lg"}
-              variant={"outline"}
-              className="bg-primary hover:bg-primary/90 w-full rounded-sm text-white md:w-auto"
+              size="lg"
+              variant="outline"
+              className="w-full min-w-44 rounded-sm border-white/30 bg-transparent text-white hover:bg-white/10 md:w-auto"
             >
-              {" "}
-              Speak to an Advicer <ArrowRight />{" "}
+              Browse Workshops <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </Link>
         </div>
@@ -467,9 +510,97 @@ function CTASection() {
   );
 }
 
+function HomeContactSection() {
+  return (
+    <section className="bg-slate-50 py-16 md:py-20">
+      <div className="container mx-auto max-w-5xl px-4">
+        <div className="mx-auto mb-12 max-w-2xl text-center">
+          <Badge
+            variant="outline"
+            className="mb-4 border-green-200 bg-green-50 px-3 py-1 text-xs font-semibold tracking-wider text-green-700"
+          >
+            GET IN TOUCH
+          </Badge>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+            Have a Question? Reach Out to Us
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm text-slate-500 md:text-base">
+            Whether you need help choosing a course, want workshop details, or
+            have a general inquiry — we're here to help.
+          </p>
+        </div>
+
+        <div className="grid gap-10 rounded-2xl border bg-white p-6 shadow-sm md:grid-cols-2 md:p-10">
+          {/* Contact info */}
+          <div className="flex flex-col justify-center gap-6">
+            <h3 className="text-lg font-semibold text-slate-900">
+              Contact Information
+            </h3>
+
+            <div className="flex items-start gap-4">
+              <div className="bg-primary/10 rounded-xl p-3">
+                <Mail className="text-primary h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500">Email</p>
+                <a
+                  className="text-primary text-sm font-medium"
+                  href="mailto:rhhealthcaresimulationcenter@gmail.com"
+                >
+                  rhhealthcaresimulationcenter@gmail.com
+                </a>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="bg-primary/10 rounded-xl p-3">
+                <Phone className="text-primary h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500">Phone</p>
+                <p className="text-sm font-medium text-slate-900">
+                  +91 99289 07780
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="bg-primary/10 rounded-xl p-3">
+                <MapPin className="text-primary h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500">Location</p>
+                <p className="text-sm font-medium text-slate-900">
+                  18-Shakti Nagar, Gopalpura Bypass Road, near Triveni Nagar
+                  Chouraha, Jaipur (Raj) — 302015
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="bg-primary/10 rounded-xl p-3">
+                <Clock className="text-primary h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500">Working Hours</p>
+                <p className="text-sm font-medium text-slate-900">
+                  Mon – Sat: 9:00 AM – 6:00 PM
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact form */}
+          <SideForm />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function CatalogContainer() {
   return (
-    <div className="container grid max-w-6xl! grid-cols-2 gap-6 py-8 pt-20 md:grid-cols-3">
+    <div className="container grid max-w-6xl! grid-cols-1 gap-4 py-8 pt-20 sm:grid-cols-2 md:grid-cols-3">
       {CATELOG_ITEMS.map(({ key, ...item }) => {
         return <CatelogBox key={key} {...item} />;
       })}
@@ -485,7 +616,7 @@ const CATELOG_ITEMS = [
   },
   {
     key: 2,
-    title: "Certificate & Workshop Programs Available ",
+    title: "Certificate & Workshop Programs Available",
     icon: IconCertificate,
   },
   {
@@ -497,81 +628,103 @@ const CATELOG_ITEMS = [
 
 function CatelogBox({ title, icon: Icon }: { title: string; icon: any }) {
   return (
-    <Card className="border-primary cursor-pointer rounded-md border py-3 ring-2 duration-200">
-      <CardContent className="flex w-full items-center gap-4">
-        <Icon className="text-primary size-6 shrink-0 stroke-[1.5px] md:size-10" />
-        <p className="text-xs text-gray-600 md:text-lg">{title}</p>
-        {/* <div className="hidden sm:block ml-auto bg-primary/30 p-0.5 rounded-full">
-        <ChevronRight className="   text-primary size-5  " />
-      </div> */}
-      </CardContent>
-    </Card>
+    <div className="group relative cursor-pointer overflow-hidden rounded-lg border border-green-100 bg-green-50/60 px-5 py-6 transition-all duration-300 hover:border-green-200 hover:shadow-md">
+      {/* Diagonal lines background pattern */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.07]"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(135deg, transparent, transparent 8px, currentColor 8px, currentColor 9px)",
+          color: "var(--color-primary, #16a34a)",
+        }}
+      />
+
+      <div className="relative z-10 flex items-center justify-between gap-4">
+        <p className="text-sm font-medium text-gray-700 md:text-base">
+          {title}
+        </p>
+        <div className="flex shrink-0 items-center justify-center rounded-md bg-white/80 p-2 shadow-sm ring-1 ring-green-100 transition-transform duration-300 group-hover:scale-110">
+          <Icon className="text-primary size-6 stroke-[1.5px] md:size-7" />
+        </div>
+      </div>
+    </div>
   );
 }
 
-const features = [
+const whyChooseFeatures = [
   {
-    title: "Excellent People",
+    title: "Expert Faculty",
+    description:
+      "Learn from experienced clinicians and nursing educators with real ICU and hospital experience.",
     icon: UserIcon,
-    color: "text-sky-600",
   },
   {
-    title: "Simulation Equipment",
+    title: "High-Fidelity Simulators",
+    description:
+      "Train on advanced manikins and task trainers that replicate real patient scenarios.",
     icon: IconBodyScan,
-    color: "text-red-500",
   },
   {
-    title: "Shield of Trust",
+    title: "Trusted Certifications",
+    description:
+      "Earn INC-aligned certificates with QR verification, recognised across healthcare institutions.",
     icon: ShieldIcon,
-    color: "text-blue-500",
   },
   {
-    title: "World-class Technology",
+    title: "Latest Technology",
+    description:
+      "Access cutting-edge simulation equipment and augmented reality tools for immersive learning.",
     icon: IconAugmentedReality,
-    color: "text-orange-500",
   },
   {
-    title: "Healthcare Hub",
+    title: "Jaipur's First Sim Centre",
+    description:
+      "Rajasthan's pioneering simulation lab exclusively built for BSc Nursing clinical training.",
     icon: IconHospital,
-    color: "text-lime-600",
   },
 ];
 
 function WhyChooseRH() {
   return (
-    <section className="relative mb-88 text-white sm:mb-60 md:mb-32">
-      {/* Top Content */}
-      <div className="bg-primary py-12">
-        <div className="mx-auto mb-16 grid max-w-6xl gap-6 px-4 md:grid-cols-2">
-          <h2 className="text-2xl font-semibold md:text-3xl">
-            Why Choose Rh healthcare?
+    <section className="bg-primary py-16 md:py-20">
+      <div className="container mx-auto max-w-6xl px-4">
+        {/* Header */}
+        <div className="mx-auto mb-12 max-w-2xl text-center md:mb-16">
+          <Badge className="mb-4 border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold tracking-wider text-white">
+            WHY CHOOSE US
+          </Badge>
+          <h2 className="text-2xl font-bold tracking-tight text-white md:text-4xl">
+            Why Choose RH Healthcare?
           </h2>
-
-          <p className="text-base leading-7 text-white/90">
-            RH Healthcare is a premier clinical simulation training centre
-            established to transform nursing education in Rajasthan. We provide
-            hands-on, scenario-based training in a safe, controlled environment
-            that replicates real clinical settings. Our centre is equipped with
-            high-fidelity manikins, task trainers, and advanced simulation
-            equipment to ensure BSc Nursing students develop competency,
-            confidence.
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white/80 md:text-base">
+            We are Rajasthan's premier clinical simulation training centre,
+            transforming nursing education through hands-on, scenario-based
+            training in a safe, controlled environment.
           </p>
         </div>
-      </div>
 
-      {/* Cards */}
-      <div className="absolute bottom-[60px] left-1/2 mx-auto grid w-full max-w-6xl -translate-x-1/2 translate-y-full grid-cols-2 gap-6 px-4 sm:grid-cols-3 md:bottom-[40px] md:grid-cols-5">
-        {features.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Card key={item.title} className="rounded-sm text-gray-700 md:py-6">
-              <CardContent className="flex flex-col items-center justify-center gap-3">
-                <Icon className={`size-9 ${item.color}`} />
-                <p className="text-center font-medium">{item.title}</p>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {/* Feature cards */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-5">
+          {whyChooseFeatures.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.title}
+                className="group rounded-xl bg-white/10 p-5 backdrop-blur-sm transition-all duration-300 hover:bg-white/20 md:p-6"
+              >
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-white/15 transition-colors group-hover:bg-white/25">
+                  <Icon className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="mb-1.5 text-sm font-semibold text-white">
+                  {item.title}
+                </h3>
+                <p className="text-xs leading-relaxed text-white/70">
+                  {item.description}
+                </p>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
@@ -588,8 +741,8 @@ function AwardSection() {
   };
   return (
     <div className="bg-primary/10 w-full select-none">
-      <div className="container flex max-w-6xl! flex-col items-center justify-between gap-8 pb-10 md:flex-row md:gap-20 md:pb-0">
-        <div className="flex max-w-xl flex-col pt-10 md:pb-10">
+      <div className="container flex max-w-6xl! flex-col items-center justify-between gap-8 py-16 md:flex-row md:gap-20 md:py-20">
+        <div className="flex max-w-xl flex-col">
           <h2 className="text-primary mb-4 text-3xl font-semibold break-keep">
             Your Certificate Benefits
           </h2>
@@ -620,7 +773,7 @@ function AwardSection() {
             <Label text="CME Points Eligibility" />
             <Label text="Lifetime Digital Badge" />
           </div>
-          <CertificateDialogButton />
+          {/* <CertificateDialogButton /> */}
         </div>
         <Image
           height={600}
@@ -632,10 +785,6 @@ function AwardSection() {
       </div>
     </div>
   );
-}
-
-function AboutOrg() {
-  return <div></div>;
 }
 
 function MedicalEducation() {
@@ -661,45 +810,76 @@ function MedicalEducation() {
   ];
 
   return (
-    <section className="py-16 md:py-24">
-      <div className="container mx-auto px-4">
-        {/* Heading */}
-        <div className="mx-auto mb-14 max-w-3xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900 md:text-5xl">
-            Why Learn with RH Healthcare?
+    <section className="relative overflow-hidden bg-gradient-to-b from-green-50/50 to-white py-20 md:py-28">
+      {/* Subtle background decoration */}
+      <div className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 rounded-full bg-green-100/40 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-16 -left-16 h-60 w-60 rounded-full bg-green-100/30 blur-3xl" />
+
+      <div className="relative container mx-auto max-w-6xl px-4">
+        {/* Section label */}
+        <div className="mx-auto mb-12 max-w-2xl text-center md:mb-16">
+          <Badge
+            variant="outline"
+            className="mb-4 border-green-200 bg-green-50 px-3 py-1 text-xs font-semibold tracking-wider text-green-700"
+          >
+            WHY RH HEALTHCARE
+          </Badge>
+
+          <h2 className="text-2xl leading-tight font-bold tracking-tight text-slate-900 md:text-4xl lg:text-[2.75rem]">
+            Why Learn with <span className="text-primary">RH Healthcare?</span>
           </h2>
 
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-500 md:mt-5 md:text-base">
             Advance your healthcare career through expert-led courses, practical
             workshops, and industry-focused training designed to strengthen your
             clinical knowledge and professional skills.
           </p>
         </div>
 
-        {/* Cards */}
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {features.map((feature) => {
+        {/* Feature cards */}
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature, index) => {
             const Icon = feature.icon;
 
             return (
-              <Card
+              <div
                 key={feature.title}
-                className="transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                className="group relative rounded-xl border border-slate-100 bg-white px-6 py-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-green-200 hover:shadow-lg md:px-7 md:py-10"
               >
-                <CardContent className="md:p-8">
-                  <div className="bg-primary/10 mb-4 flex h-16 w-16 items-center justify-center rounded-2xl md:mb-8">
-                    <Icon className="text-primary h-7 w-7" />
-                  </div>
+                {/* Green accent bar */}
+                <div className="bg-primary absolute top-6 left-0 h-10 w-1 rounded-r-full opacity-60 transition-all duration-300 group-hover:h-14 group-hover:opacity-100" />
 
-                  <h3 className="mb-2 text-xl font-semibold text-slate-900 md:mb-4">
-                    {feature.title}
-                  </h3>
+                {/* Step number */}
+                <span className="mb-4 inline-block text-xs font-bold tracking-widest text-slate-300">
+                  0{index + 1}
+                </span>
 
-                  <p className="">{feature.description}</p>
-                </CardContent>
-              </Card>
+                <div className="bg-primary/10 group-hover:bg-primary/20 mb-5 flex h-12 w-12 items-center justify-center rounded-xl transition-colors duration-300">
+                  <Icon className="text-primary h-6 w-6" />
+                </div>
+
+                <h3 className="mb-2 text-lg font-semibold text-slate-900">
+                  {feature.title}
+                </h3>
+
+                <p className="text-sm leading-relaxed text-slate-500">
+                  {feature.description}
+                </p>
+              </div>
             );
           })}
+        </div>
+
+        {/* CTA */}
+        <div className="mt-12 text-center md:mt-16">
+          <Link href="/courses">
+            <Button
+              size="lg"
+              className="bg-primary hover:bg-primary/90 rounded-full px-8 text-white shadow-md transition-shadow hover:shadow-lg"
+            >
+              Explore Courses <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

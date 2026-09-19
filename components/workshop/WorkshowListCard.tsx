@@ -11,7 +11,7 @@ export const WorkshowListCard = ({ ws, isCompleted }: any) => {
     <Link key={ws.id} href={`/workshops/${ws.id}`} className="group">
       <Card className="flex h-full cursor-pointer flex-col overflow-hidden p-0">
         {/* Image */}
-        <div className="relative h-56 w-full overflow-hidden bg-gray-200">
+        <div className="relative h-52 w-full overflow-hidden bg-gray-200">
           {bannerImageUrl ? (
             <Image
               src={bannerImageUrl}

@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
     if (!isHdfcPaymentEventName(eventName)) {
         return NextResponse.json({ success: false, message: "Unsupported payment event" }, { status: 400 });
     }
+    console.log("HDFC Webhook received:", { orderId, eventName: body.event_name, order });
 
     try {
         const normalizedStatus = normalizeHdfcWebhookEvent(eventName);

@@ -7,10 +7,11 @@ export default function Header() {
         <div className="flex items-center justify-center py-2">
           <div className="flex items-center gap-2">
             <Link
-              href={"/rh-healthcare-ntai-conference-ric-jaipur-2026"}
+              href={"/courses/"}
               className="cursor-pointer text-sm font-semibold text-white"
             >
-              🌍 <span className="underline">GLOBAL NURSING SUMMIT 2026</span>
+              📚{" "}
+              <span className="underline">STUDY THE BEST NURSING COURSE</span>
             </Link>
           </div>
         </div>

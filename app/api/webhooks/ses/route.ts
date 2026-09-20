@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, or, sql } from "drizzle-orm";
 import { db } from "@/lib/dbConfig";
 import { emailLogsSchema, userSchema } from "@/db/userSchema";
 import { eventUpdate, sesEventSchema, signingString, SnsRequestError, snsHost, snsSchema, statusPriority, verifySnsMessage } from "@/lib/sesWebhook";
@@ -50,13 +50,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true, ignored: true });
     }
     const mail = event.data.mail;
+    const attemptTag = mail.tags?.emailSendAttemptId?.[0];
+    const sendAttemptId = attemptTag && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(attemptTag) ? attemptTag : undefined;
     let updated = 0;
     await db.transaction(async (tx) => {
       // Serialize all recipients for a message, including first-event inserts.
       await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${mail.messageId}, 0))`);
       for (const email of new Set(update.recipients)) {
         const [existing] = await tx.select().from(emailLogsSchema).where(and(
-          eq(emailLogsSchema.sesMessageId, mail.messageId), eq(emailLogsSchema.email, email),
+          or(eq(emailLogsSchema.sesMessageId, mail.messageId),
+            sendAttemptId ? eq(emailLogsSchema.sendAttemptId, sendAttemptId) : undefined),
+          eq(emailLogsSchema.email, email),
         )).limit(1);
         const failureReason = update.diagnostics?.find((item) => item.emailAddress === email)?.diagnosticCode ?? update.failureReason;
         if (existing) {
@@ -64,6 +68,7 @@ export async function POST(request: Request) {
           const openedAt = update.openedAt && (!existing.openedAt || update.openedAt < existing.openedAt)
             ? update.openedAt : existing.openedAt;
           await tx.update(emailLogsSchema).set({
+            sesMessageId: mail.messageId,
             status: advance ? update.status : existing.status,
             failureReason: advance ? failureReason : existing.failureReason,
             openedAt,
@@ -71,12 +76,8 @@ export async function POST(request: Request) {
         } else {
           const users = await tx.select({ id: userSchema.id }).from(userSchema)
             .where(sql`lower(${userSchema.email}) = ${email.toLowerCase()}`).limit(2);
-          if (users.length !== 1) {
-            console.warn("[SES webhook] Recipient skipped: no unique matching user", { sesMessageId: mail.messageId });
-            continue;
-          }
           await tx.insert(emailLogsSchema).values({
-            userId: users[0].id, email, subject: mail.commonHeaders?.subject ?? "(subject unavailable)",
+            userId: users.length === 1 ? users[0].id : null, email, subject: mail.commonHeaders?.subject ?? "(subject unavailable)",
             sesMessageId: mail.messageId, status: update.status, failureReason,
             createdAt: new Date(mail.timestamp), openedAt: update.openedAt,
           });

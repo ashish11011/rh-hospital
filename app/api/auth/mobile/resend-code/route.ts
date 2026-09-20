@@ -1,3 +1,4 @@
+import { logCognitoEmail } from "@/lib/emailLogging";
 import { NextResponse } from "next/server";
 import { CognitoIdentityProviderClient, ResendConfirmationCodeCommand } from "@aws-sdk/client-cognito-identity-provider";
 import { USER_POOL_CLIENT_ID, AWS_COGNITO_REGION, USER_POOL_CLIENT_SECRET } from "@/env";
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
       SecretHash: secretHash,
     });
     
-    await cognitoClient.send(command);
+    await logCognitoEmail(email, "verification code resend", () => cognitoClient.send(command));
     
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error: any) {

@@ -1,13 +1,5 @@
-import { AWS_ACCESS_KEY, AWS_SECRET_KEY } from "@/env";
-import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
-
-export const sesClient = new SESClient({
-    region: "ap-south-1",
-    credentials: {
-        accessKeyId: AWS_ACCESS_KEY,
-        secretAccessKey: AWS_SECRET_KEY,
-    },
-});
+import { SendEmailCommand } from "@aws-sdk/client-ses";
+import { sendLoggedEmail } from "@/lib/sendLoggedEmail";
 
 const EMAIL_SOURCE = "no-reply@rhhealthcaresimulation.com";
 const ACCOUNT_REQUEST_ADMIN_EMAIL = "bishnoi11011@gmail.com";
@@ -76,7 +68,7 @@ Warm Regards,<br/>
 `;
 
     await Promise.all([
-        sesClient.send(
+        sendLoggedEmail(
             new SendEmailCommand({
                 Source: EMAIL_SOURCE,
                 Destination: {
@@ -92,7 +84,7 @@ Warm Regards,<br/>
                 },
             }),
         ),
-        sesClient.send(
+        sendLoggedEmail(
             new SendEmailCommand({
                 Source: EMAIL_SOURCE,
                 Destination: {
@@ -202,7 +194,7 @@ Website: www.rhhealthcaresimulation.com
         },
     });
 
-    await sesClient.send(command);
+    await sendLoggedEmail(command);
 }
 
 export async function sendWorkshopEmail({
@@ -316,7 +308,7 @@ Warm Regards,<br/><br/>
         },
     });
 
-    await sesClient.send(command);
+    await sendLoggedEmail(command);
 }
 
 export async function sendSeminarEmail({
@@ -895,7 +887,7 @@ export async function sendSeminarEmail({
         },
     });
 
-    await sesClient.send(command);
+    await sendLoggedEmail(command);
 }
 
 export async function sendCoursePurchaseEmail({
@@ -948,6 +940,6 @@ RH Healthcare Simulation Team<br/>
         },
     });
 
-    await sesClient.send(command);
+    await sendLoggedEmail(command);
 }
 

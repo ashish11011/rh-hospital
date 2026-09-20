@@ -23,15 +23,17 @@ export const userSchema = pgTable("user", {
 
 export const emailLogsSchema = pgTable("email_logs", {
     id: uuid("id").defaultRandom().primaryKey(),
-    userId: uuid("user_id").notNull().references(() => userSchema.id),
+    userId: uuid("user_id").references(() => userSchema.id),
     email: varchar("email").notNull(),
     subject: varchar("subject").notNull(),
     status: varchar("status").notNull().default("pending"),
     failureReason: varchar("failure_reason"),
+    sendAttemptId: uuid("send_attempt_id"),
     sesMessageId: varchar("ses_message_id"),
     createdAt: timestamp("created_at").defaultNow(),
     openedAt: timestamp("opened_at"),
 }, (table) => [
+    index("email_logs_send_attempt_idx").on(table.sendAttemptId),
     uniqueIndex("email_logs_ses_message_recipient_idx").on(table.sesMessageId, table.email),
 ]);
 

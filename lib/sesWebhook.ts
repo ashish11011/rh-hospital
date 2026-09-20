@@ -73,6 +73,7 @@ export const sesEventSchema = z.object({
     messageId: z.string().min(1),
     timestamp: z.string().datetime({ offset: true }),
     destination: z.array(z.string().email()).min(1),
+    tags: z.record(z.string(), z.array(z.string())).optional(),
     commonHeaders: z.object({ subject: z.string().optional() }).optional(),
   }),
   send: detail.optional(), delivery: detail.optional(), bounce: detail.optional(),

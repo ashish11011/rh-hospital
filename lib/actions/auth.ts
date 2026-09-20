@@ -1,5 +1,6 @@
 "use server";
 
+import { logCognitoEmail } from "@/lib/emailLogging";
 import { signIn } from "@/auth";
 import { CognitoIdentityProviderClient, SignUpCommand, ConfirmSignUpCommand, ForgotPasswordCommand, ConfirmForgotPasswordCommand, ResendConfirmationCodeCommand } from "@aws-sdk/client-cognito-identity-provider";
 import { USER_POOL_CLIENT_ID, AWS_COGNITO_REGION, USER_POOL_CLIENT_SECRET } from "@/env";
@@ -51,7 +52,7 @@ export async function signupWithCognito(data: any) {
       ],
     });
     
-    await cognitoClient.send(command);
+    await logCognitoEmail(data.email, "signup verification", () => cognitoClient.send(command));
 
     const existingUser = await db.select().from(user).where(eq(user.email, data.email.toLowerCase())).limit(1);
     
@@ -117,7 +118,7 @@ export async function forgotPasswordWithCognito(email: string) {
       SecretHash: secretHash,
     });
     
-    await cognitoClient.send(command);
+    await logCognitoEmail(email, "password reset", () => cognitoClient.send(command));
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "Failed to initiate password reset" };
@@ -159,7 +160,7 @@ export async function resendVerificationCode(email: string) {
       SecretHash: secretHash,
     });
     
-    await cognitoClient.send(command);
+    await logCognitoEmail(email, "verification code resend", () => cognitoClient.send(command));
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "Failed to resend verification code" };

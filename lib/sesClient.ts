@@ -1,11 +1,11 @@
-import { SES_ACCESS_KEY, SES_SECRET_ACCESS_KEY } from "@/env";
+import { AWS_ACCESS_KEY, AWS_SECRET_KEY } from "@/env";
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
 export const sesClient = new SESClient({
     region: "ap-south-1",
     credentials: {
-        accessKeyId: SES_ACCESS_KEY,
-        secretAccessKey: SES_SECRET_ACCESS_KEY,
+        accessKeyId: AWS_ACCESS_KEY,
+        secretAccessKey: AWS_SECRET_KEY,
     },
 });
 

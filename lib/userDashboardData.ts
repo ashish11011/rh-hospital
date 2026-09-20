@@ -3,7 +3,7 @@ import { cloudfrontAssetUrl } from "@/lib/cloudfront";
 import { publicCoursePath } from "@/lib/course";
 import { getApprovedCourseReviews } from "@/lib/courseReviewData";
 import { db } from "@/lib/dbConfig";
-import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -85,7 +85,7 @@ export async function getUserPurchasesByEmail(email: string) {
       currency: payment.currency,
       gatewayPaymentEventId: payment.gatewayPaymentEventId,
       modeOfPayment: payment.modeOfPayment,
-      amount: payment.amount,
+      amount: sql<number>`case when ${payment.applePriceMilliunits} is not null then ${payment.applePriceMilliunits} / 1000.0 else ${payment.amount} end`.mapWith(Number),
       transactionDate: payment.transactionDate,
       status: payment.status,
       createdAt: payment.createdAt,

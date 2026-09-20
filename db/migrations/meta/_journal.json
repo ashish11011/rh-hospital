@@ -8,6 +8,13 @@
       "when": 1789634503798,
       "tag": "0000_exotic_jane_foster",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789910835100,
+      "tag": "0001_rainy_amazoness",
+      "breakpoints": true
     }
   ]
 }

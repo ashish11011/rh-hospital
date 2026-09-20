@@ -8,7 +8,13 @@ import {
 import { eq, or, sql } from "drizzle-orm";
 import { db } from "@/lib/dbConfig";
 import { user, workshopRegistration, seminarRegistrations } from "@/db";
-import { AWS_COGNITO_REGION, USER_POOL_ID, USER_POOL_CLIENT_ID } from "@/env";
+import {
+  AWS_ACCESS_KEY,
+  AWS_SECRET_KEY,
+  AWS_COGNITO_REGION,
+  USER_POOL_ID,
+  USER_POOL_CLIENT_ID,
+} from "@/env";
 
 export const runtime = "nodejs";
 
@@ -16,6 +22,16 @@ const issuer = `https://cognito-idp.${AWS_COGNITO_REGION}.amazonaws.com/${USER_P
 const keys = createRemoteJWKSet(new URL(`${issuer}/.well-known/jwks.json`));
 const cognito = new CognitoIdentityProviderClient({
   region: AWS_COGNITO_REGION,
+  // Admin APIs require IAM credentials; use the app's AWS identity instead of
+  // accidentally resolving an unrelated developer profile on this machine.
+  ...(AWS_ACCESS_KEY && AWS_SECRET_KEY
+    ? {
+        credentials: {
+          accessKeyId: AWS_ACCESS_KEY,
+          secretAccessKey: AWS_SECRET_KEY,
+        },
+      }
+    : {}),
 });
 
 export async function DELETE(request: Request) {

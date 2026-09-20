@@ -1,4 +1,4 @@
-import { boolean, index, pgEnum, pgTable, serial, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, pgEnum, pgTable, serial, text, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const userSchema = pgTable("user", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -20,6 +20,22 @@ export const userSchema = pgTable("user", {
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+export const emailLogsSchema = pgTable("email_logs", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id").notNull().references(() => userSchema.id),
+    email: varchar("email").notNull(),
+    subject: varchar("subject").notNull(),
+    status: varchar("status").notNull().default("pending"),
+    failureReason: varchar("failure_reason"),
+    sesMessageId: varchar("ses_message_id"),
+    createdAt: timestamp("created_at").defaultNow(),
+    openedAt: timestamp("opened_at"),
+}, (table) => [
+    uniqueIndex("email_logs_ses_message_recipient_idx").on(table.sesMessageId, table.email),
+]);
+
+
 export const userIdMemberShipTypeEnum = pgEnum("user_membership_type",["temporary"]);
 export const userProfessionEnum = pgEnum("user_profession", [
   "nursing_student",

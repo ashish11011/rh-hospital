@@ -54,6 +54,9 @@ export async function POST(req: Request) {
     if (error.name === "UsernameExistsException") {
       return NextResponse.json({ error: "exists" }, { status: 409 });
     }
+    if (error.name === "InvalidPasswordException") {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     return NextResponse.json({ error: error.message || "Failed to sign up" }, { status: 400 });
   }
 }

@@ -7,8 +7,12 @@ import {
   blogSchema,
   blogStatusEnumSchema,
   contactSchema,
+  conversationMessageSchema,
+  emailLogsSchema,
+  messageRoleEnum,
   userCardSchema,
   userSchema,
+  whatsappConversationSchema,
 } from "./userSchema";
 import {
   courseEnrolmentSchema,
@@ -60,3 +64,8 @@ export const seminar = seminarSchema;
 export const seminarRegistrations = seminarRegistrationsSchema;
 
 export const payment = paymentSchema;
+
+export const whatsappConversation = whatsappConversationSchema;
+export const conversationMessage = conversationMessageSchema;
+export const messageRole = messageRoleEnum;
+export const emailLog = emailLogsSchema;

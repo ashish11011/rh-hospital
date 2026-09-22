@@ -124,7 +124,7 @@ function buildMemberShipId(
 ) {
   const activationDate = card.activationDate || card.createdAt || new Date();
   const year = new Date(activationDate).getFullYear();
-  const sequence = String(card.memberShipNumber).padStart(6, "0");
+  const sequence = String(card.memberShipNumber).padStart(4, "0");
 
   return `RH-${getProfessionCode(card.profession)}-${year}-${sequence}`;
 }

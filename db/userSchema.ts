@@ -21,6 +21,25 @@ export const userSchema = pgTable("user", {
     updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const whatsappConversationSchema = pgTable("whatsapp_conversation", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id").references(() => userSchema.id),
+    mobileNumber: text("mobile_number").notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const messageRoleEnum = pgEnum("message_role", ["user", "assistant"]);
+
+export const conversationMessageSchema = pgTable("conversation_message", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    conversationId: uuid("conversation_id").references(() => whatsappConversationSchema.id),
+    role: messageRoleEnum("role").notNull(),
+    message: text("message").notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const emailLogsSchema = pgTable("email_logs", {
     id: uuid("id").defaultRandom().primaryKey(),
     userId: uuid("user_id").references(() => userSchema.id),
@@ -36,7 +55,6 @@ export const emailLogsSchema = pgTable("email_logs", {
     index("email_logs_send_attempt_idx").on(table.sendAttemptId),
     uniqueIndex("email_logs_ses_message_recipient_idx").on(table.sesMessageId, table.email),
 ]);
-
 
 export const userIdMemberShipTypeEnum = pgEnum("user_membership_type",["temporary"]);
 export const userProfessionEnum = pgEnum("user_profession", [

@@ -1,4 +1,4 @@
-import { workshopRegistration } from "@/db";
+import { workshopRegistration, seminarRegistrations } from "@/db";
 import { db } from "@/lib/dbConfig";
 import { and, eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
@@ -7,26 +7,42 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
     const workshopId = searchParams.get("workshopId");
-
-    if (!userId || !workshopId) {
+    const seminarId = searchParams.get("seminarId");
+    if (!userId || (!workshopId && !seminarId)) {
         return NextResponse.json(
-            { message: "Missing 'userId' or 'workshopId' query parameter", status: 400 },
+            { message: "Missing 'userId' or 'workshopId'/'seminarId' query parameter", status: 400 },
             { status: 400 }
         );
     }
 
     try {
-        const result = await db
-            .select({
-                certificateUrl: workshopRegistration.certificateUrl,
-            })
-            .from(workshopRegistration)
-            .where(
-                and(
-                    eq(workshopRegistration.userId, userId),
-                    eq(workshopRegistration.workshopId, workshopId)
-                )
-            );
+        let result;
+
+        if (seminarId) {
+            result = await db
+                .select({
+                    certificateUrl: seminarRegistrations.certificateUrl,
+                })
+                .from(seminarRegistrations)
+                .where(
+                    and(
+                        eq(seminarRegistrations.userId, userId),
+                        eq(seminarRegistrations.seminarId, seminarId)
+                    )
+                );
+        } else {
+            result = await db
+                .select({
+                    certificateUrl: workshopRegistration.certificateUrl,
+                })
+                .from(workshopRegistration)
+                .where(
+                    and(
+                        eq(workshopRegistration.userId, userId!),
+                        eq(workshopRegistration.workshopId, workshopId!)
+                    )
+                );
+        }
 
         if (result.length === 0) {
             return NextResponse.json(

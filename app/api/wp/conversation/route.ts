@@ -1,8 +1,10 @@
-import { whatsappConversation } from "@/db";
+import { whatsappConversation, conversationMessage } from "@/db";
 import { db } from "@/lib/dbConfig";
 import { and, desc, eq, gte } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
+// GET /api/wp/conversation?mobileNumber=...&limit=20
+// Returns conversationId + messages. Creates a new conversation if none exists in the last 7 days.
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const mobileNumber = searchParams.get("mobileNumber");
@@ -13,6 +15,16 @@ export async function GET(req: NextRequest) {
             { status: 400 }
         );
     }
+
+    let limit = 20;
+    const limitParam = searchParams.get("limit");
+    if (limitParam) {
+        const parsed = parseInt(limitParam, 10);
+        if (!isNaN(parsed) && parsed > 0) {
+            limit = Math.min(parsed, 100);
+        }
+    }
+
     try {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -27,14 +39,26 @@ export async function GET(req: NextRequest) {
                 )
             )
             .orderBy(desc(whatsappConversation.updatedAt)).limit(1);
+
         if (result.length > 0) {
-            return NextResponse.json({ data: result[0], status: 200 });
+            const conversation = result[0];
+            const messages = await db
+                .select()
+                .from(conversationMessage)
+                .where(eq(conversationMessage.conversationId, conversation.id))
+                .orderBy(desc(conversationMessage.createdAt))
+                .limit(limit);
+
+            return NextResponse.json({ data: { conversationId: conversation.id, messages }, status: 200 });
         }
+
+        // No recent conversation found — create a new one
         const [newConversation] = await db
             .insert(whatsappConversation)
             .values({ mobileNumber })
             .returning();
-        return NextResponse.json({ data: newConversation, status: 201 }, { status: 201 });
+
+        return NextResponse.json({ data: { conversationId: newConversation.id, messages: [] }, status: 201 }, { status: 201 });
     } catch (error) {
         console.error(error);
         return NextResponse.json(

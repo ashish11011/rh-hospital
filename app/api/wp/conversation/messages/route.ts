@@ -1,46 +1,10 @@
 import { conversationMessage, whatsappConversation } from "@/db";
 import { db } from "@/lib/dbConfig";
-import { eq, desc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url);
-    const conversationId = searchParams.get("conversationId");
-    const limitParam = searchParams.get("limit");
-
-    if (!conversationId) {
-        return NextResponse.json(
-            { message: "Missing 'conversationId' query parameter", status: 400 },
-            { status: 400 }
-        );
-    }
-
-    let limit = 20;
-    if (limitParam) {
-        const parsed = parseInt(limitParam, 10);
-        if (!isNaN(parsed) && parsed > 0) {
-            limit = Math.min(parsed, 100);
-        }
-    }
-
-    try {
-        const messages = await db
-            .select()
-            .from(conversationMessage)
-            .where(eq(conversationMessage.conversationId, conversationId))
-            .orderBy(desc(conversationMessage.createdAt))
-            .limit(limit);
-
-        return NextResponse.json({ data: messages, status: 200 });
-    } catch (error) {
-        console.error(error);
-        return NextResponse.json(
-            { message: "Internal server error", status: 500 },
-            { status: 500 }
-        );
-    }
-}
-
+// POST /api/wp/conversation/messages
+// Body: { conversationId, role, message }
 export async function POST(req: NextRequest) {
     let body;
     try {

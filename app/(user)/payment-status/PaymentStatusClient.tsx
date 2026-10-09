@@ -4,8 +4,16 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import Link from "next/link";
 
-type StatusState = "checking" | "completed" | "pending" | "failed" | "error" | "missing";
+type StatusState =
+  | "checking"
+  | "completed"
+  | "pending"
+  | "failed"
+  | "refunded"
+  | "error"
+  | "missing";
 
 type StoredPaymentOrder = {
   orderId?: string;
@@ -22,6 +30,7 @@ export function PaymentStatusClient() {
   const [status, setStatus] = useState<StatusState>("checking");
   const [message, setMessage] = useState("Checking your payment status...");
   const [orderId, setOrderId] = useState("");
+  const [orderType, setOrderType] = useState("");
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(
     null,
   );
@@ -37,7 +46,9 @@ export function PaymentStatusClient() {
   async function checkPaymentStatus(currentOrderId = orderId) {
     if (!currentOrderId) {
       setStatus("missing");
-      setMessage("We could not find your payment order in this browser session.");
+      setMessage(
+        "We could not find your payment order in this browser session.",
+      );
       return;
     }
 
@@ -58,6 +69,7 @@ export function PaymentStatusClient() {
       if (!response.ok) {
         throw new Error(data.message || "Unable to verify payment right now.");
       }
+      if (data.orderType) setOrderType(data.orderType);
 
       if (data.orderId && typeof data.amount === "number") {
         setPaymentDetails({
@@ -69,31 +81,64 @@ export function PaymentStatusClient() {
 
       if (data.normalizedStatus === "completed") {
         setStatus("completed");
-        setMessage("Your payment has been confirmed successfully.");
+        setMessage(
+          data.orderType === "rh_id_card"
+            ? "Your payment is confirmed and your RH ID card has been created. You can view it on your dashboard."
+            : "Your payment has been confirmed successfully.",
+        );
         window.sessionStorage.removeItem("hdfcPaymentOrder");
         return;
       }
 
-      if (data.normalizedStatus === "failed" || data.normalizedStatus === "cancelled") {
+      if (
+        data.normalizedStatus === "failed" ||
+        data.normalizedStatus === "cancelled"
+      ) {
         setStatus("failed");
-        setMessage("Payment could not be completed. If money was deducted, please contact support.");
+        setMessage(
+          "Payment could not be completed. If money was deducted, please contact support.",
+        );
+        return;
+      }
+
+      if (data.normalizedStatus === "refunded") {
+        setStatus("refunded");
+        setMessage(
+          "This payment has been refunded. Please contact support if you need help with your membership.",
+        );
         return;
       }
 
       setStatus("pending");
-      setMessage("Your payment is still being verified. Please retry in a few seconds.");
+      setMessage(
+        "Your payment is still being verified. Please retry in a few seconds.",
+      );
     } catch (error) {
       setStatus("error");
-      setMessage(error instanceof Error ? error.message : "Unable to verify payment right now.");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to verify payment right now.",
+      );
     }
   }
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const returnedOrderId = params.get("order_id") || params.get("orderId");
+    if (returnedOrderId) {
+      setOrderId(returnedOrderId);
+      setOrderType(params.get("type") || "");
+      checkPaymentStatus(returnedOrderId);
+      return;
+    }
     const storedOrder = window.sessionStorage.getItem("hdfcPaymentOrder");
 
     if (!storedOrder) {
       setStatus("missing");
-      setMessage("We could not find your payment order in this browser session.");
+      setMessage(
+        "We could not find your payment order in this browser session.",
+      );
       return;
     }
 
@@ -105,15 +150,22 @@ export function PaymentStatusClient() {
       }
 
       setOrderId(parsedOrder.orderId);
+      setOrderType(parsedOrder.type || "");
       checkPaymentStatus(parsedOrder.orderId);
     } catch {
       setStatus("missing");
-      setMessage("We could not read your payment order. Please contact support if money was deducted.");
+      setMessage(
+        "We could not read your payment order. Please contact support if money was deducted.",
+      );
     }
   }, []);
 
   const Icon =
-    status === "completed" ? CheckCircle2 : status === "checking" || status === "pending" ? Clock : AlertCircle;
+    status === "completed"
+      ? CheckCircle2
+      : status === "checking" || status === "pending"
+        ? Clock
+        : AlertCircle;
 
   const iconClassName =
     status === "completed"
@@ -132,13 +184,15 @@ export function PaymentStatusClient() {
 
           <h1 className="text-3xl font-bold tracking-tight">
             {status === "completed"
-              ? "Registration Successful"
+              ? orderType === "rh_id_card"
+                ? "Your RH ID Card Is Ready"
+                : "Registration Successful"
               : status === "checking"
                 ? "Verifying Payment"
                 : "Payment Status"}
           </h1>
 
-          <p className="mt-3 text-sm text-muted-foreground">{message}</p>
+          <p className="text-muted-foreground mt-3 text-sm">{message}</p>
 
           {paymentDetails && (
             <div className="mt-6 w-full rounded-xl border bg-slate-50 p-4 text-left">
@@ -158,6 +212,19 @@ export function PaymentStatusClient() {
           {(status === "pending" || status === "error") && (
             <Button className="mt-6" onClick={() => checkPaymentStatus()}>
               Retry verification
+            </Button>
+          )}
+          {orderType === "rh_id_card" && (
+            <Button
+              asChild
+              className="mt-6"
+              variant={status === "completed" ? "default" : "outline"}
+            >
+              <Link href="/dashboard/id-card">
+                {status === "completed"
+                  ? "View your RH ID card"
+                  : "Return to RH ID card"}
+              </Link>
             </Button>
           )}
         </CardContent>

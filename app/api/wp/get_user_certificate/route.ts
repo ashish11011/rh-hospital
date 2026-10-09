@@ -26,8 +26,8 @@ export async function GET(req: NextRequest) {
                 .from(seminarRegistrations)
                 .where(
                     and(
-                        eq(seminarRegistrations.userId, userId),
-                        eq(seminarRegistrations.seminarId, seminarId)
+                        eq(seminarRegistrations.userId, userId as string),
+                        eq(seminarRegistrations.seminarId, seminarId as string)
                     )
                 );
         } else {
@@ -38,8 +38,8 @@ export async function GET(req: NextRequest) {
                 .from(workshopRegistration)
                 .where(
                     and(
-                        eq(workshopRegistration.userId, userId!),
-                        eq(workshopRegistration.workshopId, workshopId!)
+                        eq(workshopRegistration.userId, userId as string),
+                        eq(workshopRegistration.workshopId, workshopId as string)
                     )
                 );
         }

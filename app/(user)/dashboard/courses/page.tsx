@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cloudfrontAssetUrl } from "@/lib/cloudfront";
-import { publicCoursePath } from "@/lib/course";
 import { fetchMobileApi } from "@/lib/serverMobileApi";
 import { Clock, GraduationCap } from "lucide-react";
 import Image from "next/image";
@@ -75,7 +74,7 @@ export default async function MyCoursesPage() {
                   </span>
                 </div>
                 <Button asChild className="w-full">
-                  <Link href={publicCoursePath(course.slug)}>Open course</Link>
+                  <Link href={`/dashboard/courses/${course.courseId}`}>Open course</Link>
                 </Button>
               </CardContent>
             </Card>

@@ -12,6 +12,7 @@ import {
   HelpCircle,
   CreditCard,
   LogOut,
+  IdCard,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { Button } from "../ui/button";
@@ -23,7 +24,12 @@ const sidebarLinks = [
     icon: LayoutDashboard,
   },
   {
-    title: "My course",
+    title: "RH ID Card",
+    href: "/dashboard/id-card",
+    icon: IdCard,
+  },
+  {
+    title: "My Courses",
     href: "/dashboard/courses",
     icon: BookOpen,
   },
@@ -61,7 +67,10 @@ export function DashboardSidebar() {
     <nav className="flex h-full w-full flex-col gap-2">
       <div className="flex flex-1 flex-col gap-2">
         {sidebarLinks.map((link) => {
-          const isActive = pathname === link.href;
+          const isActive =
+            pathname === link.href ||
+            (link.href !== "/dashboard" &&
+              pathname.startsWith(`${link.href}/`));
           const Icon = link.icon;
 
           return (

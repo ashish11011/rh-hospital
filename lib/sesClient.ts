@@ -4,6 +4,43 @@ import { sendLoggedEmail } from "@/lib/sendLoggedEmail";
 const EMAIL_SOURCE = "no-reply@rhhealthcaresimulation.com";
 const ACCOUNT_REQUEST_ADMIN_EMAIL = "bishnoi11011@gmail.com";
 
+export async function sendRhIdCardCreatedEmail({
+    toEmail, name, memberShipId, validityDate, orderId, amount,
+}: {
+    toEmail: string;
+    name: string;
+    memberShipId: string;
+    validityDate: Date | null;
+    orderId: string;
+    amount: number;
+}) {
+    const paidAmount = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amount);
+    const validTill = validityDate?.toLocaleDateString("en-IN", {
+        day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata",
+    }) || "Not provided";
+    await sendLoggedEmail(new SendEmailCommand({
+        Source: EMAIL_SOURCE,
+        Destination: { ToAddresses: [toEmail] },
+        Message: {
+            Subject: { Data: "Your RH ID Card Has Been Created - RH Healthcare" },
+            Body: {
+                Html: { Data: `
+<p>Dear ${escapeHtml(name)},</p>
+<p>Your payment has been confirmed and your RH Healthcare ID card has been created successfully.</p>
+<p><strong>RH Member ID:</strong> ${escapeHtml(memberShipId)}<br/>
+<strong>Valid until:</strong> ${escapeHtml(validTill)}<br/>
+<strong>Amount paid:</strong> ${escapeHtml(paidAmount)}<br/>
+<strong>Order number:</strong> ${escapeHtml(orderId)}</p>
+<p>You can view your card on your dashboard and in the RH Healthcare mobile app.</p>
+<p><a href="https://www.rhhealthcaresimulation.com/dashboard/id-card">View your RH ID card</a></p>
+<p>Warm regards,<br/>RH Healthcare Simulation Team<br/>
+Call: +91 9928907780, +91 9829507781<br/>Email: connect.rhhealth@gmail.com</p>` },
+                Text: { Data: `Dear ${name},\nYour payment is confirmed and your RH ID card has been created.\nRH Member ID: ${memberShipId}\nValid until: ${validTill}\nAmount paid: ${paidAmount}\nOrder number: ${orderId}\nView your card: https://www.rhhealthcaresimulation.com/dashboard/id-card` },
+            },
+        },
+    }));
+}
+
 type AccountDeletionRequestUser = {
     id?: string | null;
     name?: string | null;
@@ -942,4 +979,3 @@ RH Healthcare Simulation Team<br/>
 
     await sendLoggedEmail(command);
 }
-

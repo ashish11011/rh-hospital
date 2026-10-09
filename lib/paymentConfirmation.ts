@@ -1,14 +1,24 @@
 import "server-only";
-import { course, courseEnrolment, payment, seminarRegistrations, user, workshopRegistration } from "@/db";
+import {
+  course,
+  courseEnrolment,
+  payment,
+  seminarRegistrations,
+  user,
+  workshopRegistration,
+} from "@/db";
 import { db } from "@/lib/dbConfig";
-import { sendCoursePurchaseEmail, sendPaymentEventEmail, sendSeminarEmail, sendWorkshopEmail } from "@/lib/sesClient";
+import {
+  sendCoursePurchaseEmail,
+  sendPaymentEventEmail,
+  sendSeminarEmail,
+  sendWorkshopEmail,
+} from "@/lib/sesClient";
 import { eq } from "drizzle-orm";
+import { confirmRhCardPayment, isRhCardPayment } from "@/lib/rhIdCardPayment";
 
 export type HdfcPaymentEventName =
-  | "ORDER_FAILED"
-  | "ORDER_SUCCEEDED"
-  | "ORDER_REFUNDED"
-  | "ORDER_REFUND_FAILED";
+  "ORDER_FAILED" | "ORDER_SUCCEEDED" | "ORDER_REFUNDED" | "ORDER_REFUND_FAILED";
 
 type PaymentWebhookStatus =
   | "completed"
@@ -27,7 +37,9 @@ type ConfirmGatewayPaymentInput = {
   responseObject?: unknown;
 };
 
-export function normalizeHdfcWebhookEvent(eventName?: string | null): PaymentWebhookStatus {
+export function normalizeHdfcWebhookEvent(
+  eventName?: string | null,
+): PaymentWebhookStatus {
   if (eventName === "ORDER_SUCCEEDED") return "completed";
   if (eventName === "ORDER_FAILED") return "failed";
   if (eventName === "ORDER_REFUNDED") return "refunded";
@@ -36,7 +48,9 @@ export function normalizeHdfcWebhookEvent(eventName?: string | null): PaymentWeb
   return "pending";
 }
 
-export async function updatePaymentFromGatewayStatus(input: ConfirmGatewayPaymentInput) {
+export async function updatePaymentFromGatewayStatus(
+  input: ConfirmGatewayPaymentInput,
+) {
   const [existingPayment] = await db
     .select()
     .from(payment)
@@ -46,8 +60,14 @@ export async function updatePaymentFromGatewayStatus(input: ConfirmGatewayPaymen
     throw new Error("Payment record not found");
   }
 
+  if (isRhCardPayment(existingPayment)) {
+    return confirmRhCardPayment(input);
+  }
+
   const shouldComplete = input.normalizedStatus === "completed";
-  const shouldFail = input.normalizedStatus === "failed" || input.normalizedStatus === "cancelled";
+  const shouldFail =
+    input.normalizedStatus === "failed" ||
+    input.normalizedStatus === "cancelled";
   const shouldRefund = input.normalizedStatus === "refunded";
   const statusChanged = existingPayment.status !== input.normalizedStatus;
   let eventRecipientName: string | null | undefined;
@@ -62,7 +82,8 @@ export async function updatePaymentFromGatewayStatus(input: ConfirmGatewayPaymen
           ? 0
           : existingPayment.amountPaid,
       amountDue: shouldComplete || shouldRefund ? 0 : existingPayment.amountDue,
-      getewayPaymentId: input.gatewayPaymentId || existingPayment.getewayPaymentId,
+      getewayPaymentId:
+        input.gatewayPaymentId || existingPayment.getewayPaymentId,
       transactionId: input.gatewayPaymentId || existingPayment.transactionId,
       responseObject: input.responseObject as any,
     })

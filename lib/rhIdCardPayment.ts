@@ -333,7 +333,7 @@ export async function confirmRhCardPayment(input: {
             email: account.email,
             memberShipType: "temporary",
             activationDate,
-            validityDate: addYears(activationDate, 2),
+            validityDate: addYears(activationDate, 1),
             cardType: "paid",
             membershipPurchaseType: "paid",
             isActive: true,

@@ -38,6 +38,8 @@ import { getWorkshops } from "@/actions/workshopActions";
 import { WorkshowListCard } from "@/components/workshop/WorkshowListCard";
 import { formatDate } from "@/helper/formatDate";
 import SideForm from "@/app/(user)/contact-us/SideForm";
+import { RhCardBenefits } from "@/components/id-card/RhCardBenefits";
+import { CreateRhCardLink } from "@/components/id-card/CreateRhCardLink";
 
 export const metadata: Metadata = {
   title: {
@@ -100,6 +102,11 @@ export default async function Home() {
   return (
     <>
       <HeroSection />
+      <div className="container pb-12 md:pb-16">
+        <RhCardBenefits>
+          <CreateRhCardLink />
+        </RhCardBenefits>
+      </div>
       {/* <CurrentWorkshop /> */}
       <CertifiedModules courses={courses} />
       <PastWorkshops workshops={pastWorkshops} />

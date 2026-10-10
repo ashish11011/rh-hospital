@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { IdCardView } from "./IdCardView";
+import { RhCardBenefits } from "./RhCardBenefits";
 import {
   BLOOD_GROUP_OPTIONS,
   EMPTY_FORM_VALUES,
@@ -255,6 +256,7 @@ export function IdCardForm({
 
   return (
     <div className="max-w-3xl space-y-6">
+      <RhCardBenefits />
       <ol
         aria-label="Card creation progress"
         className="grid grid-cols-3 gap-2"
@@ -549,7 +551,7 @@ export function IdCardForm({
                       ? `Pay ${new Intl.NumberFormat("en-IN", { style: "currency", currency: pricing.currency, maximumFractionDigits: 0 }).format(pricing.amount)} after reviewing your details. `
                       : "Payment is required after reviewing your details. "}
                     Your card is activated after successful payment and is valid
-                    for two years.
+                    for one year.
                   </p>
                 </div>
                 <label className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:col-span-2">

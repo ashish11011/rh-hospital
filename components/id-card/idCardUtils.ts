@@ -83,7 +83,7 @@ export function getCardStatus(card: UserCardRecord) {
 export function makePreviewCard(values: IdCardFormValues): UserCardRecord {
   const now = new Date();
   const validity = new Date(now);
-  validity.setFullYear(validity.getFullYear() + 2);
+  validity.setFullYear(validity.getFullYear() + 1);
   return {
     ...values,
     id: "preview",

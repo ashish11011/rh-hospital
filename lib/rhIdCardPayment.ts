@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { and, desc, eq } from "drizzle-orm";
 import { payment, user, userCard } from "@/db";
 import { db } from "@/lib/dbConfig";
+import { RH_ID_CARD_AMOUNT_INR } from "@/lib/constants";
 import {
   createHdfcCustomerId,
   createHdfcGatewayOrderId,
@@ -25,7 +26,7 @@ import { cloudfrontAssetUrl } from "@/lib/cloudfront";
 import type { HdfcPaymentEventName } from "@/lib/paymentConfirmation";
 
 // Rupees. This module must never be imported by a client component.
-export const RH_ID_CARD_AMOUNT_INR = 501;
+export { RH_ID_CARD_AMOUNT_INR } from "@/lib/constants";
 
 type CardPaymentNotes = {
   kind: "rh_id_card";

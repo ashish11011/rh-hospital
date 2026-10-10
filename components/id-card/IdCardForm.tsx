@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { IdCardView } from "./IdCardView";
 import { RhCardBenefits } from "./RhCardBenefits";
+import { RhCardPrice } from "./RhCardPrice";
 import {
   BLOOD_GROUP_OPTIONS,
   EMPTY_FORM_VALUES,
@@ -256,7 +257,7 @@ export function IdCardForm({
 
   return (
     <div className="max-w-3xl space-y-6">
-      <RhCardBenefits />
+      <RhCardBenefits pricing={pricing} />
       <ol
         aria-label="Card creation progress"
         className="grid grid-cols-3 gap-2"
@@ -293,6 +294,9 @@ export function IdCardForm({
             Check your details using “Show card details”. Your RH member ID will
             be assigned after your payment is confirmed.
           </p>
+          {pricing && (
+            <RhCardPrice amount={pricing.amount} currency={pricing.currency} />
+          )}
           <div className="flex flex-wrap gap-3">
             <Button
               variant="outline"
@@ -546,6 +550,14 @@ export function IdCardForm({
                 />
                 <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-900 sm:col-span-2">
                   <p className="font-semibold">RH membership</p>
+                  {pricing && (
+                    <div className="mt-2">
+                      <RhCardPrice
+                        amount={pricing.amount}
+                        currency={pricing.currency}
+                      />
+                    </div>
+                  )}
                   <p className="mt-1">
                     {pricing
                       ? `Pay ${new Intl.NumberFormat("en-IN", { style: "currency", currency: pricing.currency, maximumFractionDigits: 0 }).format(pricing.amount)} after reviewing your details. `

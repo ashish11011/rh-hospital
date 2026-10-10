@@ -24,6 +24,11 @@ export async function SidebarAdmin() {
       access: "full",
     },
     {
+      name: "RH Card",
+      url: "/admin/rh-card",
+      access: "full",
+    },
+    {
       name: "Workshops",
       url: "/admin/workshop",
       access: "full",

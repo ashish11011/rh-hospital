@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { BookOpen, CalendarDays, IdCard, Mail } from "lucide-react";
 import { RH_CARD_DISCOUNT_PERCENT } from "@/lib/constants";
+import { RhCardPrice } from "./RhCardPrice";
 
 const BENEFITS = [
   {
@@ -17,7 +18,13 @@ const BENEFITS = [
   },
 ];
 
-export function RhCardBenefits({ children }: { children?: ReactNode }) {
+export function RhCardBenefits({
+  children,
+  pricing,
+}: {
+  children?: ReactNode;
+  pricing?: { amount: number; currency: string };
+}) {
   return (
     <section className="rounded-2xl border border-green-100 bg-gradient-to-br from-green-50 to-teal-50 p-5 sm:p-8">
       <div className="mb-5 flex items-start gap-3">
@@ -48,6 +55,10 @@ export function RhCardBenefits({ children }: { children?: ReactNode }) {
           </li>
         ))}
       </ul>
+      <div className="mt-6 space-y-2 border-t border-green-200 pt-5">
+        <p className="text-sm font-medium text-slate-700">RH card price</p>
+        <RhCardPrice amount={pricing?.amount} currency={pricing?.currency} />
+      </div>
       {children && <div className="mt-6">{children}</div>}
     </section>
   );

@@ -25,7 +25,7 @@ import { cloudfrontAssetUrl } from "@/lib/cloudfront";
 import type { HdfcPaymentEventName } from "@/lib/paymentConfirmation";
 
 // Rupees. This module must never be imported by a client component.
-export const RH_ID_CARD_AMOUNT_INR = 21;
+export const RH_ID_CARD_AMOUNT_INR = 501;
 
 type CardPaymentNotes = {
   kind: "rh_id_card";

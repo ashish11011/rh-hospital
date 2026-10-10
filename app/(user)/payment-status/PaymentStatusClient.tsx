@@ -186,7 +186,7 @@ export function PaymentStatusClient() {
             {status === "completed"
               ? orderType === "rh_id_card"
                 ? "Your RH ID Card Is Ready"
-                : "Registration Successful"
+                : "Payment Successful"
               : status === "checking"
                 ? "Verifying Payment"
                 : "Payment Status"}

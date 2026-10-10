@@ -51,10 +51,11 @@ function getRequiredEnv(name: string) {
 }
 
 function getHdfcAuthorizationHeader() {
+  // Prefer dedicated API credentials; the legacy variable also authenticates webhooks.
   const value =
+    process.env.HDFC_API_KEY_BASE64 ||
     process.env.HDFC_SMARTGATEWAY_AUTHORIZATION ||
-    process.env.HDFC_AUTHORIZATION ||
-    process.env.HDFC_API_KEY_BASE64;
+    process.env.HDFC_AUTHORIZATION;
 
   if (!value) {
     throw new Error("HDFC authorization is not configured");
@@ -64,7 +65,6 @@ function getHdfcAuthorizationHeader() {
 }
 
 function getHdfcHeaders(customerId?: string) {
-  console.log(customerId, "customerId");
   const headers: Record<string, string> = {
     Authorization: getHdfcAuthorizationHeader(),
     "Content-Type": "application/json",
@@ -141,16 +141,18 @@ export async function createHdfcPaymentSession(input: HdfcSessionInput) {
     first_name: firstName,
     last_name: lastName,
   };
-
+  const requestHeader = getHdfcHeaders(input.customerId);
+  console.log(requestHeader, body);
   const response = await fetch(sessionUrl, {
     method: "POST",
-    headers: getHdfcHeaders(input.customerId),
+    headers: requestHeader,
     body: JSON.stringify(body),
     cache: "no-store",
     signal: AbortSignal.timeout(30000),
   });
 
   const responseText = await response.text();
+  console.log(responseText);
   let data: HdfcSessionResponse & { error?: string; error_message?: string };
 
   try {

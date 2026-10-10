@@ -15,6 +15,14 @@ import { notFound } from "next/navigation";
 import { cloudfrontAssetUrl } from "@/lib/cloudfront";
 import { publicCoursePath } from "@/lib/course";
 import { getS3AssetUrl } from "@/lib/s3Asset";
+import Link from "next/link";
+import { CoursePrice } from "@/components/course/CoursePrice";
+import { RH_CARD_DISCOUNT_PERCENT } from "@/lib/constants";
+import {
+  getRhCardCoursePricing,
+  type CoursePricing,
+} from "@/lib/rhCardDiscount";
+import { getRhCardDiscountCard } from "@/lib/rhCardMembership";
 
 export default async function Page({
   params,
@@ -31,6 +39,8 @@ export default async function Page({
 
   const session = await auth();
   const currentUser = await getCurrentCourseUser();
+  const discountCard = await getRhCardDiscountCard(currentUser?.id);
+  const pricing = getRhCardCoursePricing(course.price, Boolean(discountCard));
   const enrolmentStatus = await getCourseEnrolmentStatus(course.id);
   const coursePath = publicCoursePath(course.slug);
   const reviews = await getApprovedCourseReviews(course.id);
@@ -69,7 +79,7 @@ export default async function Page({
               ? `${course.courseHours} hours`
               : "Self-paced")
           }
-          amount={course.price}
+          pricing={pricing}
           currency={course.currency || "INR"}
           isLoggedIn={Boolean(session?.user?.email)}
           isEnrolled={enrolmentStatus === "enrolled"}
@@ -107,7 +117,7 @@ function CoursePurchase({
   coursePath,
   title,
   totalHours,
-  amount,
+  pricing,
   currency,
   isLoggedIn,
   isEnrolled,
@@ -119,7 +129,7 @@ function CoursePurchase({
   coursePath: string;
   title: string;
   totalHours: string;
-  amount: number;
+  pricing: CoursePricing;
   currency: string;
   isLoggedIn: boolean;
   isEnrolled: boolean;
@@ -131,12 +141,6 @@ function CoursePurchase({
     contact?: string | null;
   };
 }) {
-  const formattedPrice = new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount);
-
   return (
     <aside
       className="bg-card mt-10 h-fit w-full shrink-0 overflow-hidden rounded-2xl border shadow-sm lg:sticky lg:top-24 lg:mt-16 lg:w-88"
@@ -162,22 +166,38 @@ function CoursePurchase({
       </div>
       <div className="p-6">
         <p className="text-muted-foreground mb-2 text-sm">Course fee</p>
-        <p className="text-foreground text-4xl font-bold tracking-tight">
-          {amount === 0 ? "Free" : formattedPrice}
-        </p>
+        <CoursePrice pricing={pricing} currency={currency} prominent />
+        {!isEnrolled &&
+          pricing.originalAmount > 0 &&
+          pricing.discountPercent === 0 && (
+            <p className="mt-4 text-sm leading-6 text-slate-600">
+              Purchase an RH card first to get {RH_CARD_DISCOUNT_PERCENT}% off
+              courses while your card is active.{" "}
+              <Link
+                href={
+                  isLoggedIn
+                    ? "/dashboard/id-card"
+                    : "/sign-in?callbackUrl=%2Fdashboard%2Fid-card"
+                }
+                className="text-primary font-medium underline underline-offset-4"
+              >
+                Get your RH card
+              </Link>
+            </p>
+          )}
         <div className="mt-6 [&_button]:h-12 [&_button]:rounded-xl [&_button]:font-semibold">
           <CoursePurchaseButton
             courseId={courseId}
             coursePath={coursePath}
             courseTitle={title}
-            amount={amount}
+            amount={pricing.amount}
             currency={currency}
             isLoggedIn={isLoggedIn}
             isEnrolled={isEnrolled}
             user={user}
           />
         </div>
-        {!isEnrolled && amount > 0 && (
+        {!isEnrolled && pricing.amount > 0 && (
           <p className="text-muted-foreground mt-3 flex items-center justify-center gap-1.5 text-xs">
             <ShieldCheck className="size-3.5" aria-hidden="true" />
             Secure checkout

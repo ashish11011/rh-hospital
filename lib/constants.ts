@@ -1,0 +1,1 @@
+export const RH_CARD_DISCOUNT_PERCENT = 20;

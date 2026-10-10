@@ -5,6 +5,8 @@ import { createHdfcCustomerId, createHdfcGatewayOrderId, createHdfcPaymentSessio
 import { sendCoursePurchaseEmail } from "@/lib/sesClient";
 import { and, desc, eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { getRhCardCoursePricing } from "@/lib/rhCardDiscount";
+import { getRhCardDiscountCard } from "@/lib/rhCardMembership";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -66,12 +68,15 @@ export async function POST(req: NextRequest) {
       });
       return NextResponse.json({ message: "Course enrolled successfully", freeEnrollment: true });
     }
-
-
+    const discountCard = await getRhCardDiscountCard(profile.id);
+    const pricing = getRhCardCoursePricing(
+      courseDetail.price,
+      Boolean(discountCard),
+    );
     const gatewayOrderId = createHdfcGatewayOrderId();
     const hdfcPaymentSession = await createHdfcPaymentSession({
       gatewayOrderId,
-      amount: courseDetail.price,
+      amount: pricing.amount,
       customerId: createHdfcCustomerId(profile.id),
       customerEmail: email.toLowerCase(),
       customerPhone: profile.mobileNumber,
@@ -84,13 +89,18 @@ export async function POST(req: NextRequest) {
       orderId: enrolment.id,
       gatewayOrderId,
       gatewayInvoiceId: hdfcPaymentSession.id,
-      amount: courseDetail.price,
-      amountDue: courseDetail.price,
+      amount: pricing.amount,
+      amountDue: pricing.amount,
       currency: "INR",
       email: email.toLowerCase(),
       contact: profile.mobileNumber,
       status: hdfcPaymentSession.status || "pending",
       responseObject: hdfcPaymentSession as any,
+      notes: JSON.stringify({
+        originalAmount: pricing.originalAmount,
+        rhCardDiscountPercent: pricing.discountPercent,
+        rhCardId: discountCard?.id || null,
+      }),
     });
 
     // const gatewayPaymentOrder = await paymentClient.orders.create({
@@ -116,7 +126,9 @@ export async function POST(req: NextRequest) {
       data: {
         orderId: gatewayOrderId,
         gatewaySessionId: hdfcPaymentSession.id,
-        amount: courseDetail.price,
+        amount: pricing.amount,
+        originalAmount: pricing.originalAmount,
+        discountPercent: pricing.discountPercent,
         currency: courseDetail.currency || "INR",
         status: hdfcPaymentSession.status,
         paymentUrl: hdfcPaymentSession.payment_links?.web,

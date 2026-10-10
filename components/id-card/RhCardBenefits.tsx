@@ -1,9 +1,16 @@
 import type { ReactNode } from "react";
 import { BookOpen, CalendarDays, IdCard, Mail } from "lucide-react";
+import { RH_CARD_DISCOUNT_PERCENT } from "@/lib/constants";
 
 const BENEFITS = [
-  { icon: CalendarDays, text: "Get 20% discount on workshops." },
-  { icon: BookOpen, text: "Get 20% discount on RH online courses." },
+  {
+    icon: CalendarDays,
+    text: `Get ${RH_CARD_DISCOUNT_PERCENT}% discount on workshops.`,
+  },
+  {
+    icon: BookOpen,
+    text: `Get ${RH_CARD_DISCOUNT_PERCENT}% discount on RH online courses.`,
+  },
   {
     icon: Mail,
     text: "Get an e-newsletter in your email with the latest updates in nursing.",

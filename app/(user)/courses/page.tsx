@@ -1,14 +1,25 @@
 import CourseList from "@/components/course/CourceList";
-import { getPublicCourses } from "@/actions/courseActions";
+import {
+  getCurrentCourseUser,
+  getPublicCourses,
+} from "@/actions/courseActions";
+import { getRhCardDiscountCard } from "@/lib/rhCardMembership";
 import React from "react";
 
 const page = async () => {
-  const courses = await getPublicCourses();
+  const [courses, currentUser] = await Promise.all([
+    getPublicCourses(),
+    getCurrentCourseUser(),
+  ]);
+  const discountCard = await getRhCardDiscountCard(currentUser?.id);
 
   return (
     <div>
       <HeroSection />
-      <CourseList courses={courses} />
+      <CourseList
+        courses={courses}
+        rhCardDiscountEligible={Boolean(discountCard)}
+      />
     </div>
   );
 };

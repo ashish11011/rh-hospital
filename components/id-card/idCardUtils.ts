@@ -45,6 +45,7 @@ export const EMPTY_FORM_VALUES: IdCardFormValues = {
   state: "",
   city: "",
   profession: "",
+  otherProfession: "",
   qualification: "",
   organizationName: "",
   passportPhoto: "",
@@ -66,7 +67,12 @@ export function formatCardDate(value: string | null) {
   });
 }
 
-export function formatProfession(value: string) {
+export function formatProfession(
+  value: string,
+  otherProfession?: string | null,
+) {
+  if (value === "other" && otherProfession?.trim())
+    return otherProfession.trim();
   return (
     PROFESSION_OPTIONS.find((option) => option.value === value)?.label ||
     "Member"
@@ -93,6 +99,10 @@ export function makePreviewCard(values: IdCardFormValues): UserCardRecord {
     memberShipType: "temporary",
     gender: values.gender || "other",
     profession: values.profession || "other",
+    otherProfession:
+      values.profession === "other"
+        ? values.otherProfession.trim() || null
+        : null,
     qualification: values.qualification || "other",
     bloodGroup: values.bloodGroup || null,
     rhFactor: values.rhFactor || null,

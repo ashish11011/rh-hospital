@@ -40,6 +40,7 @@ import { formatDate } from "@/helper/formatDate";
 import SideForm from "@/app/(user)/contact-us/SideForm";
 import { RhCardBenefits } from "@/components/id-card/RhCardBenefits";
 import { CreateRhCardLink } from "@/components/id-card/CreateRhCardLink";
+import { GlobalNursingSummitGallery } from "@/components/GlobalNursingSummitGallery";
 
 export const metadata: Metadata = {
   title: {
@@ -107,6 +108,7 @@ export default async function Home() {
           <CreateRhCardLink />
         </RhCardBenefits>
       </div>
+      <GlobalNursingSummitGallery />
       {/* <CurrentWorkshop /> */}
       <CertifiedModules courses={courses} />
       <PastWorkshops workshops={pastWorkshops} />
@@ -319,17 +321,17 @@ function HeroSection() {
           </h3>
           <div className="flex flex-col items-center gap-4 md:flex-row">
             <Link className="w-full md:w-auto" href={"/courses"}>
-              <Button size={"lg"} className="w-full rounded-sm md:w-auto min-w-48">
+              <Button
+                size={"lg"}
+                className="w-full min-w-48 rounded-sm md:w-auto"
+              >
                 View Courses <ArrowRight />{" "}
               </Button>
             </Link>
-            <Link
-              className="w-full md:w-auto"
-              href={"/workshops"}
-            >
+            <Link className="w-full md:w-auto" href={"/workshops"}>
               <Button
                 size={"lg"}
-                className="w-full rounded-sm md:w-auto min-w-48"
+                className="w-full min-w-48 rounded-sm md:w-auto"
                 variant={"outline"}
               >
                 {" "}

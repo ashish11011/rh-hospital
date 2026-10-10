@@ -2,6 +2,8 @@ import { SeminarClient } from "./seminarClient";
 import { Metadata } from "next";
 import { PageContentClient } from "./content";
 import { Suspense } from "react";
+import Image from "next/image";
+import { GLOBAL_CONFRENCE_IMAGES } from "@/lib/constants";
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
@@ -28,9 +30,20 @@ const page = () => {
     <>
       <div>
         <PageContentClient />
-        <div className="mt-10">
-          {/* <SeminarClient /> */}
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 md:grid-cols-2">
+          {GLOBAL_CONFRENCE_IMAGES.map((img, idx) => {
+            return (
+              <Image
+                src={img}
+                alt="Hero Image"
+                width={1920}
+                height={1080}
+                className="mt-10"
+              />
+            );
+          })}
         </div>
+        <div className="mt-10">{/* <SeminarClient /> */}</div>
       </div>
     </>
   );

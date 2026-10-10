@@ -3,6 +3,7 @@ import { desc, eq } from "drizzle-orm";
 import { userCardSchema } from "@/db/userSchema";
 import { cloudfrontAssetUrl } from "@/lib/cloudfront";
 import { db } from "@/lib/dbConfig";
+import { RH_CARD_OTHER_PROFESSION_MAX_LENGTH } from "@/lib/constants";
 
 const GENDER_VALUES = ["male", "female", "other"] as const;
 const BLOOD_GROUP_VALUES = ["A", "B", "AB", "O"] as const;
@@ -44,6 +45,7 @@ export type UserCardInput = {
   state?: unknown;
   city?: unknown;
   profession?: unknown;
+  otherProfession?: unknown;
   qualification?: unknown;
   organizationName?: unknown;
   passportPhoto?: unknown;
@@ -61,6 +63,7 @@ export type ValidatedUserCardInput = {
   state: string;
   city: string;
   profession: ProfessionValue;
+  otherProfession: string | null;
   qualification: QualificationValue;
   organizationName: string | null;
   passportPhoto: string | null;
@@ -165,6 +168,16 @@ export function validateInput(body: UserCardInput): ValidatedUserCardInput {
   if (!isOneOf(gender, GENDER_VALUES)) throw new Error("Gender is invalid");
   if (!isOneOf(profession, PROFESSION_VALUES))
     throw new Error("Profession is invalid");
+  // Older card drafts and mobile clients may not supply a custom profession.
+  const otherProfession =
+    profession === "other" ? optionalString(body.otherProfession) : null;
+  if (
+    otherProfession &&
+    otherProfession.length > RH_CARD_OTHER_PROFESSION_MAX_LENGTH
+  )
+    throw new Error(
+      `Profession details must be ${RH_CARD_OTHER_PROFESSION_MAX_LENGTH} characters or fewer`,
+    );
   if (!isOneOf(qualification, QUALIFICATION_VALUES))
     throw new Error("Qualification is invalid");
 
@@ -209,6 +222,7 @@ export function validateInput(body: UserCardInput): ValidatedUserCardInput {
     state,
     city,
     profession,
+    otherProfession,
     qualification,
     organizationName: optionalString(body.organizationName),
     passportPhoto,

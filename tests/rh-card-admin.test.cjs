@@ -123,6 +123,7 @@ function setup({ allowed = true, total = 42, cards = [card] } = {}) {
   };
   const dependencies = {
     "server-only": {},
+    "@/lib/constants": load("lib/constants.ts", {}),
     "next/cache": { revalidatePath: (...args) => invalidations.push(args) },
     "drizzle-orm": operators,
     "@/db": { userCard, payment },

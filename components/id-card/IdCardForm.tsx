@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { IdCardView } from "./IdCardView";
 import { RhCardBenefits } from "./RhCardBenefits";
 import { RhCardPrice } from "./RhCardPrice";
+import { RH_CARD_OTHER_PROFESSION_MAX_LENGTH } from "@/lib/constants";
 import {
   BLOOD_GROUP_OPTIONS,
   EMPTY_FORM_VALUES,
@@ -101,7 +102,13 @@ export function IdCardForm({
     field: K,
     value: IdCardFormValues[K],
   ) {
-    setValues((current) => ({ ...current, [field]: value }));
+    setValues((current) => ({
+      ...current,
+      [field]: value,
+      ...(field === "profession" && value !== "other"
+        ? { otherProfession: "" }
+        : {}),
+    }));
     setError("");
   }
 
@@ -230,7 +237,11 @@ export function IdCardForm({
       step === 0
         ? [values.fullName, values.mobileNumber]
         : step === 1
-          ? [values.state, values.city]
+          ? [
+              values.state,
+              values.city,
+              ...(values.profession === "other" ? [values.otherProfession] : []),
+            ]
           : [];
     if (requiredText.some((value) => !value.trim())) {
       setError("Please fill in all required details.");
@@ -256,7 +267,7 @@ export function IdCardForm({
   const preview = makePreviewCard(values);
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-6">
       <RhCardBenefits pricing={pricing} />
       <ol
         aria-label="Card creation progress"
@@ -424,6 +435,19 @@ export function IdCardForm({
                     )
                   }
                 />
+                {values.profession === "other" && (
+                  <FormInput
+                    id="card-other-profession"
+                    label="Your profession"
+                    required
+                    maxLength={RH_CARD_OTHER_PROFESSION_MAX_LENGTH}
+                    placeholder="Enter your profession"
+                    value={values.otherProfession}
+                    onChange={(event) =>
+                      update("otherProfession", event.target.value)
+                    }
+                  />
+                )}
                 <FormSelect
                   id="card-qualification"
                   label="Qualification"
@@ -562,8 +586,7 @@ export function IdCardForm({
                     {pricing
                       ? `Pay ${new Intl.NumberFormat("en-IN", { style: "currency", currency: pricing.currency, maximumFractionDigits: 0 }).format(pricing.amount)} after reviewing your details. `
                       : "Payment is required after reviewing your details. "}
-                    Your card is activated after successful payment and is valid
-                    for one year.
+                    Your card is activated after successful payment.
                   </p>
                 </div>
                 <label className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:col-span-2">
@@ -578,7 +601,7 @@ export function IdCardForm({
                   />
                   <span>
                     I confirm my details are correct and accept the RH
-                    Healthcare membership terms.
+                    Healthcare Membership terms.
                   </span>
                 </label>
               </>

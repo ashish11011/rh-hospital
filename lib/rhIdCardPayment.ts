@@ -108,6 +108,7 @@ export async function getRhCardPendingPurchase(userId: string, email: string) {
           dateOfBirth: notes.details.dateOfBirth || "",
           bloodGroup: notes.details.bloodGroup || "",
           rhFactor: notes.details.rhFactor || "",
+          otherProfession: notes.details.otherProfession || "",
           organizationName: notes.details.organizationName || "",
           passportPhoto: notes.details.passportPhoto || "",
           passportPhotoUrl: cloudfrontAssetUrl(notes.details.passportPhoto),

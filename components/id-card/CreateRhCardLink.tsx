@@ -31,9 +31,9 @@ export function CreateRhCardLink() {
   }, []);
 
   return (
-    <Button asChild className="h-11 w-full px-5 sm:w-auto">
+    <Button asChild className="h-11 w-full px-5">
       <Link href={href} prefetch={false}>
-        Create RH ID card
+        Create Your RH Membership card
         <ArrowRight aria-hidden="true" className="ml-2 size-4" />
       </Link>
     </Button>

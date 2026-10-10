@@ -171,8 +171,8 @@ function CoursePurchase({
           pricing.originalAmount > 0 &&
           pricing.discountPercent === 0 && (
             <p className="mt-4 text-sm leading-6 text-slate-600">
-              Purchase an RH card first to get {RH_CARD_DISCOUNT_PERCENT}% off
-              courses while your card is active.{" "}
+              Purchase an RH card to get {RH_CARD_DISCOUNT_PERCENT}% off courses
+              while your card is active.{" "}
               <Link
                 href={
                   isLoggedIn

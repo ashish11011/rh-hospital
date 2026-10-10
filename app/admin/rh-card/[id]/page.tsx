@@ -43,7 +43,7 @@ export default async function RhCardDetailsPage({
     ["Gender", card.gender],
     ["Date of birth", formatCardDate(card.dateOfBirth)],
     ["Blood group", bloodGroup],
-    ["Profession", formatProfession(card.profession)],
+    ["Profession", formatProfession(card.profession, card.otherProfession)],
     [
       "Qualification",
       QUALIFICATION_OPTIONS.find(

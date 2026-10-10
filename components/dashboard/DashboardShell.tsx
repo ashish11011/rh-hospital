@@ -93,7 +93,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <DashboardSidebar />
           </aside>
           <main
-            className={`mx-auto min-h-[60vh] max-w-5xl min-w-0 flex-1 ${isLesson ? "" : "rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm sm:p-6 lg:p-8"}`}
+            className={`mx-auto min-h-[60vh] max-w-5xl min-w-0 flex-1 ${isLesson ? "" : "rounded-2xl border-slate-200/70 shadow-sm sm:border sm:bg-white sm:p-6 lg:p-8"}`}
           >
             {children}
           </main>

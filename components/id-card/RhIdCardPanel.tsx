@@ -113,19 +113,19 @@ export function RhIdCardPanel({
       aria-labelledby="rh-card-title"
       className={allowCreate ? "space-y-6" : "min-w-0 space-y-5"}
     >
-      <div>
+      {/* <div>
         <h2
           id="rh-card-title"
           className="flex items-center gap-2 text-xl font-semibold text-slate-900"
         >
           <IdCard className="text-primary size-5" />
-          Your RH ID card
+          Your RH Membership card
         </h2>
         <p className="mt-1 text-sm text-slate-500">
-          Your RH Healthcare membership, available on the website and mobile
+          Your RH Healthcare Membership, available on the website and mobile
           app.
         </p>
-      </div>
+      </div> */}
       {error ? (
         <div
           role="alert"
@@ -224,14 +224,14 @@ export function RhIdCardPanel({
       ) : (
         <div className="rounded-xl bg-gradient-to-r from-blue-50 to-teal-50 p-5">
           <p className="font-semibold text-slate-900">
-            You can create your RH ID card
+            You can create your RH Membership Card
           </p>
           <p className="mt-2 text-sm text-slate-600">
             Fill in your details, upload a passport photo, and complete payment
-            to get your RH membership card.
+            to get your RH Membership Card.
           </p>
           <Button asChild className="mt-4 h-11 px-5">
-            <Link href="/dashboard/id-card">Create RH ID card</Link>
+            <Link href="/dashboard/id-card">Create RH Membership card</Link>
           </Button>
         </div>
       )}

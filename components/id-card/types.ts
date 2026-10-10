@@ -19,6 +19,7 @@ export type IdCardFormValues = {
   state: string;
   city: string;
   profession: StoredCard["profession"] | "";
+  otherProfession: string;
   qualification: StoredCard["qualification"] | "";
   organizationName: string;
   passportPhoto: string;

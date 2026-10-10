@@ -80,6 +80,7 @@ function setup({ authenticated = true, existing = null } = {}) {
   };
   const dependencies = {
     "server-only": {},
+    "@/lib/constants": { RH_CARD_OTHER_PROFESSION_MAX_LENGTH: 120 },
     "next/server": {
       NextResponse: {
         json: (body, options) => ({ body, status: options?.status || 200 }),

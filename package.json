@@ -33,6 +33,7 @@
     "date-fns": "^4.4.0",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
+    "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
     "html5-qrcode": "^2.3.8",
     "jose": "^6.2.2",

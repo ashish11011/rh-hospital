@@ -142,7 +142,7 @@ export default async function RhCardsPage({
                         {card.mobileNumber}
                       </p>
                     </TableCell>
-                    <TableCell>{formatProfession(card.profession)}</TableCell>
+                    <TableCell>{formatProfession(card.profession, card.otherProfession)}</TableCell>
                     <TableCell>
                       {card.city}, {card.state}
                     </TableCell>

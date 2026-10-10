@@ -125,6 +125,7 @@ export const userCardSchema = pgTable("user_card", {
   city: varchar("city").notNull(),
 
   profession: userProfessionEnum("profession").default("other").notNull(),
+  otherProfession: varchar("other_profession", { length: 120 }),
   qualification: userQualificationEnum("qualification").default("other").notNull(),
   organizationName: varchar("organization_name"),
 

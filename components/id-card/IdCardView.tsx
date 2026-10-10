@@ -184,8 +184,8 @@ export function IdCardView({
               <h3 className="mt-5 text-3xl leading-tight font-semibold tracking-tight break-words sm:text-4xl">
                 {card.fullName}
               </h3>
-              <p className="mt-2 text-sm text-white/80 sm:text-base">
-                {formatProfession(card.profession)}
+              <p className="mt-2 text-sm break-words text-white/80 sm:text-base">
+                {formatProfession(card.profession, card.otherProfession)}
               </p>
 
               <div className="mt-5 flex flex-wrap gap-2">
@@ -210,10 +210,12 @@ export function IdCardView({
               </div>
             </div>
 
-            <CardDates
-              activationDate={card.activationDate}
-              validityDate={card.validityDate}
-            />
+            {!isPreview && (
+              <CardDates
+                activationDate={card.activationDate}
+                validityDate={card.validityDate}
+              />
+            )}
             <Button
               type="button"
               variant="secondary"
@@ -246,7 +248,7 @@ export function IdCardView({
                 Membership details
               </h3>
               <p className="mt-2 text-sm text-white/65">
-                RH Healthcare membership card
+                RH Healthcare Membership card
               </p>
               <dl className="mt-6 divide-y divide-white/10">
                 {details.map(([label, value]) => (
@@ -263,11 +265,13 @@ export function IdCardView({
                 ))}
               </dl>
             </div>
-            <CardDates
-              activationDate={card.activationDate}
-              validityDate={card.validityDate}
-              back
-            />
+            {!isPreview && (
+              <CardDates
+                activationDate={card.activationDate}
+                validityDate={card.validityDate}
+                back
+              />
+            )}
             <Button
               type="button"
               variant="secondary"

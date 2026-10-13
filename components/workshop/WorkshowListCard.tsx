@@ -45,7 +45,7 @@ export const WorkshowListCard = ({ ws, isCompleted }: any) => {
               <div className="flex items-center text-sm text-gray-600">
                 <Clock className="text-primary mr-3 h-4 w-4" />
                 <span>
-                  {formatTime(ws.startTime)} - {formatTime(ws.endTime)}
+                  {formatTime(ws.startTime)} - {formatTime(ws.endTime)} IST
                 </span>
               </div>
             </div>

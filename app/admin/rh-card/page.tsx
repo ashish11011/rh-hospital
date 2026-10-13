@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Admin - RH Card" };
+export const metadata = { title: "Admin - RH Membership Card" };
 
 export default async function RhCardsPage({
   searchParams,
@@ -49,10 +49,10 @@ export default async function RhCardsPage({
     <div className="min-w-0 space-y-6 py-6">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-          <IdCard aria-hidden="true" /> RH Card
+          <IdCard aria-hidden="true" /> RH Membership Card
         </h1>
         <p className="text-muted-foreground mt-2 text-sm">
-          View RH membership cards and their member details, newest first.
+          View RH Membership Cards and their member details, newest first.
         </p>
       </div>
       <form action="/admin/rh-card" className="flex flex-wrap items-end gap-3">
@@ -121,8 +121,8 @@ export default async function RhCardsPage({
                   className="py-12 text-center text-slate-500"
                 >
                   {search || status
-                    ? "No RH cards match your filters."
-                    : "No RH cards have been created yet."}
+                    ? "No RH Membership Cards match your filters."
+                    : "No RH Membership Cards have been created yet."}
                 </TableCell>
               </TableRow>
             ) : (
@@ -164,7 +164,7 @@ export default async function RhCardsPage({
                       <Button asChild variant="outline" size="sm">
                         <Link
                           href={`/admin/rh-card/${card.id}`}
-                          aria-label={`View RH card details for ${card.fullName}`}
+                          aria-label={`View RH Membership Card details for ${card.fullName}`}
                         >
                           View details
                         </Link>
@@ -184,7 +184,7 @@ export default async function RhCardsPage({
             : `Showing ${(page - 1) * limit + 1}–${Math.min(page * limit, total)} of ${total} cards`}
         </p>
         <nav
-          aria-label="RH cards pagination"
+          aria-label="RH Membership Cards pagination"
           className="flex items-center gap-3"
         >
           {page > 1 ? (

@@ -5,6 +5,7 @@ import { AWS_ACCESS_KEY, AWS_BUCKET, AWS_REGION, AWS_SECRET_KEY } from "@/env";
 
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { requireAdmin } from "@/lib/adminAuth";
+import { publicAssetKey } from "@/lib/publicAsset";
 
 const s3Client = new S3Client({
   region: AWS_REGION,
@@ -21,7 +22,7 @@ function createS3Key(filename: string, folder?: string) {
     .replace(/[^a-zA-Z0-9/_-]/g, "_");
   const key = `${Date.now()}-${safeFilename}`;
 
-  return cleanFolder ? `${cleanFolder}/${key}` : key;
+  return publicAssetKey(cleanFolder ? `${cleanFolder}/${key}` : key);
 }
 
 type PresignedUploadResult = {

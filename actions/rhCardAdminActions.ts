@@ -106,14 +106,14 @@ export async function getAdminRhCard(id: string) {
 export async function cancelRhCardMembership(id: string) {
   await requireAdmin("full");
   if (typeof id !== "string" || !CARD_ID_PATTERN.test(id)) {
-    return { success: false, error: "Invalid RH card ID." };
+    return { success: false, error: "Invalid RH Membership Card ID." };
   }
   const [card] = await db
     .select({ id: userCard.id, isActive: userCard.isActive })
     .from(userCard)
     .where(eq(userCard.id, id))
     .limit(1);
-  if (!card) return { success: false, error: "RH card not found." };
+  if (!card) return { success: false, error: "RH Membership Card not found." };
 
   if (card.isActive) {
     await db

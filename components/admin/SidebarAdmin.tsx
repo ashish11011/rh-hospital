@@ -24,7 +24,7 @@ export async function SidebarAdmin() {
       access: "full",
     },
     {
-      name: "RH Card",
+      name: "RH Membership Card",
       url: "/admin/rh-card",
       access: "full",
     },

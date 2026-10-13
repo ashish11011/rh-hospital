@@ -1,4 +1,5 @@
 "use client";
+import { publicAssetUrl } from "@/lib/publicAsset";
 
 import Image from "next/image";
 import { useId, useState } from "react";
@@ -50,7 +51,7 @@ function CardBrand({ badge, back = false }: { badge: string; back?: boolean }) {
     <div className="relative flex items-center justify-between gap-3">
       {back ? (
         <Image
-          src="/logo.png"
+          src={publicAssetUrl("logo.png")}
           alt="RH Healthcare"
           width={144}
           height={84}
@@ -135,7 +136,9 @@ export function IdCardView({
 
   return (
     <article
-      aria-label={isPreview ? "RH ID card preview" : "Your RH ID card"}
+      aria-label={
+        isPreview ? "RH Membership Card preview" : "Your RH Membership Card"
+      }
       className="w-full max-w-[440px]"
     >
       <div style={{ perspective: 1400 }}>
@@ -247,9 +250,7 @@ export function IdCardView({
               <h3 className="mt-5 text-2xl font-semibold tracking-tight">
                 Membership details
               </h3>
-              <p className="mt-2 text-sm text-white/65">
-                RH Healthcare Membership card
-              </p>
+              <p className="mt-2 text-sm text-white/65">RH Membership Card</p>
               <dl className="mt-6 divide-y divide-white/10">
                 {details.map(([label, value]) => (
                   <div key={label} className="py-3 first:pt-0">

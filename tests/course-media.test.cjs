@@ -12,6 +12,8 @@ function load(file, modules = {}, globals = {}) {
   return exports;
 }
 const media = load('lib/courseMedia.ts');
+const cloudfront = load('lib/cloudfront.ts', {}, { process: { env: { NEXT_PUBLIC_CLOUDFRONT_URL: 'https://cdn.example', NEXT_PUBLIC_COURSE_CLOUDFRONT_URL: 'https://cdn.example' } } });
+const publicAssets = load('lib/publicAsset.ts', { './cloudfront': cloudfront, './courseMedia': media });
 test('decodes legacy database paths exactly once, including spaces, ampersands and literal plus', () => {
   assert.equal(media.courseMediaKey('course/transcoded/nrp/videos/nrp-1-topic+1-001/index.m3u8'), 'course/transcoded/nrp/videos/nrp-1-topic 1-001/index.m3u8');
   assert.equal(media.courseMediaKey('course/transcoded/nrp/videos/nrp-1-Trauma+Triage-001/index.m3u8'), 'course/transcoded/nrp/videos/nrp-1-Trauma Triage-001/index.m3u8');
@@ -37,12 +39,13 @@ test('rewrites variant playlists, segments, encryption keys and initialization m
   assert.match(output, /\n\/protected\/720p\/index.m3u8\n/);
   assert.match(output, /\n\/protected\/segment.ts\n/);
 });
-function route(access, upstream = async () => { throw new Error("Unexpected CDN call"); }) {
+function route(access, upstream = async () => { throw new Error("Unexpected CDN call"); }, item = {}) {
   let calls = 0;
   const itemId = '10000000-0000-4000-8000-000000000001';
-  const query = { from: () => query, where: () => query, limit: async () => [{ courseId: itemId, mediaUrl: 'course/transcoded/nrp/videos/nrp-1-Trauma+Triage-001/index.m3u8' }] };
+  const query = { from: () => query, where: () => query, limit: async () => [{ courseId: itemId, mediaUrl: 'course/transcoded/nrp/videos/nrp-1-Trauma+Triage-001/index.m3u8', ...item }] };
   const handlers = load('app/api/course/media/[itemId]/route.ts', {
     '@/lib/cloudfront': { CLOUDFRONT_URL: 'https://cdn.example' },
+    '@/lib/publicAsset': publicAssets,
     '@/db': { courseItem: { id: 'id' } }, '@/lib/dbConfig': { db: { select: () => query } },
     '@/lib/courseAccess': { getCourseAccess: async () => access, isCourseId: value => value === itemId },
     '@/lib/courseMedia': media, 'drizzle-orm': { eq: () => true }
@@ -58,17 +61,20 @@ test('no enrollment denies media before reading storage', async () => {
 });
 test('enrolled users still cannot request another lesson directory', async () => {
   const harness = route({ email: 'learner@example.com' });
-  assert.equal((await harness.get('?asset=..%2Fother%2Fsecret.ts')).status, 400);
+  assert.equal((await harness.get('?asset=..%2Fother%2Fsecret.ts')).status, 410);
   assert.equal(harness.calls(), 0);
 });
 
-test('uses project CloudFront with decoded path and rewrites playlist URLs', async () => {
-  const harness = route({}, async (url, options) => {
-    assert.equal(url, 'https://cdn.example/course/transcoded/nrp/videos/nrp-1-Trauma%20Triage-001/index.m3u8');
-    assert.equal(options.redirect, 'error');
-    return new Response('#EXTM3U\n720p/index.m3u8\n');
-  });
-  const response = await harness.get();
-  assert.equal(response.status, 200);
-  assert.match(await response.text(), /\?asset=720p%2Findex/);
+test('the retired video proxy never fetches unsigned course videos', async () => {
+  const harness = route({ email: 'learner@example.com' });
+  assert.equal((await harness.get()).status, 410);
+  assert.equal(harness.calls(), 0);
+});
+
+test('course documents read from public while retaining enrollment checks', async () => {
+  const harness = route({}, async (url) => {
+    assert.equal(url, 'https://cdn.example/public/course/resources/notes.pdf');
+    return new Response('pdf');
+  }, { mediaType: 'pdf', mediaUrl: 'course/resources/notes.pdf' });
+  assert.equal((await harness.get()).status, 200);
 });

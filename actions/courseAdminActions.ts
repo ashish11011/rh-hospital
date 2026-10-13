@@ -4,7 +4,7 @@ import { course, courseEnrolment, courseItem, courseReviews, user } from "@/db";
 import { db } from "@/lib/dbConfig";
 import { asc, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { cloudfrontAssetKey } from "@/lib/cloudfront";
+import { publicAssetKey, courseAssetKey } from "@/lib/publicAsset";
 import { publicCoursePath } from "@/lib/course";
 
 export type CourseInput = {
@@ -38,7 +38,7 @@ const cleanCourse = (data: CourseInput) => ({
   title: data.title.trim(),
   description: data.description.trim(),
   slug: data.slug.trim(),
-  bannerImageUrl: cloudfrontAssetKey(data.bannerImageUrl),
+  bannerImageUrl: publicAssetKey(data.bannerImageUrl),
   currency: data.currency?.trim() || "INR",
   whatYouWillLearn: data.whatYouWillLearn?.filter(Boolean) || [],
   skillsAcquired: data.skillsAcquired?.filter(Boolean) || [],
@@ -87,12 +87,12 @@ export async function getCourseItems(courseId: string) {
 
 export async function createCourseItem(data: CourseItemInput) {
   if (!data.mediaUrl.trim() || !data.mediaType.trim()) throw new Error("Media key and type are required");
-  await db.insert(courseItem).values({ ...data, mediaUrl: cloudfrontAssetKey(data.mediaUrl) });
+  await db.insert(courseItem).values({ ...data, mediaUrl: courseAssetKey(data.mediaUrl, data.mediaType) });
   revalidatePath(`/admin/course/${data.courseId}`);
 }
 
 export async function updateCourseItem(id: string, data: CourseItemInput) {
-  await db.update(courseItem).set({ ...data, mediaUrl: cloudfrontAssetKey(data.mediaUrl), updatedAt: new Date() }).where(eq(courseItem.id, id));
+  await db.update(courseItem).set({ ...data, mediaUrl: courseAssetKey(data.mediaUrl, data.mediaType), updatedAt: new Date() }).where(eq(courseItem.id, id));
   revalidatePath(`/admin/course/${data.courseId}`);
 }
 

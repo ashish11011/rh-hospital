@@ -1,7 +1,7 @@
 import "server-only";
 import { desc, eq } from "drizzle-orm";
 import { userCardSchema } from "@/db/userSchema";
-import { cloudfrontAssetUrl } from "@/lib/cloudfront";
+import { publicAssetUrl } from "@/lib/publicAsset";
 import { db } from "@/lib/dbConfig";
 import { RH_CARD_OTHER_PROFESSION_MAX_LENGTH } from "@/lib/constants";
 
@@ -135,7 +135,7 @@ export function buildMemberShipId(
 export function serializeCard(card: UserCard) {
   return {
     ...card,
-    passportPhotoUrl: cloudfrontAssetUrl(card.passportPhoto) || null,
+    passportPhotoUrl: publicAssetUrl(card.passportPhoto) || null,
     dateOfBirth: card.dateOfBirth?.toISOString() || null,
     activationDate: card.activationDate?.toISOString() || null,
     validityDate: card.validityDate?.toISOString() || null,

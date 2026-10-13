@@ -252,7 +252,7 @@ export function PageContentClient() {
 
         <Image
           src={
-            "https://d2c3lsl35lix55.cloudfront.net/website-image/confrence-registration.png"
+            "https://media.rhhealthcaresimulation.com/public/website-image/confrence-registration.png"
           }
           height={1200}
           width={1200}
@@ -608,7 +608,7 @@ function SightSeenJaipur() {
                 <Image
                   width={600}
                   height={600}
-                  src={`https://d2c3lsl35lix55.cloudfront.net${place.image}`}
+                  src={`https://media.rhhealthcaresimulation.com/public${place.image}`}
                   alt={place.name}
                   className="mt-2 h-72 w-full overflow-hidden object-cover text-sm leading-6 text-slate-700"
                 />
@@ -909,7 +909,7 @@ function ImageCard({
       <Image
         height={350}
         width={350}
-        src={`https://d2c3lsl35lix55.cloudfront.net${image}`}
+        src={`https://media.rhhealthcaresimulation.com/public${image}`}
         alt={name}
         className="border-primary size-32 overflow-hidden rounded-full border-2 object-contain md:size-48"
       />

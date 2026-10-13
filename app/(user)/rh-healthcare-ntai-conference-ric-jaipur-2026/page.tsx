@@ -15,12 +15,12 @@ export const metadata: Metadata = {
   },
   openGraph: {
     images: [
-      "https://d2c3lsl35lix55.cloudfront.net/website-image/Registration+Page.png",
+      "https://media.rhhealthcaresimulation.com/public/website-image/Registration+Page.png",
     ],
   },
   twitter: {
     images: [
-      "https://d2c3lsl35lix55.cloudfront.net/website-image/Registration+Page.png",
+      "https://media.rhhealthcaresimulation.com/public/website-image/Registration+Page.png",
     ],
   },
 };

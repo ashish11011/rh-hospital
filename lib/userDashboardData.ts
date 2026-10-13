@@ -6,7 +6,7 @@ import {
   payment,
   user,
 } from "@/db";
-import { cloudfrontAssetUrl } from "@/lib/cloudfront";
+import { publicAssetUrl, courseAssetUrl } from "@/lib/publicAsset";
 import { publicCoursePath } from "@/lib/course";
 import { getApprovedCourseReviews } from "@/lib/courseReviewData";
 import { db } from "@/lib/dbConfig";
@@ -137,7 +137,7 @@ export async function getUserPurchasesByEmail(email: string) {
   return purchases.map(({ notes, ...purchase }) => ({
     ...purchase,
     orderType: isRhCardPayment({ orderType: purchase.orderType, notes })
-      ? "RH ID card"
+      ? "RH Membership Card"
       : purchase.orderType,
   }));
 }
@@ -267,7 +267,7 @@ export async function getPurchasedCourseDetailByEmail(
       ...purchasedCourse,
       path: publicCoursePath(purchasedCourse.slug),
       bannerImageKey: purchasedCourse.bannerImageUrl,
-      bannerImageUrl: cloudfrontAssetUrl(purchasedCourse.bannerImageUrl),
+      bannerImageUrl: publicAssetUrl(purchasedCourse.bannerImageUrl),
       completedLessons,
       totalTrackableLessons: trackableItems.length,
       progressPercent:
@@ -281,7 +281,7 @@ export async function getPurchasedCourseDetailByEmail(
         return {
           ...item,
           mediaKey: item.mediaUrl,
-          mediaUrl: cloudfrontAssetUrl(item.mediaUrl),
+          mediaUrl: courseAssetUrl(item.mediaUrl, item.mediaType),
           progress: progress?.progress ?? 0,
           isCompleted: progress?.isCompleted ?? false,
           progressUpdatedAt: progress?.updatedAt ?? null,

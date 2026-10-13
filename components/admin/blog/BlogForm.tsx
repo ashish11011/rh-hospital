@@ -29,6 +29,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { normalizeBlogSlug } from "@/lib/blogUtils";
 import { getS3AssetUrl } from "@/lib/s3Asset";
+import { publicMediaHtml } from "@/lib/publicAsset";
 import { cn } from "@/lib/utils";
 import {
   Bold,
@@ -83,7 +84,7 @@ export function BlogForm({ initialData }: { initialData?: any }) {
     title: initialData?.title ?? "",
     slug: initialData?.slug ?? "",
     shortDescription: initialData?.shortDescription ?? "",
-    content: initialData?.content ?? "",
+    content: publicMediaHtml(initialData?.content),
     authorName: initialData?.authorName ?? "RH Healthcare Simulation Centre",
     featuredImage: initialData?.featuredImage ?? "",
     bannerImage: initialData?.bannerImage ?? "",

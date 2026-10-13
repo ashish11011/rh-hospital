@@ -1,3 +1,4 @@
+import { isMembershipPhotoKey } from "@/lib/publicAsset";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { userSchema } from "@/db/userSchema";
@@ -64,9 +65,9 @@ export async function GET(req: Request) {
       },
     });
   } catch (error) {
-    console.error("RH ID card load error", error);
+    console.error("RH Membership Card load error", error);
     return NextResponse.json(
-      { error: "Unable to load your RH ID card. Please try again." },
+      { error: "Unable to load your RH Membership Card. Please try again." },
       { status: 500 },
     );
   }
@@ -93,7 +94,7 @@ export async function POST(req: Request) {
     let input;
     try {
       input = validateInput((await req.json()) as UserCardInput);
-      if (!input.passportPhoto?.startsWith(`membership-cards/${account.id}/`))
+      if (!isMembershipPhotoKey(input.passportPhoto, account.id))
         throw new Error(
           "Please upload your passport photo before continuing to payment",
         );
@@ -120,10 +121,10 @@ export async function POST(req: Request) {
       data: result.purchase,
       message: result.card
         ? "Membership card already exists"
-        : "Complete payment to create your RH ID card",
+        : "Complete payment to create your RH Membership Card",
     });
   } catch (error) {
-    console.error("RH ID card checkout error", error);
+    console.error("RH Membership Card checkout error", error);
     return NextResponse.json(
       {
         error:

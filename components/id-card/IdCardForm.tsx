@@ -7,7 +7,6 @@ import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { IdCardView } from "./IdCardView";
-import { RhCardBenefits } from "./RhCardBenefits";
 import { RhCardPrice } from "./RhCardPrice";
 import { RH_CARD_OTHER_PROFESSION_MAX_LENGTH } from "@/lib/constants";
 import {
@@ -206,7 +205,8 @@ export function IdCardForm({
       const result: IdCardApiResponse = await response.json();
       if (!response.ok || !result.success)
         throw new Error(
-          result.error || "Unable to create your RH ID card. Please try again.",
+          result.error ||
+            "Unable to create your RH Membership Card. Please try again.",
         );
       if (result.card) {
         onGenerated(result.card);
@@ -223,7 +223,7 @@ export function IdCardForm({
       setError(
         cause instanceof Error
           ? cause.message
-          : "Unable to create your RH ID card. Please try again.",
+          : "Unable to create your RH Membership Card. Please try again.",
       );
     } finally {
       setSubmitting(false);
@@ -240,7 +240,9 @@ export function IdCardForm({
           ? [
               values.state,
               values.city,
-              ...(values.profession === "other" ? [values.otherProfession] : []),
+              ...(values.profession === "other"
+                ? [values.otherProfession]
+                : []),
             ]
           : [];
     if (requiredText.some((value) => !value.trim())) {
@@ -268,7 +270,6 @@ export function IdCardForm({
 
   return (
     <div className="space-y-6">
-      <RhCardBenefits pricing={pricing} />
       <ol
         aria-label="Card creation progress"
         className="grid grid-cols-3 gap-2"
@@ -288,7 +289,7 @@ export function IdCardForm({
         tabIndex={-1}
         className="text-xl font-semibold text-slate-900 outline-none"
       >
-        {previewing ? "Preview your RH ID card" : STEPS[step]}
+        {previewing ? "Preview your RH Membership Card" : STEPS[step]}
       </h2>
       {error && (
         <p

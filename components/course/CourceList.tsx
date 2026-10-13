@@ -17,7 +17,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "../ui/input-group";
-import { cloudfrontAssetUrl } from "@/lib/cloudfront";
+import { publicAssetUrl } from "@/lib/publicAsset";
 import { publicCoursePath } from "@/lib/course";
 import { getRhCardCoursePricing } from "@/lib/rhCardDiscount";
 import { CoursePrice } from "./CoursePrice";
@@ -89,7 +89,7 @@ export default function CourseList({
                 <div className="relative h-52">
                   <Link href={publicCoursePath(course.slug)}>
                     <Image
-                      src={cloudfrontAssetUrl(course.bannerImageUrl)}
+                      src={publicAssetUrl(course.bannerImageUrl)}
                       alt={course.title}
                       height={500}
                       width={500}

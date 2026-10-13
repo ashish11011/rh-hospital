@@ -91,9 +91,10 @@ function setup({ authenticated = true, existing = null } = {}) {
       desc: (field) => field,
     },
     "@/db/userSchema": { userSchema: user, userCardSchema: userCard },
-    "@/lib/cloudfront": {
-      cloudfrontAssetUrl: (key) =>
-        key ? `https://images.example.com/${key}` : "",
+    "@/lib/publicAsset": {
+      publicAssetUrl: (key) =>
+        key ? `https://images.example.com/public/${key.replace(/^public\//, "")}` : "",
+      isMembershipPhotoKey: (key, id) => Boolean(key?.replace(/^public\//, "").startsWith(`membership-cards/${id}/`)),
     },
     "@/lib/dbConfig": { db },
     "@/lib/mobileApiAuth": {
@@ -210,7 +211,7 @@ test("the dashboard receives the existing mobile card and its photo", async () =
   assert.equal(result.body.card.dateOfBirth, "1995-01-01T00:00:00.000Z");
   assert.equal(
     result.body.card.passportPhotoUrl,
-    `https://images.example.com/${card.passportPhoto}`,
+    `https://images.example.com/public/${card.passportPhoto}`,
   );
 });
 

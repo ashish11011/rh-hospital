@@ -1,6 +1,11 @@
 export const CLOUDFRONT_URL = (
   process.env.NEXT_PUBLIC_CLOUDFRONT_URL ||
-  "https://d2c3lsl35lix55.cloudfront.net"
+  "https://media.rhhealthcaresimulation.com"
+).replace(/\/$/, "");
+
+export const COURSE_CLOUDFRONT_URL = (
+  process.env.NEXT_PUBLIC_COURSE_CLOUDFRONT_URL ||
+  "https://media.rhhealthcaresimulation.com"
 ).replace(/\/$/, "");
 
 export function cloudfrontAssetUrl(key?: string | null) {

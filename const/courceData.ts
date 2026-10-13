@@ -1,7 +1,7 @@
 export const COURSE_DATA = [
   {
     bannerImage:
-      "https://d2c3lsl35lix55.cloudfront.net/website-image/nrp.png",
+      "https://d2c3lsl35lix55.cloudfront.net/public/website-image/nrp.png",
     name: "NRP for nurses",
     courseHour: 10,
     numberOfLacture: 3,
@@ -64,7 +64,7 @@ export const COURSE_DATA = [
   },
   {
     bannerImage:
-      "https://d2c3lsl35lix55.cloudfront.net/website-image/triage.png",
+      "https://d2c3lsl35lix55.cloudfront.net/public/website-image/triage.png",
     name: "TRIAGE emergencies for nurses",
     courseHour: 10,
     numberOfLacture: 2,
@@ -120,7 +120,7 @@ export const COURSE_DATA = [
   },
   {
     bannerImage:
-      "https://d2c3lsl35lix55.cloudfront.net/website-image/pals.png",
+      "https://d2c3lsl35lix55.cloudfront.net/public/website-image/pals.png",
     name: "PALS for nurses",
     courseHour: 12,
     numberOfLacture: 4,

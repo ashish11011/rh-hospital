@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { getS3AssetUrl } from "@/lib/s3Asset";
+import { formatWorkshopDateTime } from "@/helper/workshopDateTime";
 
 export default async function WorkshopsPage() {
   const workshops = await getUserRegisteredWorkshops();
@@ -89,16 +90,7 @@ export default async function WorkshopsPage() {
                 {workshop.workshopTime && (
                   <p className="mt-auto mb-4 flex items-center gap-2 text-sm text-slate-500">
                     <CalendarDays className="h-4 w-4" />
-                    {new Date(workshop.workshopTime).toLocaleDateString(
-                      undefined,
-                      {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "2-digit",
-                      },
-                    )}
+                    {formatWorkshopDateTime(workshop.workshopTime)}
                   </p>
                 )}
 

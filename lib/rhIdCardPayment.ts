@@ -22,7 +22,7 @@ import {
   sendPaymentEventEmail,
   sendRhIdCardCreatedEmail,
 } from "@/lib/sesClient";
-import { cloudfrontAssetUrl } from "@/lib/cloudfront";
+import { publicAssetUrl, isMembershipPhotoKey } from "@/lib/publicAsset";
 import type { HdfcPaymentEventName } from "@/lib/paymentConfirmation";
 
 // Rupees. This module must never be imported by a client component.
@@ -111,7 +111,7 @@ export async function getRhCardPendingPurchase(userId: string, email: string) {
           otherProfession: notes.details.otherProfession || "",
           organizationName: notes.details.organizationName || "",
           passportPhoto: notes.details.passportPhoto || "",
-          passportPhotoUrl: cloudfrontAssetUrl(notes.details.passportPhoto),
+          passportPhotoUrl: publicAssetUrl(notes.details.passportPhoto),
           referralCode: notes.details.referralCode || "",
           hearAboutRh: notes.details.hearAboutRh || "",
         },
@@ -191,7 +191,7 @@ export async function startRhCardPurchase(
       customerEmail: account.email,
       customerPhone: input.mobileNumber,
       customerName: input.fullName,
-      description: "RH ID card membership purchase",
+      description: "RH Membership Card purchase",
       returnQuery: { order_id: gatewayOrderId, type: "rh_id_card" },
     });
     if (!session.payment_links?.web)
@@ -225,7 +225,7 @@ export async function startRhCardPurchase(
         contact: input.mobileNumber,
         status: "pending",
         notes: JSON.stringify(notes),
-        description: "RH ID card membership",
+        description: "RH Membership Card",
         responseObject: session,
       })
       .returning();
@@ -262,7 +262,7 @@ export async function confirmRhCardPayment(input: {
       (gateway.currency && gateway.currency !== "INR")
     )
       throw new Error(
-        "RH card payment has not been verified for the correct amount",
+        "RH Membership Card payment has not been verified for the correct amount",
       );
   }
 
@@ -273,7 +273,7 @@ export async function confirmRhCardPayment(input: {
     .limit(1);
   const initialNotes =
     initialRecord && readRhCardPaymentNotes(initialRecord.notes);
-  if (!initialNotes) throw new Error("RH card payment not found");
+  if (!initialNotes) throw new Error("RH Membership Card payment not found");
   const outcome = await db.transaction(async (tx) => {
     // Use the same lock order as checkout to avoid deadlocks during concurrent requests.
     const [account] = await tx
@@ -288,15 +288,15 @@ export async function confirmRhCardPayment(input: {
       .for("update");
     const notes = record && readRhCardPaymentNotes(record.notes);
     if (!record || record.orderType !== "product" || !notes)
-      throw new Error("RH card payment not found");
+      throw new Error("RH Membership Card payment not found");
     if (record.amount !== RH_ID_CARD_AMOUNT_INR || record.currency !== "INR")
-      throw new Error("RH card payment amount mismatch");
+      throw new Error("RH Membership Card payment amount mismatch");
     if (
       !account ||
       record.email !== account.email ||
       notes.userId !== account.id
     )
-      throw new Error("RH card payment account mismatch");
+      throw new Error("RH Membership Card payment account mismatch");
     // Delayed failures must not undo a completed purchase; refunded cards stay refunded.
     const terminal =
       record.status === "refunded" ||
@@ -322,9 +322,9 @@ export async function confirmRhCardPayment(input: {
       if (!fulfilledCard) {
         const details = validateInput(notes.details);
         if (
-          !details.passportPhoto?.startsWith(`membership-cards/${account.id}/`)
+          !isMembershipPhotoKey(details.passportPhoto, account.id)
         )
-          throw new Error("Invalid RH card passport photo");
+          throw new Error("Invalid RH Membership Card passport photo");
         const activationDate = new Date();
         const [created] = await tx
           .insert(userCard)

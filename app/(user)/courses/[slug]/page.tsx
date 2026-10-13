@@ -12,7 +12,7 @@ import { IconCertificate } from "@tabler/icons-react";
 import { Clock3, FileText, ShieldCheck, Star } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { cloudfrontAssetUrl } from "@/lib/cloudfront";
+import { publicAssetUrl } from "@/lib/publicAsset";
 import { publicCoursePath } from "@/lib/course";
 import { getS3AssetUrl } from "@/lib/s3Asset";
 import Link from "next/link";
@@ -47,7 +47,7 @@ export default async function Page({
 
   return (
     <>
-      <Header bannerImage={cloudfrontAssetUrl(course.bannerImageUrl)} />
+      <Header bannerImage={publicAssetUrl(course.bannerImageUrl)} />
       <div className="container flex w-full flex-col-reverse gap-8 lg:flex-row lg:gap-12">
         <CourseOverviewSection
           courseOverview={course.courseOverview || course.description}
@@ -171,7 +171,7 @@ function CoursePurchase({
           pricing.originalAmount > 0 &&
           pricing.discountPercent === 0 && (
             <p className="mt-4 text-sm leading-6 text-slate-600">
-              Purchase an RH card to get {RH_CARD_DISCOUNT_PERCENT}% off courses
+              Purchase an RH Membership Card to get {RH_CARD_DISCOUNT_PERCENT}% off courses
               while your card is active.{" "}
               <Link
                 href={
@@ -181,7 +181,14 @@ function CoursePurchase({
                 }
                 className="text-primary font-medium underline underline-offset-4"
               >
-                Get your RH card
+                Get your RH Membership Card
+              </Link>
+              {" "}
+              <Link
+                href="/#membership-benefits"
+                className="text-primary font-medium underline underline-offset-4"
+              >
+                View all membership benefits
               </Link>
             </p>
           )}

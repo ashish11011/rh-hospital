@@ -34,6 +34,8 @@ type Props = {
   src: string;
   type: string;
   email: string;
+  preview?: boolean;
+  onRetryAccess?: () => void | Promise<void>;
   sprite?: {
     url: string;
     width: number;
@@ -52,10 +54,14 @@ export default function VideoPlayer({
   itemId,
   initialProgress,
   onProgress,
+  preview = false,
+  onRetryAccess,
 }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const resumePosition = useRef(initialProgress);
   const progressCallback = useRef(onProgress);
+  const accessRetry = useRef(onRetryAccess);
+  accessRetry.current = onRetryAccess;
   useEffect(() => {
     progressCallback.current = onProgress;
   }, [onProgress]);
@@ -68,6 +74,7 @@ export default function VideoPlayer({
     const video = document.createElement("video-js");
     video.classList.add("video-js", "vjs-big-play-centered");
     video.setAttribute("playsinline", "");
+    video.setAttribute("crossorigin", "use-credentials");
     host.appendChild(video);
     const player = videojs(video, {
       controls: true,
@@ -75,6 +82,8 @@ export default function VideoPlayer({
       aspectRatio: "16:9",
       preload: "metadata",
       playsinline: true,
+      crossOrigin: "use-credentials",
+      html5: { vhs: { withCredentials: true } },
       playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
       // Full-window fallback keeps the watermark on iPhones without element fullscreen.
       preferFullWindow: true,
@@ -140,6 +149,7 @@ export default function VideoPlayer({
       return seconds;
     };
     const sync = () => {
+      if (preview) return;
       const seconds = capture();
       if (seconds !== undefined) save(seconds, player.duration() ?? 0);
       lastSync = Date.now();
@@ -164,7 +174,7 @@ export default function VideoPlayer({
     document.addEventListener("visibilitychange", visibilityChange);
     window.addEventListener("pagehide", sync);
     player.on("error", () => setError(true));
-    player.src({ src, type });
+    player.src({ src, type, withCredentials: true });
     return () => {
       sync();
       disposed = true;
@@ -174,7 +184,7 @@ export default function VideoPlayer({
       resize.disconnect();
       player.dispose();
     };
-  }, [src, type, email, sprite, attempt, courseId, itemId]);
+  }, [src, type, email, sprite, attempt, courseId, itemId, preview]);
   return (
     <div
       className="course-video overflow-hidden rounded-xl bg-slate-950"
@@ -192,7 +202,8 @@ export default function VideoPlayer({
           access.
           <button
             className="ml-3 underline"
-            onClick={() => {
+            onClick={async () => {
+              await accessRetry.current?.();
               setError(false);
               setAttempt((value) => value + 1);
             }}

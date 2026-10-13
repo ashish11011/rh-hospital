@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Admin - RH Card Details" };
+export const metadata = { title: "Admin - RH Membership Card Details" };
 
 export default async function RhCardDetailsPage({
   params,
@@ -85,12 +85,12 @@ export default async function RhCardDetailsPage({
     <div className="min-w-0 space-y-6 py-6">
       <Button asChild variant="outline">
         <Link href="/admin/rh-card">
-          <ArrowLeft aria-hidden="true" /> Back to RH cards
+          <ArrowLeft aria-hidden="true" /> Back to RH Membership Cards
         </Link>
       </Button>
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold">
-          RH Card details · {card.fullName}
+          RH Membership Card details · {card.fullName}
         </h1>
         <Badge variant={status === "Active" ? "default" : "secondary"}>
           {status}

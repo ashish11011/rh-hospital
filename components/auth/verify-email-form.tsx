@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import Link from "next/link";
+import { AuthLink, AUTH_LINK_CLASS_NAME } from "./auth-link";
 
 export default function VerifyEmailForm() {
   const router = useRouter();
@@ -90,16 +90,16 @@ export default function VerifyEmailForm() {
         <button
           type="button"
           onClick={handleResend}
-          className="text-primary text-sm font-semibold hover:underline"
+          className={`text-sm ${AUTH_LINK_CLASS_NAME}`}
         >
           Resend Code
         </button>
-        <Link
+        <AuthLink
           href="/sign-up"
-          className="mt-2 text-sm font-semibold hover:underline"
+          className="mt-2 text-sm"
         >
           Sign up with a different email
-        </Link>
+        </AuthLink>
       </div>
     </form>
   );

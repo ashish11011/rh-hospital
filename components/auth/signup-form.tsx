@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { signupWithCognito } from "@/lib/actions/auth";
-import Link from "next/link";
+import { AuthLink } from "./auth-link";
 import { Mail, User, Phone, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -130,9 +130,9 @@ export default function SignupForm() {
 
       <p className="text-muted-foreground text-center text-sm">
         Already have an account?{" "}
-        <Link href="/sign-in" className="font-semibold text-blue-600">
+        <AuthLink href="/sign-in">
           Sign In
-        </Link>
+        </AuthLink>
       </p>
     </form>
   );

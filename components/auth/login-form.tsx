@@ -5,7 +5,7 @@ import { useState } from "react";
 import { loginWithCredentials } from "@/lib/actions/auth";
 
 import { loginSchema, LoginValues } from "@/lib/validations/auth";
-import Link from "next/link";
+import { AuthLink } from "./auth-link";
 import { Mail } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -93,12 +93,12 @@ export default function LoginForm() {
           <Label htmlFor="remember">Remember me</Label>
         </div>
 
-        <Link
+        <AuthLink
           href="/forgot-password"
-          className="text-primary text-sm font-medium hover:underline"
+          className="text-sm"
         >
           Forgot password?
-        </Link>
+        </AuthLink>
       </div>
 
       <Button
@@ -120,9 +120,9 @@ export default function LoginForm() {
 
       <p className="text-muted-foreground text-center text-sm">
         Don't have an account?{" "}
-        <Link href="/sign-up" className="text-primary font-semibold">
+        <AuthLink href="/sign-up">
           Create Account
-        </Link>
+        </AuthLink>
       </p>
     </form>
   );

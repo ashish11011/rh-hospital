@@ -22,20 +22,20 @@ export async function sendRhIdCardCreatedEmail({
         Source: EMAIL_SOURCE,
         Destination: { ToAddresses: [toEmail] },
         Message: {
-            Subject: { Data: "Your RH ID Card Has Been Created - RH Healthcare" },
+            Subject: { Data: "Your RH Membership Card Has Been Created - RH Healthcare" },
             Body: {
                 Html: { Data: `
 <p>Dear ${escapeHtml(name)},</p>
-<p>Your payment has been confirmed and your RH Healthcare ID card has been created successfully.</p>
+<p>Your payment has been confirmed and your RH Membership Card has been created successfully.</p>
 <p><strong>RH Member ID:</strong> ${escapeHtml(memberShipId)}<br/>
 <strong>Valid until:</strong> ${escapeHtml(validTill)}<br/>
 <strong>Amount paid:</strong> ${escapeHtml(paidAmount)}<br/>
 <strong>Order number:</strong> ${escapeHtml(orderId)}</p>
 <p>You can view your card on your dashboard and in the RH Healthcare mobile app.</p>
-<p><a href="https://www.rhhealthcaresimulation.com/dashboard/id-card">View your RH ID card</a></p>
+<p><a href="https://www.rhhealthcaresimulation.com/dashboard/id-card">View your RH Membership Card</a></p>
 <p>Warm regards,<br/>RH Healthcare Simulation Team<br/>
 Call: +91 9928907780, +91 9829507781<br/>Email: connect.rhhealth@gmail.com</p>` },
-                Text: { Data: `Dear ${name},\nYour payment is confirmed and your RH ID card has been created.\nRH Member ID: ${memberShipId}\nValid until: ${validTill}\nAmount paid: ${paidAmount}\nOrder number: ${orderId}\nView your card: https://www.rhhealthcaresimulation.com/dashboard/id-card` },
+                Text: { Data: `Dear ${name},\nYour payment is confirmed and your RH Membership Card has been created.\nRH Member ID: ${memberShipId}\nValid until: ${validTill}\nAmount paid: ${paidAmount}\nOrder number: ${orderId}\nView your card: https://www.rhhealthcaresimulation.com/dashboard/id-card` },
             },
         },
     }));

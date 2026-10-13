@@ -21,7 +21,7 @@ const page = () => {
       id: "b4f95ab7-9ae7-46f8-8dac-bb6d299b3ec0",
       name: "SIMTECH",
       bannerImage:
-        "https://d2c3lsl35lix55.cloudfront.net/workshops/banner/1779450554173-WhatsApp_Image_2026-05-22_at_10.25.55_AM__1_.jpeg",
+        "https://media.rhhealthcaresimulation.com/public/workshops/banner/1779450554173-WhatsApp_Image_2026-05-22_at_10.25.55_AM__1_.jpeg",
       start_time: "2026-06-06 04:00:00",
       end_time: "2026-06-06 10:30:00",
       online_price: 300,
@@ -33,7 +33,7 @@ const page = () => {
       id: "d3e7ec2d-a91a-42bb-8764-2334aa270e63",
       name: "BIO-SHIELD WORKSHOP",
       bannerImage:
-        "https://d2c3lsl35lix55.cloudfront.net/workshops/banner/1781088670841-bio-shild.png",
+        "https://media.rhhealthcaresimulation.com/public/workshops/banner/1781088670841-bio-shild.png",
       description:
         "🛡️ BIO-SHIELD WORKSHOP 2026 is a specialized infection control training program designed for healthcare professionals and students. Participants will gain practical knowledge of hand hygiene, PPE usage, biomedical waste management, and infection prevention practices while earning a Certificate of Participation and 5 Credit Hours.",
       content:

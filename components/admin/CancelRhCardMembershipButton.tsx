@@ -25,7 +25,7 @@ export function CancelRhCardMembershipButton({
     if (pending || inactive) return;
     if (
       !window.confirm(
-        `Cancel RH card membership for ${memberName}? This will deactivate the card and remove course discount eligibility.`,
+        `Cancel RH Membership Card for ${memberName}? This will deactivate the card and remove course discount eligibility.`,
       )
     )
       return;
@@ -38,7 +38,7 @@ export function CancelRhCardMembershipButton({
           return;
         }
         setCancelled(true);
-        toast.success("RH card membership cancelled.");
+        toast.success("RH Membership Card cancelled.");
         router.refresh();
       } catch {
         toast.error("Unable to cancel membership. Please try again.");

@@ -1,3 +1,4 @@
+import { publicAssetUrl } from "@/lib/publicAsset";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowRight,
@@ -65,7 +66,7 @@ export const metadata: Metadata = {
     siteName: "RH Healthcare Pvt. Ltd.",
     images: [
       {
-        url: "https://www.rhhealthcaresimulation.com/logo.png", // replace with actual logo
+        url: publicAssetUrl("logo.png"),
         width: 512,
         height: 512,
         alt: "RH Healthcare Logo",
@@ -79,13 +80,13 @@ export const metadata: Metadata = {
     description:
       "Discover healthcare products, simulators, and workshops by RH Healthcare Pvt. Ltd.",
     images: [
-      "https://www.rhhealthcaresimulation.com/logo.png", // replace with actual logo
+      publicAssetUrl("logo.png"),
     ],
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    icon: publicAssetUrl("favicon.ico"),
+    shortcut: publicAssetUrl("favicon.ico"),
+    apple: publicAssetUrl("favicon.ico"),
   },
 };
 
@@ -341,7 +342,7 @@ function HeroSection() {
           </div>
         </div>
         <Image
-          src="https://d2c3lsl35lix55.cloudfront.net/website-image/Hero1.png"
+          src="https://media.rhhealthcaresimulation.com/public/website-image/Hero1.png"
           alt="group-doctor"
           width={500}
           height={500}
@@ -359,7 +360,7 @@ function CurrentWorkshop() {
         <div className="col-span-5">
           <Image
             src={
-              "https://d2c3lsl35lix55.cloudfront.net/website-image/Registration+Page.png"
+              "https://media.rhhealthcaresimulation.com/public/website-image/Registration+Page.png"
             }
             alt="current-workshop"
             height={800}
@@ -449,7 +450,7 @@ function CertifiedModules({ courses }: { courses: HomeCourse[] }) {
               className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border"
             >
               <Image
-                src={course.bannerImageUrl}
+                src={publicAssetUrl(course.bannerImageUrl)}
                 height={500}
                 width={500}
                 alt={course.title}
@@ -773,7 +774,7 @@ function AwardSection() {
             height={600}
             width={600}
             alt="certificate-sample"
-            src={"/certificate.svg"}
+            src={publicAssetUrl("certificate.svg")}
             className="mt-6 h-full max-h-60 w-full max-w-60 shrink-0 self-center object-contain md:hidden"
           />
 
@@ -788,7 +789,7 @@ function AwardSection() {
           height={600}
           width={600}
           alt="certificate-sample"
-          src={"/certificate.svg"}
+          src={publicAssetUrl("certificate.svg")}
           className="hidden h-full max-h-none w-full max-w-80 shrink-0 object-contain md:block"
         />
       </div>

@@ -34,7 +34,7 @@ export function CoursePrice({
       </p>
       {pricing.discountPercent > 0 && (
         <p className="text-sm font-medium text-green-700">
-          {pricing.discountPercent}% RH card discount applied
+          {pricing.discountPercent}% RH Membership Card discount applied
         </p>
       )}
     </div>

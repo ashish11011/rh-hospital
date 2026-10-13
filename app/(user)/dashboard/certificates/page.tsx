@@ -1,8 +1,10 @@
+import { publicAssetUrl } from "@/lib/publicAsset";
 import { getUserCertificate } from "../action";
 import { Button } from "@/components/ui/button";
 import { Download, FileBadge } from "lucide-react";
 import Image from "next/image";
 import { getS3AssetUrl } from "@/lib/s3Asset";
+import { formatWorkshopDate } from "@/helper/workshopDateTime";
 
 export default async function CertificatesPage() {
   const { workshopCertificates, seminarCertificates } =
@@ -57,18 +59,14 @@ export default async function CertificatesPage() {
                 </h3>
                 {cert.workshopTime && (
                   <p className="mt-auto mb-4 text-sm text-slate-500">
-                    {new Date(cert.workshopTime).toLocaleDateString(undefined, {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
+                    {formatWorkshopDate(cert.workshopTime)}
                   </p>
                 )}
 
                 <Button className="mt-auto w-full gap-2" asChild>
                   <a
                     href={
-                      `https://d2c3lsl35lix55.cloudfront.net/${cert.certificate}`!
+                      publicAssetUrl(cert.certificate)!
                     }
                     target="_blank"
                     rel="noreferrer download"

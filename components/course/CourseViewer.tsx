@@ -1,6 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import SignedCourseVideo from "./SignedCourseVideo";
 import { useRef, useState } from "react";
 import {
   ArrowLeft,
@@ -14,12 +14,6 @@ import {
 import { CourseItemBanner } from "./CourseItemBanner";
 import { Button } from "@/components/ui/button";
 
-const VideoPlayer = dynamic(() => import("./VideoPlayer"), {
-  ssr: false,
-  loading: () => (
-    <div className="aspect-video animate-pulse rounded-xl bg-slate-900" />
-  ),
-});
 type Lesson = {
   id: string;
   title: string;
@@ -28,7 +22,7 @@ type Lesson = {
   progress: number;
 };
 const isVideoLesson = (item: Lesson) =>
-  item.type === "application/x-mpegURL" || item.type === "video/mp4";
+  /^(?:video(?:\/.*)?|mp4|hls|application\/(?:x-mpegurl|vnd\.apple\.mpegurl))$/i.test(item.type);
 
 export default function CourseViewer({
   items,
@@ -77,7 +71,7 @@ export default function CourseViewer({
       <div className="flex min-w-0 flex-col gap-5">
         <section className="w-full min-w-0" aria-label="Selected lesson">
           {isVideo ? (
-            <VideoPlayer
+            <SignedCourseVideo
               key={selected.id}
               courseId={courseId}
               itemId={selected.id}
@@ -85,8 +79,6 @@ export default function CourseViewer({
               onProgress={(seconds) =>
                 positions.current.set(selected.id, seconds)
               }
-              src={`/api/course/media/${selected.id}`}
-              type={selected.type}
               email={email}
             />
           ) : (

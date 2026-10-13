@@ -7,6 +7,7 @@ import { IdCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IdCardForm } from "./IdCardForm";
 import { IdCardView } from "./IdCardView";
+import { RhCardBenefits } from "./RhCardBenefits";
 import type { IdCardApiResponse, UserCardRecord } from "./types";
 
 export function RhIdCardPanel({
@@ -35,7 +36,9 @@ export function RhIdCardPanel({
         });
         const data: IdCardApiResponse = await response.json();
         if (!response.ok || !data.success)
-          throw new Error(data.error || "Unable to load your RH ID card.");
+          throw new Error(
+            data.error || "Unable to load your RH Membership Card.",
+          );
         if (active) setResult(data);
       } catch (cause) {
         if (active)
@@ -44,7 +47,7 @@ export function RhIdCardPanel({
               ? "Loading your card took too long. Please try again."
               : cause instanceof Error
                 ? cause.message
-                : "Unable to load your RH ID card.",
+                : "Unable to load your RH Membership Card.",
           );
       } finally {
         clearTimeout(timeout);
@@ -113,19 +116,25 @@ export function RhIdCardPanel({
       aria-labelledby="rh-card-title"
       className={allowCreate ? "space-y-6" : "min-w-0 space-y-5"}
     >
-      {/* <div>
+      <div>
         <h2
           id="rh-card-title"
           className="flex items-center gap-2 text-xl font-semibold text-slate-900"
         >
           <IdCard className="text-primary size-5" />
-          Your RH Membership card
+          Your RH Membership Card
         </h2>
         <p className="mt-1 text-sm text-slate-500">
           Your RH Healthcare Membership, available on the website and mobile
           app.
         </p>
-      </div> */}
+      </div>
+      {allowCreate && (
+        <RhCardBenefits
+          pricing={result?.purchase}
+          showPurchase={!result?.card}
+        />
+      )}
       {error ? (
         <div
           role="alert"
@@ -149,7 +158,7 @@ export function RhIdCardPanel({
           className="flex min-h-32 items-center justify-center gap-2 rounded-xl bg-slate-50 text-sm text-slate-500"
         >
           <Loader2 className="size-5 animate-spin" />
-          Loading your RH ID card…
+          Loading your RH Membership Card…
         </div>
       ) : result.card ? (
         <div className="space-y-4">
@@ -158,8 +167,8 @@ export function RhIdCardPanel({
               role="status"
               className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800"
             >
-              Your RH ID card has been created. You can also find it on your
-              dashboard.
+              Your RH Membership Card has been created. You can also find it on
+              your dashboard.
             </p>
           )}
           <IdCardView card={result.card} />
@@ -173,8 +182,8 @@ export function RhIdCardPanel({
         <div className="space-y-4 rounded-xl bg-slate-50 p-5">
           <p className="font-semibold text-slate-900">
             {result.pendingPurchase.status === "completed"
-              ? "Your RH card payment is confirmed"
-              : "Your RH card payment is pending"}
+              ? "Your RH Membership Card payment is confirmed"
+              : "Your RH Membership Card payment is pending"}
           </p>
           <p className="text-sm text-slate-600">
             Your card will be created after payment confirmation. If you have
@@ -231,9 +240,17 @@ export function RhIdCardPanel({
             to get your RH Membership Card.
           </p>
           <Button asChild className="mt-4 h-11 px-5">
-            <Link href="/dashboard/id-card">Create RH Membership card</Link>
+            <Link href="/dashboard/id-card">Create RH Membership Card</Link>
           </Button>
         </div>
+      )}
+      {!allowCreate && (
+        <Link
+          href="/dashboard/id-card#membership-benefits"
+          className="text-primary inline-block text-sm font-medium underline underline-offset-4"
+        >
+          View RH Membership Card benefits
+        </Link>
       )}
     </section>
   );

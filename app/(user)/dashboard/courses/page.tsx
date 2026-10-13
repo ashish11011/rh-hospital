@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { cloudfrontAssetUrl } from "@/lib/cloudfront";
+import { publicAssetUrl } from "@/lib/publicAsset";
 import { fetchMobileApi } from "@/lib/serverMobileApi";
 import { Clock, GraduationCap } from "lucide-react";
 import Image from "next/image";
@@ -47,7 +47,7 @@ export default async function MyCoursesPage() {
             <Card key={course.enrolmentId} className="overflow-hidden py-0">
               <div className="relative h-40">
                 <Image
-                  src={cloudfrontAssetUrl(course.bannerImageUrl)}
+                  src={publicAssetUrl(course.bannerImageUrl)}
                   alt={course.title}
                   width={500}
                   height={300}

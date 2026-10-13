@@ -1,4 +1,5 @@
 "use client";
+import { BrandLogo } from "@/components/BrandLogo";
 
 import Link from "next/link";
 import { Menu } from "lucide-react";
@@ -6,7 +7,6 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-import Image from "next/image";
 import CallbackDialog from "./CallbackDialog";
 import { useEffect, useState } from "react";
 
@@ -54,14 +54,7 @@ export function Navbar() {
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 md:h-16">
           {/* Logo */}
           <Link href="/" className="flex h-full w-auto items-center gap-2 py-1">
-            <Image
-              src={"/logo.png"}
-              loading="eager"
-              height={100}
-              width={250}
-              className="h-full w-auto"
-              alt="logo"
-            />
+            <BrandLogo className="h-full" />
           </Link>
 
           {/* Desktop Menu */}

@@ -129,7 +129,7 @@ function setup({ allowed = true, total = 42, cards = [card] } = {}) {
     "@/db": { userCard, payment },
     "@/db/userSchema": { userCardSchema: userCard },
     "@/lib/dbConfig": { db },
-    "@/lib/cloudfront": { cloudfrontAssetUrl: () => "" },
+    "@/lib/publicAsset": { publicAssetUrl: () => "" },
     "@/lib/adminAuth": {
       requireAdmin: async (access) => {
         assert.equal(access, "full");

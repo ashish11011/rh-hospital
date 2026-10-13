@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Mail } from "lucide-react";
-import Link from "next/link";
+import { AuthLink } from "./auth-link";
 
 export default function ForgotPasswordForm() {
   const router = useRouter();
@@ -73,9 +73,9 @@ export default function ForgotPasswordForm() {
 
       <p className="text-muted-foreground text-center text-sm">
         Remember your password?{" "}
-        <Link href="/sign-in" className="text-primary font-semibold">
+        <AuthLink href="/sign-in">
           Sign In
-        </Link>
+        </AuthLink>
       </p>
     </form>
   );

@@ -30,7 +30,7 @@ const { validateInput } = load("lib/rhIdCard.ts", {
   "server-only": {},
   "drizzle-orm": {},
   "@/db/userSchema": {},
-  "@/lib/cloudfront": {},
+  "@/lib/publicAsset": {},
   "@/lib/dbConfig": {},
   "@/lib/constants": constants,
 });

@@ -24,7 +24,7 @@ const sidebarLinks = [
     icon: LayoutDashboard,
   },
   {
-    title: "RH ID Card",
+    title: "RH Membership Card",
     href: "/dashboard/id-card",
     icon: IdCard,
   },

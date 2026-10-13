@@ -20,7 +20,12 @@ function load(file, modules = {}) {
     exports,
     URL,
     console,
-    process: { env: { NEXT_PUBLIC_CLOUDFRONT_URL: "https://cdn.example", NEXT_PUBLIC_COURSE_CLOUDFRONT_URL: "https://cdn.example" } },
+    process: {
+      env: {
+        NEXT_PUBLIC_CLOUDFRONT_URL: "https://cdn.example",
+        NEXT_PUBLIC_COURSE_CLOUDFRONT_URL: "https://cdn.example",
+      },
+    },
     require: (id) => {
       assert.ok(id in modules, `Unexpected dependency: ${id}`);
       return modules[id];
@@ -30,7 +35,10 @@ function load(file, modules = {}) {
 }
 const cloudfront = load("lib/cloudfront.ts");
 const media = load("lib/courseMedia.ts");
-const assets = load("lib/publicAsset.ts", { "./cloudfront": cloudfront, "./courseMedia": media });
+const assets = load("lib/publicAsset.ts", {
+  "./cloudfront": cloudfront,
+  "./courseMedia": media,
+});
 const s3 = load("lib/s3Asset.ts", { "./publicAsset": assets });
 
 test("public media preserves folders and adds the prefix exactly once", () => {
@@ -93,7 +101,15 @@ test("course MP4, HLS and DASH video keys and URLs remain unchanged", () => {
   }
   assert.equal(
     assets.courseAssetKey("course/notes.pdf", "pdf"),
-    "public/course/notes.pdf",
+    "course/notes.pdf",
+  );
+  assert.equal(
+    assets.courseAssetUrl("course/notes.pdf", "pdf"),
+    "https://cdn.example/course/notes.pdf",
+  );
+  assert.equal(
+    assets.courseAssetUrl("course/My+Notes%2B1.pdf", "document"),
+    "https://cdn.example/course/My%20Notes%2B1.pdf",
   );
   assert.equal(
     assets.courseAssetUrl("public/course/notes.pdf", "document"),
@@ -103,11 +119,12 @@ test("course MP4, HLS and DASH video keys and URLs remain unchanged", () => {
 
 test("stored rich-text media is prefixed while course video and external links are preserved", () => {
   const html =
-    '<img src="https://cdn.example/blogs/image.png"><a href="https://cdn.example/certificates/result.pdf">PDF</a><video src="https://cdn.example/course/video.mp4"></video><img src="https://external.example/image.png">';
+    '<img src="https://cdn.example/blogs/image.png"><a href="https://cdn.example/certificates/result.pdf">PDF</a><a href="https://cdn.example/course/notes.pdf">Course PDF</a><video src="https://cdn.example/course/video.mp4"></video><img src="https://external.example/image.png">';
   const result = assets.publicMediaHtml(html);
   assert.match(result, /cdn\.example\/public\/blogs\/image\.png/);
   assert.match(result, /cdn\.example\/public\/certificates\/result\.pdf/);
   assert.match(result, /cdn\.example\/course\/video\.mp4/);
+  assert.match(result, /cdn\.example\/course\/notes\.pdf/);
   assert.match(result, /external\.example\/image\.png/);
   assert.equal(assets.publicMediaHtml(result), result);
 });

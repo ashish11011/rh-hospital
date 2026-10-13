@@ -1,6 +1,10 @@
 # Course playback rollout
 
-The code uses signed cookies and direct CloudFront playback. AWS/DNS changes,
+The code uses signed cookies for videos and exact-file signed URLs for private
+course documents. Website document requests stream through the authenticated
+media route; mobile requests obtain a five-minute signed URL after enrollment
+verification. All paid course content stays under `course/*`, without a `public/`
+rewrite. AWS/DNS changes,
 production deployment, and real browser/device playback have not been performed.
 The AWS account-read approval was declined during implementation.
 
@@ -85,9 +89,9 @@ and [trusted signers](https://docs.aws.amazon.com/AmazonCloudFront/latest/Develo
   directory must contain only this lesson's files, or files belonging to the same
   course. Verify no other course uses a key under that directory. The signer
   rejects `/course/index.m3u8` rather than granting the entire `/course/*` tree.
-- MP4 policies authorize exactly one encoded object path. Course documents keep
-  their existing public-media/document flow; this rollout does not change their
-  access model.
+- MP4 policies authorize exactly one encoded object path. Paid course documents
+  also stay under `course/*`; their grants authorize one encoded file for five
+  minutes. Website responses stream the file without exposing the signed CDN URL.
 
 See [protecting S3 origins](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html).
 

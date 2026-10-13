@@ -1,10 +1,14 @@
 import "server-only";
-import { getSignedCookies } from "@aws-sdk/cloudfront-signer";
+import { getSignedCookies, getSignedUrl } from "@aws-sdk/cloudfront-signer";
 import { createPrivateKey } from "node:crypto";
 import { course, courseEnrolment, courseItem, user } from "@/db";
 import { db } from "@/lib/dbConfig";
 import { and, desc, eq } from "drizzle-orm";
-import { coursePlaybackLocation } from "@/lib/coursePlayback";
+import {
+  courseDocumentLocation,
+  coursePlaybackLocation,
+} from "@/lib/coursePlayback";
+import { isCourseVideoMedia } from "@/lib/publicAsset";
 import { isCourseId } from "@/lib/courseAccess";
 import { getAdminAccessForEmail } from "@/lib/adminAccess";
 
@@ -20,7 +24,7 @@ export class CoursePlaybackError extends Error {
 export const COURSE_COOKIE_DOMAIN = "rhhealthcaresimulation.com";
 export const COURSE_GRANT_SECONDS = 18000;
 
-export async function grantCoursePlayback(
+async function getAuthorizedCourseMedia(
   courseId: string,
   itemId: string,
   email: string,
@@ -73,12 +77,10 @@ export async function grantCoursePlayback(
       throw new CoursePlaybackError(403, "Course access required");
     mediaUrl = item.mediaUrl;
   }
-  let location: ReturnType<typeof coursePlaybackLocation>;
-  try {
-    location = coursePlaybackLocation(mediaUrl);
-  } catch {
-    throw new CoursePlaybackError(400, "Unsupported course media location");
-  }
+  return mediaUrl;
+}
+
+function courseSigningCredentials() {
   const keyPairId = process.env.CLOUDFRONT_PUBLIC_KEY_ID?.trim();
   const privateKey = process.env.CLOUDFRONT_PRIVATE_ACCESS?.replace(
     /\\r\\n/g,
@@ -90,8 +92,72 @@ export async function grantCoursePlayback(
   if (!keyPairId || !privateKey)
     throw new CoursePlaybackError(503, "Course playback is not configured");
   try {
-    // Validate without exposing the PEM in diagnostics.
     createPrivateKey(privateKey);
+  } catch {
+    throw new CoursePlaybackError(503, "Course playback is not configured");
+  }
+  return { keyPairId, privateKey };
+}
+
+export async function grantCourseDocument(
+  courseId: string,
+  itemId: string,
+  email: string,
+  allowAdmin = false,
+) {
+  const storedUrl = await getAuthorizedCourseMedia(
+    courseId,
+    itemId,
+    email,
+    allowAdmin,
+  );
+  if (isCourseVideoMedia(storedUrl))
+    throw new CoursePlaybackError(
+      410,
+      "Video playback requires a course access grant",
+    );
+  let url: string;
+  try {
+    url = courseDocumentLocation(storedUrl);
+  } catch {
+    throw new CoursePlaybackError(400, "Unsupported course media location");
+  }
+  const credentials = courseSigningCredentials();
+  const expiresAt = Math.floor(Date.now() / 1000) + 300;
+  try {
+    return {
+      mediaUrl: getSignedUrl({
+        url,
+        ...credentials,
+        dateLessThan: new Date(expiresAt * 1000).toISOString(),
+      }),
+      expiresAt,
+    };
+  } catch {
+    throw new CoursePlaybackError(503, "Course playback is not configured");
+  }
+}
+
+export async function grantCoursePlayback(
+  courseId: string,
+  itemId: string,
+  email: string,
+  allowAdmin = false,
+) {
+  const mediaUrl = await getAuthorizedCourseMedia(
+    courseId,
+    itemId,
+    email,
+    allowAdmin,
+  );
+  let location: ReturnType<typeof coursePlaybackLocation>;
+  try {
+    location = coursePlaybackLocation(mediaUrl);
+  } catch {
+    throw new CoursePlaybackError(400, "Unsupported course media location");
+  }
+  const { keyPairId, privateKey } = courseSigningCredentials();
+  try {
     const expiresAt = Math.floor(Date.now() / 1000) + COURSE_GRANT_SECONDS;
     const cookies = getSignedCookies({
       keyPairId,

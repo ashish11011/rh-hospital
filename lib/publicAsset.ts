@@ -67,23 +67,30 @@ export function isCourseVideoMedia(value: string, mediaType?: string | null) {
 }
 
 export function courseAssetKey(value: string, mediaType?: string | null) {
-  return isCourseVideoMedia(value, mediaType)
+  if (isCourseVideoMedia(value, mediaType)) return cloudfrontAssetKey(value);
+  const key = /^https?:\/\//i.test(value)
     ? cloudfrontAssetKey(value)
-    : publicAssetKey(value);
+    : courseMediaKey(value);
+  if (key.startsWith("course/")) return key;
+  return publicAssetKey(value);
 }
 
 export function courseAssetUrl(value: string, mediaType?: string | null) {
-  if (!isCourseVideoMedia(value, mediaType)) return publicAssetUrl(value);
-  const key = /^https?:\/\//i.test(value) ? cloudfrontAssetKey(value) : courseMediaKey(value);
+  const key = /^https?:\/\//i.test(value)
+    ? cloudfrontAssetKey(value)
+    : courseMediaKey(value);
+  if (!key.startsWith("course/") && !isCourseVideoMedia(value, mediaType))
+    return publicAssetUrl(value);
   return `${COURSE_CLOUDFRONT_URL}/${key.split("/").map(encodeURIComponent).join("/")}`;
 }
 
 export function publicMediaHtml(content?: string | null) {
   return (content || "").replace(/https?:\/\/[^\s"'<>)]+/gi, (url) => {
     const key = cloudfrontAssetKey(url);
-    const courseVideo =
-      /^(?:course|courses)\//.test(key) && isCourseVideoMedia(url);
-    if (!isStorageUrl(url) || courseVideo) return url;
+    const courseContent =
+      /^course\//.test(key) ||
+      (/^courses\//.test(key) && isCourseVideoMedia(url));
+    if (!isStorageUrl(url) || courseContent) return url;
     return publicAssetUrl(url);
   });
 }

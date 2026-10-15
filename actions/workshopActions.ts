@@ -37,7 +37,7 @@ export async function createWorkshop(data: {
   isCompleted: boolean;
 }) {
   try {
-    await requireAdmin("full");
+    await requireAdmin("workshop");
     await db.insert(workshop).values(data);
     revalidatePath("/admin/workshop");
     revalidatePath("/workshops");
@@ -63,7 +63,7 @@ export async function updateWorkshop(
   }>
 ) {
   try {
-    await requireAdmin("full");
+    await requireAdmin("workshop");
     // filter out undefined from data
     const updateData = Object.fromEntries(
       Object.entries(data).filter(([_, v]) => v !== undefined)
@@ -82,7 +82,7 @@ export async function updateWorkshop(
 
 export async function deleteWorkshop(id: string) {
   try {
-    await requireAdmin("full");
+    await requireAdmin("workshop");
     await db.delete(workshop).where(eq(workshop.id, id));
     revalidatePath("/admin/workshop");
     revalidatePath("/workshops");
@@ -95,7 +95,7 @@ export async function deleteWorkshop(id: string) {
 
 export async function getWorkshopImages(workshopId: string) {
   try {
-    await requireAdmin("full");
+    await requireAdmin("workshop");
     return await db.select().from(workshopImage).where(eq(workshopImage.workshopId, workshopId)).orderBy(workshopImage.displayOrder);
   } catch (error) {
     console.error("Fetch Workshop Images error:", error);
@@ -105,7 +105,7 @@ export async function getWorkshopImages(workshopId: string) {
 
 export async function addWorkshopImage(data: { workshopId: string; image: string }) {
   try {
-    await requireAdmin("full");
+    await requireAdmin("workshop");
     await db.insert(workshopImage).values(data);
     revalidatePath("/admin/workshop");
     revalidatePath("/workshops");
@@ -118,7 +118,7 @@ export async function addWorkshopImage(data: { workshopId: string; image: string
 
 export async function deleteWorkshopImage(id: string) {
   try {
-    await requireAdmin("full");
+    await requireAdmin("workshop");
     await db.delete(workshopImage).where(eq(workshopImage.id, id));
     revalidatePath("/admin/workshop");
     revalidatePath("/workshops");

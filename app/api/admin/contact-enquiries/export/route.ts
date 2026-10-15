@@ -1,6 +1,7 @@
 import { desc, sql } from "drizzle-orm";
 import { contact } from "@/db";
 import { getCurrentAdminAccess } from "@/lib/adminAuth";
+import { hasAdminPermission } from "@/lib/adminAccess";
 import { contactEnquiriesCsv } from "@/lib/contactEnquiriesCsv";
 import { db } from "@/lib/dbConfig";
 
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const { access } = await getCurrentAdminAccess();
-  if (access !== "full") {
+  if (!hasAdminPermission(access, "contacts")) {
     return Response.json(
       { error: access ? "Forbidden" : "Unauthorized" },
       { status: access ? 403 : 401 },

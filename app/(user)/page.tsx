@@ -79,9 +79,7 @@ export const metadata: Metadata = {
     title: "RH Healthcare Pvt. Ltd. – Medical Simulators & Healthcare Products",
     description:
       "Discover healthcare products, simulators, and workshops by RH Healthcare Pvt. Ltd.",
-    images: [
-      publicAssetUrl("logo.png"),
-    ],
+    images: [publicAssetUrl("logo.png")],
   },
   icons: {
     icon: publicAssetUrl("favicon.ico"),
@@ -104,7 +102,7 @@ export default async function Home() {
   return (
     <>
       <HeroSection />
-      <div className="container pb-12 md:pb-16">
+      <div className="pb-12 md:pb-16">
         <RhCardBenefits>
           <CreateRhCardLink />
         </RhCardBenefits>

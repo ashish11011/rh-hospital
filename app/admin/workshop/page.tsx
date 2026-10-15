@@ -9,7 +9,7 @@ export const metadata = {
 };
 
 export default async function AdminWorkshopPage() {
-  await requireAdmin("full");
+  await requireAdmin("workshop");
 
   const workshops = await getWorkshops();
 

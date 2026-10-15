@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import RichTextEditor from "@/components/RichTextEditor";
-import { getPresignedUrl } from "@/actions/uploadAction";
+import { getWorkshopImagePresignedUrl } from "@/actions/uploadAction";
 import { createWorkshop, updateWorkshop } from "@/actions/workshopActions";
 import { Plus, Pencil } from "lucide-react";
 import { Checkbox } from "../ui/checkbox";
@@ -71,10 +71,10 @@ export function WorkshopFormDialog({
       let bannerImageKey = initialData?.bannerImage;
 
       if (file) {
-        const presignedResult = await getPresignedUrl(
+        const presignedResult = await getWorkshopImagePresignedUrl(
           file.name,
           file.type,
-          "workshops/banner",
+          "banner",
         );
 
         if (

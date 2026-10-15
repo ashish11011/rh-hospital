@@ -35,7 +35,7 @@ export default async function ContactEnquiriesPage({
 }: {
   searchParams: Promise<{ page?: string | string[] }>;
 }) {
-  await requireAdmin("full");
+  await requireAdmin("contacts");
   const params = await searchParams;
   const requestedPage =
     typeof params.page === "string" ? Number(params.page) : 1;

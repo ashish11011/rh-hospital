@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { getPresignedUrl } from "@/actions/uploadAction";
+import { getWorkshopImagePresignedUrl } from "@/actions/uploadAction";
 import {
   getWorkshopImages,
   addWorkshopImage,
@@ -72,10 +72,10 @@ export function WorkshopImages({
         const compressedFile = await imageCompression(file, options);
 
         // Get presigned URL
-        const { uploadUrl, key, error } = await getPresignedUrl(
+        const { uploadUrl, key, error } = await getWorkshopImagePresignedUrl(
           compressedFile.name,
           compressedFile.type,
-          "workshops/gallery",
+          "gallery",
         );
         if (error || !uploadUrl || !key) {
           toast.error(`Failed to get upload URL for ${file.name}`);

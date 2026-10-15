@@ -75,3 +75,33 @@ export async function getBlogImagePresignedUrl(filename: string, fileType: strin
     return { error: "Failed to generate presigned upload URL" };
   }
 }
+
+export async function getWorkshopImagePresignedUrl(
+  filename: string,
+  fileType: string,
+  kind: "banner" | "gallery",
+): Promise<PresignedUploadResult> {
+  try {
+    await requireAdmin("workshop");
+
+    if (!fileType.startsWith("image/")) {
+      return { error: "Only image uploads are allowed" };
+    }
+    if (kind !== "banner" && kind !== "gallery") {
+      return { error: "Invalid workshop image folder" };
+    }
+
+    const key = createS3Key(filename, `workshops/${kind}`);
+    const command = new PutObjectCommand({
+      Bucket: AWS_BUCKET,
+      Key: key,
+      ContentType: fileType,
+    });
+    const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+
+    return { uploadUrl, key };
+  } catch (error) {
+    console.error("Presigned URL Error:", error);
+    return { error: "Failed to generate presigned upload URL" };
+  }
+}

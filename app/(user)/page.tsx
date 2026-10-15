@@ -772,7 +772,7 @@ function AwardSection() {
             height={600}
             width={600}
             alt="certificate-sample"
-            src={publicAssetUrl("certificate.svg")}
+            src={publicAssetUrl("website-image/certificate.png")}
             className="mt-6 h-full max-h-60 w-full max-w-60 shrink-0 self-center object-contain md:hidden"
           />
 
@@ -787,7 +787,7 @@ function AwardSection() {
           height={600}
           width={600}
           alt="certificate-sample"
-          src={publicAssetUrl("certificate.svg")}
+          src={publicAssetUrl("website-image/certificate.png")}
           className="hidden h-full max-h-none w-full max-w-80 shrink-0 object-contain md:block"
         />
       </div>

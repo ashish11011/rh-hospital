@@ -9,6 +9,7 @@ import { IdCardForm } from "./IdCardForm";
 import { IdCardView } from "./IdCardView";
 import { RhCardBenefits } from "./RhCardBenefits";
 import type { IdCardApiResponse, UserCardRecord } from "./types";
+import { Skeleton } from "../ui/skeleton";
 
 export function RhIdCardPanel({
   allowCreate = false,
@@ -116,25 +117,27 @@ export function RhIdCardPanel({
       aria-labelledby="rh-card-title"
       className={allowCreate ? "space-y-6" : "min-w-0 space-y-5"}
     >
-      <div>
-        <h2
-          id="rh-card-title"
-          className="flex items-center gap-2 text-xl font-semibold text-slate-900"
-        >
-          <IdCard className="text-primary size-5" />
-          Your RH Membership Card
-        </h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Your RH Healthcare Membership, available on the website and mobile
-          app.
-        </p>
-      </div>
       {allowCreate && (
+        <div>
+          <h2
+            id="rh-card-title"
+            className="flex items-center gap-2 text-xl font-semibold text-slate-900"
+          >
+            <IdCard className="text-primary size-5" />
+            Your RH Membership Card
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Your RH Healthcare Membership, available on the website and mobile
+            app.
+          </p>
+        </div>
+      )}
+      {/* {allowCreate && (
         <RhCardBenefits
           pricing={result?.purchase}
           showPurchase={!result?.card}
         />
-      )}
+      )} */}
       {error ? (
         <div
           role="alert"
@@ -153,13 +156,7 @@ export function RhIdCardPanel({
           </Button>
         </div>
       ) : !result ? (
-        <div
-          role="status"
-          className="flex min-h-32 items-center justify-center gap-2 rounded-xl bg-slate-50 text-sm text-slate-500"
-        >
-          <Loader2 className="size-5 animate-spin" />
-          Loading your RH Membership Card…
-        </div>
+        <Skeleton className="bg-primary/10 border-primary h-96 w-60 animate-pulse" />
       ) : result.card ? (
         <div className="space-y-4">
           {created && (
@@ -172,11 +169,6 @@ export function RhIdCardPanel({
             </p>
           )}
           <IdCardView card={result.card} />
-          {allowCreate && (
-            <Button asChild variant="outline">
-              <Link href="/dashboard">Back to dashboard</Link>
-            </Button>
-          )}
         </div>
       ) : result.pendingPurchase && !editPending ? (
         <div className="space-y-4 rounded-xl bg-slate-50 p-5">
@@ -244,14 +236,14 @@ export function RhIdCardPanel({
           </Button>
         </div>
       )}
-      {!allowCreate && (
+      {/* {!allowCreate && (
         <Link
           href="/dashboard/id-card#membership-benefits"
           className="text-primary inline-block text-sm font-medium underline underline-offset-4"
         >
           View RH Membership Card benefits
         </Link>
-      )}
+      )} */}
     </section>
   );
 }

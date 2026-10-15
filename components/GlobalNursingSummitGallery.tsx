@@ -27,7 +27,7 @@ export function GlobalNursingSummitGallery() {
           id="global-nursing-summit-title"
           className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl"
         >
-          GLOBAL NURSING SUMMIT 2026
+          Global Nursing Summit 2026
         </h2>
         <p className="text-sm text-slate-500 md:text-base">
           Explore moments from the Global Nursing Summit 2026.

@@ -1,10 +1,9 @@
 "use client";
-import { publicAssetUrl } from "@/lib/publicAsset";
-
 import Image from "next/image";
 import { useId, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowUpRight, RotateCw, ShieldCheck } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { formatCardDate, formatProfession, getCardStatus } from "./idCardUtils";
 import type { UserCardRecord } from "./types";
@@ -50,13 +49,7 @@ function CardBrand({ badge, back = false }: { badge: string; back?: boolean }) {
   return (
     <div className="relative flex items-center justify-between gap-3">
       {back ? (
-        <Image
-          src={publicAssetUrl("logo.png")}
-          alt="RH Healthcare"
-          width={144}
-          height={84}
-          className="h-auto w-32 shrink-0 object-contain sm:w-36"
-        />
+        <BrandLogo className="h-auto w-32 shrink-0 rounded-lg bg-white p-2 sm:w-36" />
       ) : (
         <span className="text-[10px] font-semibold tracking-[0.18em] text-white/90 sm:text-xs">
           RH HEALTHCARE

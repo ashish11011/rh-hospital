@@ -12,19 +12,21 @@ import crypto from "crypto";
 import { db } from "@/lib/dbConfig";
 import { user } from "@/db";
 import { eq } from "drizzle-orm";
+import { getLoginError, resolveCognitoLoginError } from "@/lib/login-errors";
 
 const cognitoClient = new CognitoIdentityProviderClient({
   region: AWS_COGNITO_REGION,
 });
 
 export async function POST(req: Request) {
+  let cognitoUsername = "";
   try {
     const { email, password, fcmToken, deviceId } = await req.json();
 
     if (
       typeof email !== "string" ||
       typeof password !== "string" ||
-      !email ||
+      !email.trim() ||
       !password
     ) {
       return NextResponse.json(
@@ -33,7 +35,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const cognitoUsername = email.trim();
+    cognitoUsername = email.trim();
     const normalizedEmail = cognitoUsername.toLowerCase();
 
     const secretHash = crypto
@@ -102,18 +104,24 @@ export async function POST(req: Request) {
       );
     }
 
+    const loginError = getLoginError();
     return NextResponse.json(
-      { error: "Authentication failed" },
-      { status: 401 },
+      { error: loginError.message, code: loginError.code },
+      { status: loginError.status },
     );
   } catch (error: any) {
     console.error("Cognito auth error", error.name);
-    if (error.name === "UserNotConfirmedException") {
-      return NextResponse.json({ error: "unconfirmed" }, { status: 403 });
-    }
+    const loginError = await resolveCognitoLoginError(error, cognitoUsername);
     return NextResponse.json(
-      { error: error.message || "Authentication failed" },
-      { status: 400 },
+      {
+        error:
+          loginError.code === "EMAIL_NOT_VERIFIED"
+            ? "unconfirmed"
+            : loginError.message,
+        message: loginError.message,
+        code: loginError.code,
+      },
+      { status: loginError.status },
     );
   }
 }

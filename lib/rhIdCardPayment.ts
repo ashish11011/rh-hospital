@@ -162,7 +162,7 @@ export async function startRhCardPurchase(
       const gatewayStatus = normalizeHdfcOrderStatus(gateway.status);
       if (gatewayStatus === "completed")
         throw new Error(
-          "Your payment has been received. Please verify the existing payment instead of paying again.",
+          "Your payment has been received. Your card will appear after payment confirmation. Please do not pay again.",
         );
       if (gatewayStatus === "pending" && checkoutIsValid(notes)) {
         // Reuse the order and update its details before payment, rather than charging twice.
@@ -293,7 +293,9 @@ export async function confirmRhCardPayment(input: {
     const terminal =
       record.status === "refunded" ||
       (record.status === "completed" &&
-        ["pending", "failed", "cancelled"].includes(input.normalizedStatus));
+        ["pending", "failed", "cancelled", "refund_failed"].includes(
+          input.normalizedStatus,
+        ));
     if (terminal)
       return {
         record,

@@ -7,7 +7,6 @@ import {
 } from "@/lib/hdfcGateway";
 import { eq } from "drizzle-orm";
 import { isRhCardPayment } from "@/lib/rhIdCardPayment";
-import { updatePaymentFromGatewayStatus } from "@/lib/paymentConfirmation";
 
 function getGatewayAmount(data: Record<string, unknown>) {
   const txnDetail = data.txn_detail as Record<string, unknown> | undefined;
@@ -63,25 +62,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const cardPurchase = isRhCardPayment(paymentRecord);
-    // The webhook and the verified return flow share the same idempotent fulfillment.
-    // This recovers a paid card if the webhook arrives late or needs to be retried.
-    const cardConfirmation = cardPurchase
-      ? await updatePaymentFromGatewayStatus({
-          gatewayOrderId: paymentRecord.gatewayOrderId,
-          gatewayStatus: hdfcStatus.status || "UNKNOWN",
-          normalizedStatus,
-          responseObject: hdfcStatus,
-        })
-      : null;
-    const finalStatus = cardConfirmation?.status || normalizedStatus;
-
     return NextResponse.json(
       {
-        success: finalStatus === "completed",
+        success: normalizedStatus === "completed",
         status: hdfcStatus.status,
-        normalizedStatus: finalStatus,
-        orderType: cardPurchase ? "rh_id_card" : paymentRecord.orderType,
+        normalizedStatus,
+        orderType: isRhCardPayment(paymentRecord)
+          ? "rh_id_card"
+          : paymentRecord.orderType,
         orderId: paymentRecord.gatewayOrderId,
         amount: paymentRecord.amount,
         currency: paymentRecord.currency,

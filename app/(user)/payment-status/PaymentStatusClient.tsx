@@ -83,7 +83,7 @@ export function PaymentStatusClient() {
         setStatus("completed");
         setMessage(
           data.orderType === "rh_id_card"
-            ? "Your payment is confirmed and your RH Membership Card has been created. You can view it on your dashboard."
+            ? "Your payment is confirmed. Your RH Membership Card will appear on your dashboard once processing is complete."
             : "Your payment has been confirmed successfully.",
         );
         window.sessionStorage.removeItem("hdfcPaymentOrder");
@@ -184,9 +184,7 @@ export function PaymentStatusClient() {
 
           <h1 className="text-3xl font-bold tracking-tight">
             {status === "completed"
-              ? orderType === "rh_id_card"
-                ? "Your RH Membership Card Is Ready"
-                : "Payment Successful"
+              ? "Payment Successful"
               : status === "checking"
                 ? "Verifying Payment"
                 : "Payment Status"}

@@ -3,7 +3,16 @@
 import Image from "next/image";
 import { useRef, useState, type ComponentProps, type FormEvent } from "react";
 import imageCompression from "browser-image-compression";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import {
+  BadgeCheck,
+  Camera,
+  ChevronLeft,
+  ChevronRight,
+  ImagePlus,
+  Loader2,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { IdCardView } from "./IdCardView";
@@ -30,6 +39,7 @@ import type {
 const CARD_API = "/api/auth/mobile/id-card";
 const STEPS = ["Personal details", "Profession & location", "Review & create"];
 const MAX_PHOTO_BYTES = 200 * 1024;
+const MAX_SELECTED_PHOTO_BYTES = 1024 * 1024;
 
 function FormInput({
   label,
@@ -99,6 +109,7 @@ export function IdCardForm({
   const [error, setError] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   function update<K extends keyof IdCardFormValues>(
     field: K,
@@ -121,14 +132,16 @@ export function IdCardForm({
   }
 
   async function uploadPhoto(file?: File) {
-    if (!file) return;
+    if (!file || uploading || submitting) return;
     setError("");
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       setError("Choose a JPG, PNG, or WEBP passport photo.");
       return;
     }
-    if (file.size > 20 * 1024 * 1024) {
-      setError("Choose a photo smaller than 20 MB.");
+    if (file.size > MAX_SELECTED_PHOTO_BYTES) {
+      setError(
+        "Your photo must be 1 MB or smaller. Please choose a smaller photo.",
+      );
       return;
     }
     setUploading(true);
@@ -502,61 +515,132 @@ export function IdCardForm({
                   >
                     Passport photo *
                   </label>
-                  <div className="flex flex-wrap items-center gap-4 rounded-xl border border-slate-200 p-4">
-                    {values.passportPhotoUrl && (
-                      <Image
-                        src={values.passportPhotoUrl}
-                        alt="Your uploaded passport photo"
-                        width={80}
-                        height={110}
-                        unoptimized
-                        className="h-28 w-20 rounded-lg object-cover"
-                      />
-                    )}
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <p
-                        id="card-photo-help"
-                        className="text-sm text-slate-500"
-                      >
-                        Choose a clear portrait in JPG, PNG, or WEBP format.
-                        Your photo is resized automatically.
-                      </p>
-                      <Input
-                        id="card-photo"
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        aria-describedby="card-photo-help"
-                        className="h-auto py-2"
-                        onChange={(event) => {
-                          const file = event.target.files?.[0];
-                          event.target.value = "";
-                          void uploadPhoto(file);
-                        }}
-                      />
-                      {uploading && (
+                  <div
+                    aria-busy={uploading}
+                    className={`rounded-2xl border-2 border-dashed p-5 transition-colors sm:p-6 ${values.passportPhoto ? "border-emerald-200 bg-emerald-50/50" : "border-slate-200 bg-gradient-to-br from-slate-50 to-emerald-50/60"}`}
+                  >
+                    <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
+                      <div className="relative flex h-32 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white bg-white shadow-sm ring-1 ring-slate-200/70">
+                        {values.passportPhotoUrl ? (
+                          <Image
+                            src={values.passportPhotoUrl}
+                            alt="Your uploaded passport photo"
+                            width={96}
+                            height={128}
+                            unoptimized
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 text-emerald-700/60">
+                            <Camera
+                              aria-hidden="true"
+                              className="size-8"
+                              strokeWidth={1.5}
+                            />
+                            <span className="text-[10px] font-medium tracking-widest uppercase">
+                              Your photo
+                            </span>
+                          </div>
+                        )}
+                        {uploading && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+                            <Loader2
+                              aria-hidden="true"
+                              className="size-6 animate-spin text-emerald-700"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-3">
+                        <div>
+                          <p
+                            role="status"
+                            className="flex items-center gap-2 text-sm font-semibold text-slate-900"
+                          >
+                            {uploading ? (
+                              "Uploading your photo…"
+                            ) : values.passportPhoto ? (
+                              <>
+                                <BadgeCheck
+                                  aria-hidden="true"
+                                  className="size-4 text-emerald-600"
+                                />
+                                Photo uploaded
+                              </>
+                            ) : (
+                              "Add a face to your membership"
+                            )}
+                          </p>
+                          <p className="mt-1 text-sm leading-6 text-slate-500">
+                            Use a clear, front-facing portrait with a plain
+                            background.
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="h-10 gap-2 border-emerald-200 bg-white px-4 text-emerald-800 shadow-sm hover:bg-emerald-50 hover:text-emerald-900"
+                            aria-controls="card-photo"
+                            aria-describedby="card-photo-help"
+                            onClick={() => photoInputRef.current?.click()}
+                            disabled={uploading || submitting}
+                          >
+                            {values.passportPhoto ? (
+                              <ImagePlus
+                                aria-hidden="true"
+                                className="size-4"
+                              />
+                            ) : (
+                              <Upload aria-hidden="true" className="size-4" />
+                            )}
+                            {uploading
+                              ? "Uploading…"
+                              : values.passportPhoto
+                                ? "Replace photo"
+                                : "Choose photo"}
+                          </Button>
+                          {values.passportPhoto && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="h-10 gap-2 px-3 text-slate-500 hover:text-red-600"
+                              disabled={uploading || submitting}
+                              onClick={() =>
+                                setValues((current) => ({
+                                  ...current,
+                                  passportPhoto: "",
+                                  passportPhotoUrl: "",
+                                }))
+                              }
+                            >
+                              <Trash2 aria-hidden="true" className="size-4" />
+                              Remove photo
+                            </Button>
+                          )}
+                        </div>
                         <p
-                          role="status"
-                          className="flex items-center gap-2 text-sm text-slate-500"
+                          id="card-photo-help"
+                          className="text-xs text-slate-500"
                         >
-                          <Loader2 className="size-4 animate-spin" />
-                          Uploading photo…
+                          JPG, PNG or WEBP · Max 1 MB
                         </p>
-                      )}
-                      {values.passportPhoto && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          onClick={() =>
-                            setValues((current) => ({
-                              ...current,
-                              passportPhoto: "",
-                              passportPhotoUrl: "",
-                            }))
-                          }
-                        >
-                          Remove photo
-                        </Button>
-                      )}
+                        <input
+                          ref={photoInputRef}
+                          id="card-photo"
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          aria-describedby="card-photo-help"
+                          className="sr-only"
+                          tabIndex={-1}
+                          disabled={uploading || submitting}
+                          onChange={(event) => {
+                            const file = event.target.files?.[0];
+                            event.target.value = "";
+                            void uploadPhoto(file);
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

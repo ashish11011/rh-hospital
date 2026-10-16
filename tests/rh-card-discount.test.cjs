@@ -104,7 +104,7 @@ test("course prices show the struck-through original only when discounted", () =
   const memberPrice = renderPrice(true);
   assert.match(memberPrice, /<s>₹2,500<\/s>/);
   assert.match(memberPrice, /₹2,000/);
-  assert.match(memberPrice, /20% RH card discount applied/);
+  assert.match(memberPrice, /20% RH Membership Card discount applied/);
   const regularPrice = renderPrice(false);
   assert.match(regularPrice, /₹2,500/);
   assert.doesNotMatch(regularPrice, /<s>|discount applied/);

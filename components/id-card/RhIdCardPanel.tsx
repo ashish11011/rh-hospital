@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { IdCard, Loader2 } from "lucide-react";
+import { IdCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IdCardForm } from "./IdCardForm";
 import { IdCardView } from "./IdCardView";
@@ -21,8 +21,6 @@ export function RhIdCardPanel({
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
   const [created, setCreated] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const [paymentMessage, setPaymentMessage] = useState("");
   const [editPending, setEditPending] = useState(false);
 
   useEffect(() => {
@@ -68,39 +66,20 @@ export function RhIdCardPanel({
     router.refresh();
   }
 
-  async function verifyPayment() {
-    if (!result?.pendingPurchase) return;
-    setVerifying(true);
-    setPaymentMessage("");
-    try {
-      const response = await fetch("/api/payment-status", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: result.pendingPurchase.orderId }),
-        signal: AbortSignal.timeout(30000),
-      });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(
-          data.message || "Unable to verify payment. Please try again.",
-        );
-      setPaymentMessage(
-        data.normalizedStatus === "completed"
-          ? "Your payment is confirmed. Loading your card…"
-          : ["failed", "cancelled"].includes(data.normalizedStatus)
-            ? "Payment was not completed. You can try again."
-            : "Your payment is still pending. Please complete it or verify again shortly.",
-      );
-      setAttempt((current) => current + 1);
-      if (data.normalizedStatus === "completed") router.refresh();
-    } catch (cause) {
-      setPaymentMessage(
-        cause instanceof Error ? cause.message : "Unable to verify payment.",
-      );
-    } finally {
-      setVerifying(false);
-    }
-  }
+  useEffect(() => {
+    if (!result?.pendingPurchase || result.card || editPending || error) return;
+    // Read saved card data while the webhook processes the purchase.
+    const refresh = () => {
+      if (document.visibilityState === "visible")
+        setAttempt((current) => current + 1);
+    };
+    const timeout = setTimeout(refresh, 10000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      clearTimeout(timeout);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [result, editPending, error]);
 
   function resumePayment() {
     const purchase = result?.pendingPurchase;
@@ -178,35 +157,17 @@ export function RhIdCardPanel({
               : "Your RH Membership Card payment is pending"}
           </p>
           <p className="text-sm text-slate-600">
-            Your card will be created after payment confirmation. If you have
-            already paid, verify your payment before starting another checkout.
+            {result.pendingPurchase.status === "completed"
+              ? "Your payment is confirmed. Your card will appear here when it is available. If it remains unavailable, please contact support; you do not need to pay again."
+              : "Your card will appear here after payment confirmation. If you have already paid, please wait for confirmation and do not pay again."}
           </p>
-          {paymentMessage && (
-            <p role="status" className="text-sm text-slate-700">
-              {paymentMessage}
-            </p>
-          )}
           <div className="flex flex-wrap gap-3">
             {result.pendingPurchase.paymentUrl && (
-              <Button onClick={resumePayment} disabled={verifying}>
-                Continue payment
-              </Button>
+              <Button onClick={resumePayment}>Continue payment</Button>
             )}
-            <Button
-              variant="outline"
-              onClick={verifyPayment}
-              disabled={verifying}
-            >
-              {verifying && <Loader2 className="size-4 animate-spin" />}Verify
-              payment
-            </Button>
             {result.pendingPurchase.status !== "completed" &&
               (allowCreate ? (
-                <Button
-                  variant="ghost"
-                  disabled={verifying}
-                  onClick={() => setEditPending(true)}
-                >
+                <Button variant="ghost" onClick={() => setEditPending(true)}>
                   Edit details or retry
                 </Button>
               ) : (

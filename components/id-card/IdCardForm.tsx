@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { IdCardView } from "./IdCardView";
 import { RhCardPrice } from "./RhCardPrice";
-import { RH_CARD_OTHER_PROFESSION_MAX_LENGTH } from "@/lib/constants";
+import {
+  RH_CARD_OTHER_PROFESSION_MAX_LENGTH,
+  RH_ID_CARD_VALIDITY_YEARS,
+} from "@/lib/constants";
 import {
   BLOOD_GROUP_OPTIONS,
   EMPTY_FORM_VALUES,
@@ -587,7 +590,8 @@ export function IdCardForm({
                     {pricing
                       ? `Pay ${new Intl.NumberFormat("en-IN", { style: "currency", currency: pricing.currency, maximumFractionDigits: 0 }).format(pricing.amount)} after reviewing your details. `
                       : "Payment is required after reviewing your details. "}
-                    Your card is activated after successful payment.
+                    Your card is activated after successful payment and is valid
+                    for {RH_ID_CARD_VALIDITY_YEARS} years from activation.
                   </p>
                 </div>
                 <label className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:col-span-2">

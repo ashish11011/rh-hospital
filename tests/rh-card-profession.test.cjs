@@ -36,6 +36,7 @@ const { validateInput } = load("lib/rhIdCard.ts", {
 });
 const { EMPTY_FORM_VALUES, makePreviewCard, formatProfession } = load(
   "components/id-card/idCardUtils.ts",
+  { "@/lib/constants": constants },
 );
 const input = {
   fullName: "Member",

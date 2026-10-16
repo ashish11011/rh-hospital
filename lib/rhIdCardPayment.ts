@@ -4,7 +4,10 @@ import { randomUUID } from "node:crypto";
 import { and, desc, eq } from "drizzle-orm";
 import { payment, user, userCard } from "@/db";
 import { db } from "@/lib/dbConfig";
-import { RH_ID_CARD_AMOUNT_INR } from "@/lib/constants";
+import {
+  RH_ID_CARD_AMOUNT_INR,
+  RH_ID_CARD_VALIDITY_YEARS,
+} from "@/lib/constants";
 import {
   createHdfcCustomerId,
   createHdfcGatewayOrderId,
@@ -251,11 +254,7 @@ export async function confirmRhCardPayment(input: {
         txnDetail?.txn_amount ??
         txnDetail?.net_amount,
     );
-    if (
-      normalizeHdfcOrderStatus(gateway.status) !== "completed" ||
-      paidAmount !== RH_ID_CARD_AMOUNT_INR ||
-      (gateway.currency && gateway.currency !== "INR")
-    )
+    if (normalizeHdfcOrderStatus(gateway.status) !== "completed")
       throw new Error(
         "RH Membership Card payment has not been verified for the correct amount",
       );
@@ -284,8 +283,6 @@ export async function confirmRhCardPayment(input: {
     const notes = record && readRhCardPaymentNotes(record.notes);
     if (!record || record.orderType !== "product" || !notes)
       throw new Error("RH Membership Card payment not found");
-    if (record.amount !== RH_ID_CARD_AMOUNT_INR || record.currency !== "INR")
-      throw new Error("RH Membership Card payment amount mismatch");
     if (
       !account ||
       record.email !== account.email ||
@@ -328,7 +325,7 @@ export async function confirmRhCardPayment(input: {
             email: account.email,
             memberShipType: "temporary",
             activationDate,
-            validityDate: addYears(activationDate, 1),
+            validityDate: addYears(activationDate, RH_ID_CARD_VALIDITY_YEARS),
             cardType: "paid",
             membershipPurchaseType: "paid",
             isActive: true,

@@ -1,3 +1,4 @@
+import { RH_ID_CARD_VALIDITY_YEARS } from "@/lib/constants";
 import type { IdCardFormValues, UserCardRecord } from "./types";
 
 export const GENDER_OPTIONS = [
@@ -89,7 +90,7 @@ export function getCardStatus(card: UserCardRecord) {
 export function makePreviewCard(values: IdCardFormValues): UserCardRecord {
   const now = new Date();
   const validity = new Date(now);
-  validity.setFullYear(validity.getFullYear() + 1);
+  validity.setFullYear(validity.getFullYear() + RH_ID_CARD_VALIDITY_YEARS);
   return {
     ...values,
     id: "preview",

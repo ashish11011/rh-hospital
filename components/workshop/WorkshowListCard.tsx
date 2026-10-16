@@ -11,7 +11,7 @@ export const WorkshowListCard = ({ ws, isCompleted }: any) => {
     <Link key={ws.id} href={`/workshops/${ws.id}`} className="group">
       <Card className="flex h-full cursor-pointer flex-col overflow-hidden p-0">
         {/* Image */}
-        <div className="relative h-56 w-full overflow-hidden bg-gray-200">
+        <div className="relative h-52 w-full overflow-hidden bg-gray-200">
           {bannerImageUrl ? (
             <Image
               src={bannerImageUrl}
@@ -45,7 +45,7 @@ export const WorkshowListCard = ({ ws, isCompleted }: any) => {
               <div className="flex items-center text-sm text-gray-600">
                 <Clock className="text-primary mr-3 h-4 w-4" />
                 <span>
-                  {formatTime(ws.startTime)} - {formatTime(ws.endTime)}
+                  {formatTime(ws.startTime)} - {formatTime(ws.endTime)} IST
                 </span>
               </div>
             </div>

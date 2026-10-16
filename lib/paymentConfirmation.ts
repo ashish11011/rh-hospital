@@ -1,14 +1,17 @@
 import "server-only";
-import { course, courseEnrolment, payment, seminarRegistrations, user, workshopRegistration } from "@/db";
+import {
+  courseEnrolment,
+  payment,
+  seminarRegistrations,
+  workshopRegistration,
+} from "@/db";
 import { db } from "@/lib/dbConfig";
-import { sendCoursePurchaseEmail, sendPaymentEventEmail, sendSeminarEmail, sendWorkshopEmail } from "@/lib/sesClient";
+import { enqueuePaymentInvoice } from "@/lib/invoiceQueue";
 import { eq } from "drizzle-orm";
+import { confirmRhCardPayment, isRhCardPayment } from "@/lib/rhIdCardPayment";
 
 export type HdfcPaymentEventName =
-  | "ORDER_FAILED"
-  | "ORDER_SUCCEEDED"
-  | "ORDER_REFUNDED"
-  | "ORDER_REFUND_FAILED";
+  "ORDER_FAILED" | "ORDER_SUCCEEDED" | "ORDER_REFUNDED" | "ORDER_REFUND_FAILED";
 
 type PaymentWebhookStatus =
   | "completed"
@@ -27,7 +30,9 @@ type ConfirmGatewayPaymentInput = {
   responseObject?: unknown;
 };
 
-export function normalizeHdfcWebhookEvent(eventName?: string | null): PaymentWebhookStatus {
+export function normalizeHdfcWebhookEvent(
+  eventName?: string | null,
+): PaymentWebhookStatus {
   if (eventName === "ORDER_SUCCEEDED") return "completed";
   if (eventName === "ORDER_FAILED") return "failed";
   if (eventName === "ORDER_REFUNDED") return "refunded";
@@ -36,7 +41,9 @@ export function normalizeHdfcWebhookEvent(eventName?: string | null): PaymentWeb
   return "pending";
 }
 
-export async function updatePaymentFromGatewayStatus(input: ConfirmGatewayPaymentInput) {
+export async function updatePaymentFromGatewayStatus(
+  input: ConfirmGatewayPaymentInput,
+) {
   const [existingPayment] = await db
     .select()
     .from(payment)
@@ -46,11 +53,21 @@ export async function updatePaymentFromGatewayStatus(input: ConfirmGatewayPaymen
     throw new Error("Payment record not found");
   }
 
+  if (isRhCardPayment(existingPayment)) {
+    const confirmation = await confirmRhCardPayment(input);
+    // Product payments are RH Membership Cards. Fulfill the card before queueing.
+    if (confirmation.status === "completed") {
+      await enqueuePaymentInvoice(existingPayment.id);
+    }
+    return confirmation;
+  }
+
   const shouldComplete = input.normalizedStatus === "completed";
-  const shouldFail = input.normalizedStatus === "failed" || input.normalizedStatus === "cancelled";
+  const shouldFail =
+    input.normalizedStatus === "failed" ||
+    input.normalizedStatus === "cancelled";
   const shouldRefund = input.normalizedStatus === "refunded";
   const statusChanged = existingPayment.status !== input.normalizedStatus;
-  let eventRecipientName: string | null | undefined;
 
   await db
     .update(payment)
@@ -62,7 +79,8 @@ export async function updatePaymentFromGatewayStatus(input: ConfirmGatewayPaymen
           ? 0
           : existingPayment.amountPaid,
       amountDue: shouldComplete || shouldRefund ? 0 : existingPayment.amountDue,
-      getewayPaymentId: input.gatewayPaymentId || existingPayment.getewayPaymentId,
+      getewayPaymentId:
+        input.gatewayPaymentId || existingPayment.getewayPaymentId,
       transactionId: input.gatewayPaymentId || existingPayment.transactionId,
       responseObject: input.responseObject as any,
     })
@@ -74,10 +92,6 @@ export async function updatePaymentFromGatewayStatus(input: ConfirmGatewayPaymen
         .update(workshopRegistration)
         .set({ paymentStatus: "completed" })
         .where(eq(workshopRegistration.id, existingPayment.orderId));
-
-      if (existingPayment.email) {
-        await sendWorkshopEmail({ toEmail: existingPayment.email });
-      }
     } else if (existingPayment.orderType === "seminar") {
       await db
         .update(seminarRegistrations)
@@ -87,39 +101,11 @@ export async function updatePaymentFromGatewayStatus(input: ConfirmGatewayPaymen
           orderId: existingPayment.gatewayOrderId,
         })
         .where(eq(seminarRegistrations.id, existingPayment.orderId));
-
-      if (existingPayment.email) {
-        await sendSeminarEmail({ toEmail: existingPayment.email });
-      }
     } else if (existingPayment.orderType === "course") {
-      const [coursePurchase] = await db
-        .select({
-          courseTitle: course.title,
-          email: user.email,
-          name: user.name,
-        })
-        .from(courseEnrolment)
-        .innerJoin(course, eq(courseEnrolment.courseId, course.id))
-        .innerJoin(user, eq(courseEnrolment.userId, user.id))
-        .where(eq(courseEnrolment.id, existingPayment.orderId))
-        .limit(1);
-
-      eventRecipientName = coursePurchase?.name;
-
       await db
         .update(courseEnrolment)
         .set({ enrolmentStatus: "enrolled", updatedAt: new Date() })
         .where(eq(courseEnrolment.id, existingPayment.orderId));
-
-      const toEmail = existingPayment.email || coursePurchase?.email;
-
-      if (toEmail && coursePurchase) {
-        await sendCoursePurchaseEmail({
-          toEmail,
-          name: coursePurchase.name,
-          courseTitle: coursePurchase.courseTitle,
-        });
-      }
     }
   } else if (shouldFail) {
     if (existingPayment.orderType === "workshop") {
@@ -158,40 +144,18 @@ export async function updatePaymentFromGatewayStatus(input: ConfirmGatewayPaymen
         })
         .where(eq(seminarRegistrations.id, existingPayment.orderId));
     } else if (existingPayment.orderType === "course") {
-      const [coursePurchase] = await db
-        .select({ name: user.name })
-        .from(courseEnrolment)
-        .innerJoin(user, eq(courseEnrolment.userId, user.id))
-        .where(eq(courseEnrolment.id, existingPayment.orderId))
-        .limit(1);
-
-      eventRecipientName = coursePurchase?.name;
-
       await db
         .update(courseEnrolment)
         .set({ enrolmentStatus: "refunded", updatedAt: new Date() })
         .where(eq(courseEnrolment.id, existingPayment.orderId));
     }
-  } else if (existingPayment.orderType === "course") {
-    const [coursePurchase] = await db
-      .select({ name: user.name })
-      .from(courseEnrolment)
-      .innerJoin(user, eq(courseEnrolment.userId, user.id))
-      .where(eq(courseEnrolment.id, existingPayment.orderId))
-      .limit(1);
-
-    eventRecipientName = coursePurchase?.name;
   }
 
-  if (statusChanged && existingPayment.email && input.gatewayEventName) {
-    await sendPaymentEventEmail({
-      toEmail: existingPayment.email,
-      name: eventRecipientName,
-      eventName: input.gatewayEventName,
-      orderId: existingPayment.gatewayOrderId,
-      amount: existingPayment.amount,
-      currency: existingPayment.currency,
-    });
+  if (
+    shouldComplete &&
+    ["course", "workshop", "seminar"].includes(existingPayment.orderType)
+  ) {
+    await enqueuePaymentInvoice(existingPayment.id);
   }
 
   return {

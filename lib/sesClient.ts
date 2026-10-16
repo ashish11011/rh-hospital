@@ -1,13 +1,144 @@
-import { SES_ACCESS_KEY, SES_SECRET_ACCESS_KEY } from "@/env";
-import { SESClient, ListIdentitiesCommand, SendEmailCommand } from "@aws-sdk/client-ses";
+import { SendEmailCommand } from "@aws-sdk/client-ses";
+import { sendLoggedEmail } from "@/lib/sendLoggedEmail";
 
-export const sesClient = new SESClient({
-    region: "ap-south-1",
-    credentials: {
-        accessKeyId: SES_ACCESS_KEY,
-        secretAccessKey: SES_SECRET_ACCESS_KEY,
-    },
-});
+const EMAIL_SOURCE = "no-reply@rhhealthcaresimulation.com";
+const ACCOUNT_REQUEST_ADMIN_EMAIL = "bishnoi11011@gmail.com";
+
+export async function sendRhIdCardCreatedEmail({
+    toEmail, name, memberShipId, validityDate, orderId, amount,
+}: {
+    toEmail: string;
+    name: string;
+    memberShipId: string;
+    validityDate: Date | null;
+    orderId: string;
+    amount: number;
+}) {
+    const paidAmount = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amount);
+    const validTill = validityDate?.toLocaleDateString("en-IN", {
+        day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata",
+    }) || "Not provided";
+    await sendLoggedEmail(new SendEmailCommand({
+        Source: EMAIL_SOURCE,
+        Destination: { ToAddresses: [toEmail] },
+        Message: {
+            Subject: { Data: "Your RH Membership Card Has Been Created - RH Healthcare" },
+            Body: {
+                Html: { Data: `
+<p>Dear ${escapeHtml(name)},</p>
+<p>Your payment has been confirmed and your RH Membership Card has been created successfully.</p>
+<p><strong>RH Member ID:</strong> ${escapeHtml(memberShipId)}<br/>
+<strong>Valid until:</strong> ${escapeHtml(validTill)}<br/>
+<strong>Amount paid:</strong> ${escapeHtml(paidAmount)}<br/>
+<strong>Order number:</strong> ${escapeHtml(orderId)}</p>
+<p>You can view your card on your dashboard and in the RH Healthcare mobile app.</p>
+<p><a href="https://www.rhhealthcaresimulation.com/dashboard/id-card">View your RH Membership Card</a></p>
+<p>Warm regards,<br/>RH Healthcare Simulation Team<br/>
+Call: +91 9928907780, +91 9829507781<br/>Email: connect.rhhealth@gmail.com</p>` },
+                Text: { Data: `Dear ${name},\nYour payment is confirmed and your RH Membership Card has been created.\nRH Member ID: ${memberShipId}\nValid until: ${validTill}\nAmount paid: ${paidAmount}\nOrder number: ${orderId}\nView your card: https://www.rhhealthcaresimulation.com/dashboard/id-card` },
+            },
+        },
+    }));
+}
+
+type AccountDeletionRequestUser = {
+    id?: string | null;
+    name?: string | null;
+    email: string;
+    mobileNumber?: string | null;
+    designation?: string | null;
+    instituteName?: string | null;
+    city?: string | null;
+};
+
+function escapeHtml(value: string | null | undefined) {
+    return String(value || "N/A")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+export async function sendAccountDeletionRequestEmails(user: AccountDeletionRequestUser) {
+    const requestedAt = new Date().toLocaleString("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: "Asia/Kolkata",
+    });
+
+    const adminHtml = `
+<p>Hello Admin,</p>
+
+<p>A user has requested account deletion or deactivation from the RH Healthcare dashboard.</p>
+
+<h3>User Details</h3>
+<ul>
+  <li><strong>User ID:</strong> ${escapeHtml(user.id)}</li>
+  <li><strong>Name:</strong> ${escapeHtml(user.name)}</li>
+  <li><strong>Email:</strong> ${escapeHtml(user.email)}</li>
+  <li><strong>Mobile Number:</strong> ${escapeHtml(user.mobileNumber)}</li>
+  <li><strong>Designation:</strong> ${escapeHtml(user.designation)}</li>
+  <li><strong>Institute/Hospital:</strong> ${escapeHtml(user.instituteName)}</li>
+  <li><strong>City:</strong> ${escapeHtml(user.city)}</li>
+  <li><strong>Requested At:</strong> ${escapeHtml(requestedAt)} IST</li>
+</ul>
+
+<p>Please review this request and delete or deactivate the account from the admin systems as appropriate.</p>
+
+<p>Regards,<br/>RH Healthcare Simulation Center</p>
+`;
+
+    const userHtml = `
+<p>Dear ${escapeHtml(user.name || "User")},</p>
+
+<p>Your account deletion or deactivation request has been raised successfully.</p>
+
+<p>Our admin team has been notified and will review your request. You will receive an update once the request has been processed.</p>
+
+<p>
+Warm Regards,<br/>
+<strong>RH Healthcare Simulation Center</strong><br/>
+📧 rhhealthcaresimulationcenter@gmail.com<br/>
+🌐 https://www.rhhealthcaresimulation.com
+</p>
+`;
+
+    await Promise.all([
+        sendLoggedEmail(
+            new SendEmailCommand({
+                Source: EMAIL_SOURCE,
+                Destination: {
+                    ToAddresses: [ACCOUNT_REQUEST_ADMIN_EMAIL],
+                },
+                Message: {
+                    Subject: {
+                        Data: "Account deletion/deactivation request - RH Healthcare",
+                    },
+                    Body: {
+                        Html: { Data: adminHtml },
+                    },
+                },
+            }),
+        ),
+        sendLoggedEmail(
+            new SendEmailCommand({
+                Source: EMAIL_SOURCE,
+                Destination: {
+                    ToAddresses: [user.email],
+                },
+                Message: {
+                    Subject: {
+                        Data: "Account deletion/deactivation request received",
+                    },
+                    Body: {
+                        Html: { Data: userHtml },
+                    },
+                },
+            }),
+        ),
+    ]);
+}
 
 type PaymentEventName =
     | "ORDER_FAILED"
@@ -100,7 +231,7 @@ Website: www.rhhealthcaresimulation.com
         },
     });
 
-    await sesClient.send(command);
+    await sendLoggedEmail(command);
 }
 
 export async function sendWorkshopEmail({
@@ -214,7 +345,7 @@ Warm Regards,<br/><br/>
         },
     });
 
-    await sesClient.send(command);
+    await sendLoggedEmail(command);
 }
 
 export async function sendSeminarEmail({
@@ -472,7 +603,7 @@ export async function sendSeminarEmail({
                   "
                 >
                   <em>
-                    Global Nursing Leadership &amp; Education Summit 2026
+                    Global Nursing &amp; Summit 2026
                   </em>
                 </p>
               </td>
@@ -684,7 +815,7 @@ export async function sendSeminarEmail({
                 </p>
 
                 <a
-                  href="https://chat.whatsapp.com/GCEWIjqS8exIn6z2UeZKZ4"
+                  href="https://chat.whatsapp.com/D700DEYAzTsIfCe8Nh5Uss"
                   target="_blank"
                   class="mobile-button"
                   style="
@@ -793,7 +924,7 @@ export async function sendSeminarEmail({
         },
     });
 
-    await sesClient.send(command);
+    await sendLoggedEmail(command);
 }
 
 export async function sendCoursePurchaseEmail({
@@ -846,5 +977,5 @@ RH Healthcare Simulation Team<br/>
         },
     });
 
-    await sesClient.send(command);
+    await sendLoggedEmail(command);
 }

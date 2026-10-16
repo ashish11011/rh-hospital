@@ -1,5 +1,5 @@
 import { course, courseItem } from "@/db";
-import { cloudfrontAssetUrl } from "@/lib/cloudfront";
+import { publicAssetUrl } from "@/lib/publicAsset";
 import { publicCoursePath } from "@/lib/course";
 import { db } from "@/lib/dbConfig";
 import { asc, desc, eq, inArray } from "drizzle-orm";
@@ -58,7 +58,7 @@ export async function getPublicCourseCatalog() {
     ...item,
     path: publicCoursePath(item.slug),
     bannerImageKey: item.bannerImageUrl,
-    bannerImageUrl: cloudfrontAssetUrl(item.bannerImageUrl),
+    bannerImageUrl: publicAssetUrl(item.bannerImageUrl),
     items: (itemsByCourseId.get(item.id) || []).map((courseItem) => ({
       ...courseItem,
     })),

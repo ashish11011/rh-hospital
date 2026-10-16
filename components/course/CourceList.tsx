@@ -17,8 +17,10 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "../ui/input-group";
-import { cloudfrontAssetUrl } from "@/lib/cloudfront";
+import { publicAssetUrl } from "@/lib/publicAsset";
 import { publicCoursePath } from "@/lib/course";
+import { getRhCardCoursePricing } from "@/lib/rhCardDiscount";
+import { CoursePrice } from "./CoursePrice";
 
 type CourseListItem = {
   id: string;
@@ -35,7 +37,13 @@ type CourseListItem = {
   skillsAcquired: string[] | null;
 };
 
-export default function CourseList({ courses }: { courses: CourseListItem[] }) {
+export default function CourseList({
+  courses,
+  rhCardDiscountEligible = false,
+}: {
+  courses: CourseListItem[];
+  rhCardDiscountEligible?: boolean;
+}) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredCourses = courses.filter(
@@ -68,67 +76,77 @@ export default function CourseList({ courses }: { courses: CourseListItem[] }) {
         </div>
 
         <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-          {filteredCourses.map((course) => (
-            <Card
-              key={course.id}
-              className="overflow-hidden rounded-2xl border py-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="relative h-52">
-                <Link href={publicCoursePath(course.slug)}>
-                  <Image
-                    src={cloudfrontAssetUrl(course.bannerImageUrl)}
-                    alt={course.title}
-                    height={500}
-                    width={500}
-                    className="h-full w-full object-cover"
-                  />
-                </Link>
-              </div>
-
-              <CardContent className="space-y-2 p-5">
-                <Link href={publicCoursePath(course.slug)}>
-                  <div>
-                    <h3 className="line-clamp-2 text-2xl leading-tight font-bold">
-                      {course.title}
-                    </h3>
-
-                    <p className="text-muted-foreground mt-3 line-clamp-2 text-sm">
-                      {course.courseOverview || course.description}
-                    </p>
-                  </div>
-                </Link>
-
-                <div className="text-muted-foreground flex flex-wrap gap-x-6 gap-y-3 py-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    {course.courseDuration || `${course.courseHours} hours`}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4" />
-                    {course.totalLectures} lectures
-                  </div>
-
-                  {course.skillsAcquired &&
-                    course.skillsAcquired.length > 0 && (
-                      <div className="flex items-center gap-2 text-green-600">
-                        <Award className="h-4 w-4 fill-current" />
-                        Certificate
-                      </div>
-                    )}
+          {filteredCourses.map((course) => {
+            const pricing = getRhCardCoursePricing(
+              course.price,
+              rhCardDiscountEligible,
+            );
+            return (
+              <Card
+                key={course.id}
+                className="overflow-hidden rounded-2xl border py-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+              >
+                <div className="relative h-52">
+                  <Link href={publicCoursePath(course.slug)}>
+                    <Image
+                      src={publicAssetUrl(course.bannerImageUrl)}
+                      alt={course.title}
+                      height={500}
+                      width={500}
+                      className="h-full w-full object-cover"
+                    />
+                  </Link>
                 </div>
 
-                <Button className="w-full rounded-xl" asChild>
+                <CardContent className="space-y-2 p-5">
                   <Link href={publicCoursePath(course.slug)}>
-                    {course.price > 0
-                      ? `Enroll for ${course.currency || "INR"} ${course.price}`
-                      : "Enroll Now"}
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <div>
+                      <h3 className="line-clamp-2 text-2xl leading-tight font-bold">
+                        {course.title}
+                      </h3>
+
+                      <p className="text-muted-foreground mt-3 line-clamp-2 text-sm">
+                        {course.courseOverview || course.description}
+                      </p>
+                    </div>
                   </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+
+                  <div className="text-muted-foreground flex flex-wrap gap-x-6 gap-y-3 py-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      {course.courseDuration || `${course.courseHours} hours`}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="h-4 w-4" />
+                      {course.totalLectures} lectures
+                    </div>
+
+                    {course.skillsAcquired &&
+                      course.skillsAcquired.length > 0 && (
+                        <div className="flex items-center gap-2 text-green-600">
+                          <Award className="h-4 w-4 fill-current" />
+                          Certificate
+                        </div>
+                      )}
+                  </div>
+
+                  <CoursePrice
+                    pricing={pricing}
+                    currency={course.currency || "INR"}
+                  />
+                  <Button className="w-full rounded-xl" asChild>
+                    <Link href={publicCoursePath(course.slug)}>
+                      {course.price > 0
+                        ? `Enroll for ${course.currency || "INR"} ${pricing.amount}`
+                        : "Enroll Now"}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {filteredCourses.length === 0 && (

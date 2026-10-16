@@ -1,11 +1,20 @@
-import { course, courseEnrolment, courseItem, lessonProgress, payment, user } from "@/db";
-import { cloudfrontAssetUrl } from "@/lib/cloudfront";
+import {
+  course,
+  courseEnrolment,
+  courseItem,
+  lessonProgress,
+  payment,
+  user,
+} from "@/db";
+import { publicAssetUrl, courseAssetUrl } from "@/lib/publicAsset";
 import { publicCoursePath } from "@/lib/course";
 import { getApprovedCourseReviews } from "@/lib/courseReviewData";
 import { db } from "@/lib/dbConfig";
-import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
+import { isRhCardPayment } from "@/lib/rhIdCardPayment";
+import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 
-const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const uuidRegex =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function getUserEnrolledCoursesByEmail(email: string) {
   const enrolments = await db
@@ -26,7 +35,12 @@ export async function getUserEnrolledCoursesByEmail(email: string) {
     .from(courseEnrolment)
     .innerJoin(course, eq(course.id, courseEnrolment.courseId))
     .innerJoin(user, eq(user.id, courseEnrolment.userId))
-    .where(and(eq(courseEnrolment.enrolmentStatus, "enrolled"), eq(user.email, email.toLowerCase())))
+    .where(
+      and(
+        eq(courseEnrolment.enrolmentStatus, "enrolled"),
+        eq(user.email, email.toLowerCase()),
+      ),
+    )
     .orderBy(desc(courseEnrolment.createdAt));
 
   if (enrolments.length === 0) return [];
@@ -42,42 +56,64 @@ export async function getUserEnrolledCoursesByEmail(email: string) {
     .where(inArray(courseItem.courseId, courseIds));
 
   const itemIds = items.map((item) => item.id);
-  const progressRows = itemIds.length > 0
-    ? await db
-      .select({
-        courseItemId: lessonProgress.courseItemId,
-        isCompleted: lessonProgress.isCompleted,
-      })
-      .from(lessonProgress)
-      .where(and(eq(lessonProgress.userId, enrolments[0].userId), inArray(lessonProgress.courseItemId, itemIds)))
-    : [];
+  const progressRows =
+    itemIds.length > 0
+      ? await db
+          .select({
+            courseItemId: lessonProgress.courseItemId,
+            isCompleted: lessonProgress.isCompleted,
+          })
+          .from(lessonProgress)
+          .where(
+            and(
+              eq(lessonProgress.userId, enrolments[0].userId),
+              inArray(lessonProgress.courseItemId, itemIds),
+            ),
+          )
+      : [];
 
-  const completedItemIds = new Set(progressRows.filter((row) => row.isCompleted).map((row) => row.courseItemId));
-  const progressByCourseId = new Map<string, { completed: number; total: number }>();
+  const completedItemIds = new Set(
+    progressRows
+      .filter((row) => row.isCompleted)
+      .map((row) => row.courseItemId),
+  );
+  const progressByCourseId = new Map<
+    string,
+    { completed: number; total: number }
+  >();
 
   for (const item of items) {
     if (item.mediaType?.toLowerCase() === "pdf") continue;
 
-    const current = progressByCourseId.get(item.courseId) || { completed: 0, total: 0 };
+    const current = progressByCourseId.get(item.courseId) || {
+      completed: 0,
+      total: 0,
+    };
     current.total += 1;
     if (completedItemIds.has(item.id)) current.completed += 1;
     progressByCourseId.set(item.courseId, current);
   }
 
   return enrolments.map(({ userId, ...item }) => {
-    const summary = progressByCourseId.get(item.courseId) || { completed: 0, total: 0 };
+    const summary = progressByCourseId.get(item.courseId) || {
+      completed: 0,
+      total: 0,
+    };
 
     return {
       ...item,
       completedLessons: summary.completed,
       totalTrackableLessons: summary.total,
-      progressPercent: summary.total > 0 ? Math.round((summary.completed / summary.total) * 100) : 0,
+      progressPercent:
+        summary.total > 0
+          ? Math.round((summary.completed / summary.total) * 100)
+          : 0,
     };
   });
 }
 
 export async function getUserPurchasesByEmail(email: string) {
-  return db
+  const purchases = await db
     .select({
       id: payment.id,
       orderType: payment.orderType,
@@ -85,23 +121,40 @@ export async function getUserPurchasesByEmail(email: string) {
       currency: payment.currency,
       gatewayPaymentEventId: payment.gatewayPaymentEventId,
       modeOfPayment: payment.modeOfPayment,
-      amount: payment.amount,
+      amount:
+        sql<number>`case when ${payment.applePriceMilliunits} is not null then ${payment.applePriceMilliunits} / 1000.0 else ${payment.amount} end`.mapWith(
+          Number,
+        ),
       transactionDate: payment.transactionDate,
       status: payment.status,
       createdAt: payment.createdAt,
       gatewayOrderId: payment.gatewayOrderId,
+      notes: payment.notes,
     })
     .from(payment)
     .where(eq(payment.email, email.toLowerCase()))
     .orderBy(desc(payment.createdAt));
+  return purchases.map(({ notes, ...purchase }) => ({
+    ...purchase,
+    orderType: isRhCardPayment({ orderType: purchase.orderType, notes })
+      ? "RH Membership Card"
+      : purchase.orderType,
+  }));
 }
 
-export async function getPurchasedCourseDetailByEmail(email: string, courseIdentifier: string) {
+export async function getPurchasedCourseDetailByEmail(
+  email: string,
+  courseIdentifier: string,
+) {
   const cleanIdentifier = courseIdentifier.trim();
   const slugIdentifier = cleanIdentifier.replace(/^\/?courses\//, "");
   const courseWhere = uuidRegex.test(cleanIdentifier)
     ? eq(course.id, cleanIdentifier)
-    : or(eq(course.slug, cleanIdentifier), eq(course.slug, slugIdentifier), eq(course.slug, `/courses/${slugIdentifier}`));
+    : or(
+        eq(course.slug, cleanIdentifier),
+        eq(course.slug, slugIdentifier),
+        eq(course.slug, `/courses/${slugIdentifier}`),
+      );
 
   const [courseRecord] = await db
     .select({
@@ -169,21 +222,36 @@ export async function getPurchasedCourseDetailByEmail(email: string, courseIdent
     .where(eq(courseItem.courseId, courseRecord.id))
     .orderBy(asc(courseItem.priority), asc(courseItem.createdAt));
 
-  const progressRows = items.length > 0
-    ? await db
-      .select({
-        courseItemId: lessonProgress.courseItemId,
-        progress: lessonProgress.progress,
-        isCompleted: lessonProgress.isCompleted,
-        updatedAt: lessonProgress.updatedAt,
-      })
-      .from(lessonProgress)
-      .where(and(eq(lessonProgress.userId, enrolment.userId), inArray(lessonProgress.courseItemId, items.map((item) => item.id))))
-    : [];
+  const progressRows =
+    items.length > 0
+      ? await db
+          .select({
+            courseItemId: lessonProgress.courseItemId,
+            progress: lessonProgress.progress,
+            isCompleted: lessonProgress.isCompleted,
+            updatedAt: lessonProgress.updatedAt,
+          })
+          .from(lessonProgress)
+          .where(
+            and(
+              eq(lessonProgress.userId, enrolment.userId),
+              inArray(
+                lessonProgress.courseItemId,
+                items.map((item) => item.id),
+              ),
+            ),
+          )
+      : [];
 
-  const progressByItemId = new Map(progressRows.map((row) => [row.courseItemId, row]));
-  const trackableItems = items.filter((item) => item.mediaType?.toLowerCase() !== "pdf");
-  const completedLessons = trackableItems.filter((item) => progressByItemId.get(item.id)?.isCompleted).length;
+  const progressByItemId = new Map(
+    progressRows.map((row) => [row.courseItemId, row]),
+  );
+  const trackableItems = items.filter(
+    (item) => item.mediaType?.toLowerCase() !== "pdf",
+  );
+  const completedLessons = trackableItems.filter(
+    (item) => progressByItemId.get(item.id)?.isCompleted,
+  ).length;
   const reviews = await getApprovedCourseReviews(courseRecord.id);
 
   const { isActive, ...purchasedCourse } = courseRecord;
@@ -199,10 +267,13 @@ export async function getPurchasedCourseDetailByEmail(email: string, courseIdent
       ...purchasedCourse,
       path: publicCoursePath(purchasedCourse.slug),
       bannerImageKey: purchasedCourse.bannerImageUrl,
-      bannerImageUrl: cloudfrontAssetUrl(purchasedCourse.bannerImageUrl),
+      bannerImageUrl: publicAssetUrl(purchasedCourse.bannerImageUrl),
       completedLessons,
       totalTrackableLessons: trackableItems.length,
-      progressPercent: trackableItems.length > 0 ? Math.round((completedLessons / trackableItems.length) * 100) : 0,
+      progressPercent:
+        trackableItems.length > 0
+          ? Math.round((completedLessons / trackableItems.length) * 100)
+          : 0,
       reviews,
       items: items.map((item) => {
         const progress = progressByItemId.get(item.id);
@@ -210,7 +281,7 @@ export async function getPurchasedCourseDetailByEmail(email: string, courseIdent
         return {
           ...item,
           mediaKey: item.mediaUrl,
-          mediaUrl: cloudfrontAssetUrl(item.mediaUrl),
+          mediaUrl: courseAssetUrl(item.mediaUrl, item.mediaType),
           progress: progress?.progress ?? 0,
           isCompleted: progress?.isCompleted ?? false,
           progressUpdatedAt: progress?.updatedAt ?? null,

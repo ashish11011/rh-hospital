@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+/invoice-lambda/*
+/output/*
 /.pnp
 .pnp.*
 .yarn/*

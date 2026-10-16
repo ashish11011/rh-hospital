@@ -1,10 +1,11 @@
+import { publicAssetUrl } from "@/lib/publicAsset";
 import Image from "next/image";
 
 export default function LeftPanel() {
   return (
     <section className="relative hidden lg:block">
       <Image
-        src="https://d2c3lsl35lix55.cloudfront.net/website-image/rh-building.webp"
+        src="https://media.rhhealthcaresimulation.com/public/website-image/rh-building.webp"
         fill
         priority
         alt="Healthcare"
@@ -26,7 +27,7 @@ export default function LeftPanel() {
         {/* <div className="mt-12 flex items-center gap-4">
           <div className="flex -space-x-4">
             <Image
-              src="/avatars/1.jpg"
+              src={publicAssetUrl("avatars/1.jpg")}
               width={50}
               height={50}
               alt=""
@@ -34,7 +35,7 @@ export default function LeftPanel() {
             />
 
             <Image
-              src="/avatars/2.jpg"
+              src={publicAssetUrl("avatars/2.jpg")}
               width={50}
               height={50}
               alt=""

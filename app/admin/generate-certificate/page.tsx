@@ -1,3 +1,4 @@
+import { formatWorkshopDate } from "@/helper/workshopDateTime";
 import React from 'react'
 import { getWorkshops } from '@/actions/workshopActions'
 import { requireAdmin } from '@/lib/adminAuth'
@@ -39,8 +40,8 @@ const page = async () => {
                         {workshops.map((workshop) => (
                             <TableRow key={workshop.id}>
                                 <TableCell className="font-medium">{workshop.name}</TableCell>
-                                <TableCell>{new Date(workshop.startTime).toLocaleDateString()}</TableCell>
-                                <TableCell>{new Date(workshop.endTime).toLocaleDateString()}</TableCell>
+                                <TableCell>{formatWorkshopDate(workshop.startTime)}</TableCell>
+                                <TableCell>{formatWorkshopDate(workshop.endTime)}</TableCell>
                                 <TableCell>{workshop.isCompleted ? "Completed" : "Active"}</TableCell>
                                 <TableCell className="text-right">
                                     <Button asChild variant="outline" size="sm">

@@ -16,6 +16,7 @@ import Image from "next/image";
 import { WorkshopFormDialog } from "./WorkshopFormDialog";
 import { WorkshopImages } from "./WorkshopImages";
 import { getS3AssetUrl } from "@/lib/s3Asset";
+import { formatWorkshopDateTime } from "@/helper/workshopDateTime";
 
 export function WorkshopClient({ workshops }: { workshops: any[] }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -37,15 +38,6 @@ export function WorkshopClient({ workshops }: { workshops: any[] }) {
     } finally {
       setLoadingId(null);
     }
-  };
-
-  const formatDate = (dateValue: any) => {
-    if (!dateValue) return "N/A";
-    const date = new Date(dateValue);
-    return new Intl.DateTimeFormat("en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(date);
   };
 
   return (
@@ -97,8 +89,8 @@ export function WorkshopClient({ workshops }: { workshops: any[] }) {
                     )}
                   </TableCell>
                   <TableCell className="font-medium">{ws.name}</TableCell>
-                  <TableCell>{formatDate(ws.startTime)}</TableCell>
-                  <TableCell>{formatDate(ws.endTime)}</TableCell>
+                  <TableCell>{formatWorkshopDateTime(ws.startTime)}</TableCell>
+                  <TableCell>{formatWorkshopDateTime(ws.endTime)}</TableCell>
                   <TableCell>₹{ws.onlinePrice}</TableCell>
                   <TableCell>₹{ws.offlinePrice}</TableCell>
                   <TableCell className="text-right">

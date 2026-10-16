@@ -1,102 +1,133 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-    HdfcPaymentEventName,
-    normalizeHdfcWebhookEvent,
-    updatePaymentFromGatewayStatus,
+  HdfcPaymentEventName,
+  normalizeHdfcWebhookEvent,
+  updatePaymentFromGatewayStatus,
 } from "@/lib/paymentConfirmation";
 
 type HdfcWebhookOrder = {
-    order_id?: string;
-    orderId?: string;
-    status?: string;
+  order_id?: string;
+  orderId?: string;
+  status?: string;
+  txn_id?: string;
+  txnId?: string;
+  id?: string;
+  txn_detail?: {
     txn_id?: string;
     txnId?: string;
-    id?: string;
-    txn_detail?: {
-        txn_id?: string;
-        txnId?: string;
-        status?: string;
-    };
-    [key: string]: unknown;
+    status?: string;
+  };
+  [key: string]: unknown;
 };
 
 type HdfcWebhookPayload = HdfcWebhookOrder & {
-    event_name?: string;
-    content?: {
-        order?: HdfcWebhookOrder;
-    };
+  event_name?: string;
+  content?: {
+    order?: HdfcWebhookOrder;
+  };
 };
 
 function getWebhookOrder(body: HdfcWebhookPayload): HdfcWebhookOrder {
-    return body.content?.order || body;
+  return body.content?.order || body;
 }
 
 function getWebhookTransactionId(order: HdfcWebhookOrder) {
-    return String(
-        order.txn_id ||
-        order.txnId ||
-        order.txn_detail?.txn_id ||
-        order.txn_detail?.txnId ||
-        order.id ||
-        ""
-    );
+  return String(
+    order.txn_id ||
+      order.txnId ||
+      order.txn_detail?.txn_id ||
+      order.txn_detail?.txnId ||
+      order.id ||
+      "",
+  );
 }
 
-function isHdfcPaymentEventName(eventName?: string): eventName is HdfcPaymentEventName {
-    return (
-        eventName === "ORDER_FAILED" ||
-        eventName === "ORDER_SUCCEEDED" ||
-        eventName === "ORDER_REFUNDED" ||
-        eventName === "ORDER_REFUND_FAILED"
-    );
+function isHdfcPaymentEventName(
+  eventName?: string,
+): eventName is HdfcPaymentEventName {
+  return (
+    eventName === "ORDER_FAILED" ||
+    eventName === "ORDER_SUCCEEDED" ||
+    eventName === "ORDER_REFUNDED" ||
+    eventName === "ORDER_REFUND_FAILED"
+  );
 }
 
 export async function POST(req: NextRequest) {
-    const expectedAuthorization = process.env.HDFC_SMARTGATEWAY_WEBHOOK_AUTHORIZATION;
+  const merchantCreds = process.env.HDFC_SMARTGATEWAY_AUTHORIZATION;
+  const authorization = req.headers.get("authorization");
+  const token = authorization?.startsWith("Basic ")
+    ? authorization.slice(6)
+    : authorization;
+  const decodedAuthorization = token
+    ? Buffer.from(token, "base64").toString("utf-8")
+    : null;
+  if (
+    !merchantCreds ||
+    !decodedAuthorization ||
+    decodedAuthorization !== merchantCreds
+  ) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized" },
+      { status: 401 },
+    );
+  }
 
-    if (expectedAuthorization) {
-        const authorization = req.headers.get("authorization");
+  const body = (await req.json()) as HdfcWebhookPayload;
+  const order = getWebhookOrder(body);
+  const orderId = order.order_id || order.orderId;
+  const gatewayStatus = order.status || order.txn_detail?.status;
+  const eventName = body.event_name;
 
-        if (authorization !== expectedAuthorization) {
-            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
-        }
-    }
+  if (!orderId) {
+    return NextResponse.json(
+      { success: false, message: "Order ID is required" },
+      { status: 400 },
+    );
+  }
 
-    const body = await req.json() as HdfcWebhookPayload;
-    const order = getWebhookOrder(body);
-    const orderId = order.order_id || order.orderId;
-    const gatewayStatus = order.status || order.txn_detail?.status;
-    const eventName = body.event_name;
+  if (!isHdfcPaymentEventName(eventName)) {
+    return NextResponse.json(
+      { success: false, message: "Unsupported payment event" },
+      { status: 400 },
+    );
+  }
+  console.log("HDFC Webhook received:", {
+    orderId,
+    eventName: body.event_name,
+    order,
+  });
 
-    if (!orderId) {
-        return NextResponse.json({ success: false, message: "Order ID is required" }, { status: 400 });
-    }
+  try {
+    const normalizedStatus = normalizeHdfcWebhookEvent(eventName);
 
-    if (!isHdfcPaymentEventName(eventName)) {
-        return NextResponse.json({ success: false, message: "Unsupported payment event" }, { status: 400 });
-    }
+    await updatePaymentFromGatewayStatus({
+      gatewayOrderId: String(orderId),
+      gatewayEventName: eventName,
+      gatewayStatus: gatewayStatus || body.event_name || "UNKNOWN",
+      normalizedStatus,
+      gatewayPaymentId: getWebhookTransactionId(order),
+      responseObject: body,
+    });
 
-    try {
-        const normalizedStatus = normalizeHdfcWebhookEvent(eventName);
-
-        await updatePaymentFromGatewayStatus({
-            gatewayOrderId: String(orderId),
-            gatewayEventName: eventName,
-            gatewayStatus: gatewayStatus || body.event_name || "UNKNOWN",
-            normalizedStatus,
-            gatewayPaymentId: getWebhookTransactionId(order),
-            responseObject: body,
-        });
-
-        return NextResponse.json({
-            success: true,
-            received: true,
-        }, { status: 200 });
-    } catch (error) {
-        console.error("HDFC webhook processing error:", error);
-        return NextResponse.json({
-            success: false,
-            message: error instanceof Error ? error.message : "Unable to process payment webhook",
-        }, { status: 500 });
-    }
+    return NextResponse.json(
+      {
+        success: true,
+        received: true,
+      },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error("HDFC webhook processing error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to process payment webhook",
+      },
+      { status: 500 },
+    );
+  }
 }

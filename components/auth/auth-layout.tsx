@@ -1,5 +1,6 @@
+import { BrandLogo } from "@/components/BrandLogo";
 import LeftPanel from "./left-panel";
-import Image from "next/image";
+import { AuthLink } from "./auth-link";
 
 interface Props {
   children: React.ReactNode;
@@ -16,14 +17,7 @@ export default function AuthLayout({ children, title, description }: Props) {
         <section className="flex items-center justify-center p-4 lg:p-16">
           <div className="w-full max-w-md">
             <div className="mb-10 flex items-center justify-center">
-              <Image
-                src={"/logo.png"}
-                loading="eager"
-                height={100}
-                width={250}
-                className="h-12 w-auto"
-                alt="logo"
-              />
+              <BrandLogo />
             </div>
 
             <div className="rounded-3xl border bg-white p-8 shadow-lg">
@@ -34,13 +28,17 @@ export default function AuthLayout({ children, title, description }: Props) {
               <div className="mt-8">{children}</div>
             </div>
 
-            <div className="mt-10 flex justify-between text-sm text-gray-500">
+            <div className="mt-10 flex flex-col items-center gap-4 text-center text-sm text-gray-500">
               <span>© 2026 RH Healthcare</span>
 
-              <div className="flex gap-5">
-                <button>Support</button>
-                <button>Privacy</button>
-              </div>
+              <nav
+                aria-label="Support and legal"
+                className="flex flex-wrap justify-center gap-x-5 gap-y-2"
+              >
+                <AuthLink href="/contact-us">Support</AuthLink>
+                <AuthLink href="/privacy-policy">Privacy Policy</AuthLink>
+                <AuthLink href="/terms">Terms of Service</AuthLink>
+              </nav>
             </div>
           </div>
         </section>

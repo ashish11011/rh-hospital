@@ -1,8 +1,9 @@
 import { auth } from "@/auth";
 import {
-  AdminAccess,
+  AdminPermission,
   getAdminAccessForEmail,
   getAdminHomePath,
+  hasAdminPermission,
 } from "@/lib/adminAccess";
 import { redirect } from "next/navigation";
 
@@ -16,7 +17,7 @@ export async function getCurrentAdminAccess() {
   };
 }
 
-export async function requireAdmin(requiredAccess: AdminAccess = "full") {
+export async function requireAdmin(requiredAccess: AdminPermission = "full") {
   const session = await auth();
   const access = getAdminAccessForEmail(session?.user?.email);
 
@@ -24,7 +25,7 @@ export async function requireAdmin(requiredAccess: AdminAccess = "full") {
     redirect("/sign-in?callbackUrl=/admin");
   }
 
-  if (requiredAccess === "full" && access !== "full") {
+  if (!hasAdminPermission(access, requiredAccess)) {
     redirect(getAdminHomePath(access));
   }
 

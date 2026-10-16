@@ -1,3 +1,4 @@
+import { publicMediaHtml } from "@/lib/publicAsset";
 import { Badge } from "@/components/ui/badge";
 import { getPublishedBlogBySlug } from "@/lib/blogData";
 import { blogPath } from "@/lib/blogUtils";
@@ -139,7 +140,7 @@ export default async function BlogDetailPage({
         {hasHtmlContent(blog.content) ? (
           <div
             className="blog-rich-content max-w-none"
-            dangerouslySetInnerHTML={{ __html: blog.content }}
+            dangerouslySetInnerHTML={{ __html: publicMediaHtml(blog.content) }}
           />
         ) : (
           <div className="text-base leading-8 whitespace-pre-wrap text-slate-700">

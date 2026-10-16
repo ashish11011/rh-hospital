@@ -1,3 +1,4 @@
+import { formatWorkshopDate } from "@/helper/workshopDateTime";
 import React from "react";
 import { getWorkshopById } from "@/actions/workshopActions";
 import { notFound } from "next/navigation";
@@ -41,8 +42,8 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
         <div className="flex-1 space-y-3 text-center md:text-left">
           <h2 className="text-2xl font-bold">{workshop.name}</h2>
           <p className="text-muted-foreground font-medium">
-            {new Date(workshop.startTime).toLocaleDateString()} to{" "}
-            {new Date(workshop.endTime).toLocaleDateString()}
+            {formatWorkshopDate(workshop.startTime)} to{" "}
+            {formatWorkshopDate(workshop.endTime)}
           </p>
         </div>
       </div>

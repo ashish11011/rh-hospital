@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 
 import { userSchema } from "@/db/userSchema";
 import { AWS_ACCESS_KEY, AWS_BUCKET, AWS_REGION, AWS_SECRET_KEY } from "@/env";
-import { cloudfrontAssetUrl } from "@/lib/cloudfront";
+import { publicAssetKey, publicAssetUrl } from "@/lib/publicAsset";
 import { db } from "@/lib/dbConfig";
 import { getAuthenticatedApiEmail } from "@/lib/mobileApiAuth";
 
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const key = `membership-cards/${account.id}/${Date.now()}-${filename}`;
+    const key = publicAssetKey(`membership-cards/${account.id}/${Date.now()}-${filename}`);
     const command = new PutObjectCommand({
       Bucket: AWS_BUCKET,
       Key: key,
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
         success: true,
         uploadUrl,
         key,
-        cloudfrontUrl: cloudfrontAssetUrl(key),
+        cloudfrontUrl: publicAssetUrl(key),
       },
       { status: 200 },
     );

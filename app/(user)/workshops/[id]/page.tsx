@@ -1,3 +1,4 @@
+import { publicMediaHtml } from "@/lib/publicAsset";
 import { notFound } from "next/navigation";
 import { Calendar, Clock, IndianRupee, MapPin, Video } from "lucide-react";
 import { db } from "@/lib/dbConfig";
@@ -9,6 +10,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Image from "next/image";
 import { getS3AssetUrl } from "@/lib/s3Asset";
+import { formatWorkshopDate as formatDate, formatWorkshopTime as formatTime } from "@/helper/workshopDateTime";
 
 export const revalidate = 600;
 export const dynamic = "force-static"
@@ -21,25 +23,6 @@ export default async function WorkshopDetailsPage({ params }: { params: { id: st
   if (!ws) {
     notFound();
   }
-
-  const formatDate = (dateValue: any) => {
-    if (!dateValue) return "N/A";
-    const date = new Date(dateValue);
-    return new Intl.DateTimeFormat("en-US", {
-      dateStyle: "medium",
-      // timeStyle: "short",
-    }).format(date);
-  };
-
-  const formatTime = (dateValue: any) => {
-    if (!dateValue) return "N/A";
-    const date = new Date(dateValue);
-    return new Intl.DateTimeFormat("en-US", {
-      // dateStyle: "medium",
-      timeStyle: "short",
-    }).format(date);
-  };
-
 
   const cleanContent = ws.content?.replace(/&nbsp;/g, " ");
   const bannerImageUrl = getS3AssetUrl(ws.bannerImage);
@@ -82,14 +65,14 @@ export default async function WorkshopDetailsPage({ params }: { params: { id: st
               {/* Rich text Content */}
               <div
                 className="prose prose-lg space-y-4 max-w-none prose-blue break-normal [&>p]:whitespace-pre-wrap [&>p]:wrap-break-word [&>p>span]:wrap-break-word [&>p>a]:text-blue-500 "
-                dangerouslySetInnerHTML={{ __html: cleanContent || "" }}
+                dangerouslySetInnerHTML={{ __html: publicMediaHtml(cleanContent || "") }}
               />
             </section>
           </div>
 
           {/* Sidebar / Registration Details */}
           {
-            !ws.isCompleted ? (<WsForm ws={ws} formatDate={formatDate} formatTime={formatTime} />) : (<WsCompletionSection workshopId={ws.id} />)
+            !ws.isCompleted ? (<WsForm ws={ws} />) : (<WsCompletionSection workshopId={ws.id} />)
           }
 
 
@@ -100,7 +83,7 @@ export default async function WorkshopDetailsPage({ params }: { params: { id: st
   );
 }
 
-async function WsForm({ ws, formatDate, formatTime }: any) {
+async function WsForm({ ws }: any) {
   return (
     <div className="lg:col-span-1">
       <Card className="sticky top-24 bg-gray-50 ">
@@ -122,7 +105,7 @@ async function WsForm({ ws, formatDate, formatTime }: any) {
             <div>
               <p className="text-sm text-gray-500 font-medium">Time</p>
               <p className="text-gray-900 font-semibold">
-                {formatTime(ws.startTime)} - {formatTime(ws.endTime)}
+                {formatTime(ws.startTime)} - {formatTime(ws.endTime)} IST
               </p>
             </div>
           </div>

@@ -14,12 +14,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import RichTextEditor from "@/components/RichTextEditor";
-import { getPresignedUrl } from "@/actions/uploadAction";
+import { getWorkshopImagePresignedUrl } from "@/actions/uploadAction";
 import { createWorkshop, updateWorkshop } from "@/actions/workshopActions";
 import { Plus, Pencil } from "lucide-react";
 import { Checkbox } from "../ui/checkbox";
 import { getS3AssetUrl } from "@/lib/s3Asset";
 import Image from "next/image";
+import { publicMediaHtml } from "@/lib/publicAsset";
+import {
+  formatWorkshopInput,
+  parseWorkshopInput,
+} from "@/helper/workshopDateTime";
 
 export function WorkshopFormDialog({
   initialData,
@@ -36,14 +41,12 @@ export function WorkshopFormDialog({
   const [description, setDescription] = useState(
     initialData?.description || "",
   );
-  const [content, setContent] = useState(initialData?.content || "");
+  const [content, setContent] = useState(publicMediaHtml(initialData?.content));
   const [startTime, setStartTime] = useState(
-    initialData
-      ? new Date(initialData.startTime).toISOString().slice(0, 16)
-      : "",
+    initialData ? formatWorkshopInput(initialData.startTime) : "",
   );
   const [endTime, setEndTime] = useState(
-    initialData ? new Date(initialData.endTime).toISOString().slice(0, 16) : "",
+    initialData ? formatWorkshopInput(initialData.endTime) : "",
   );
   const [onlinePrice, setOnlinePrice] = useState(initialData?.onlinePrice || 0);
   const [offlinePrice, setOfflinePrice] = useState(
@@ -60,13 +63,18 @@ export function WorkshopFormDialog({
     setLoading(true);
 
     try {
+      const workshopStart = parseWorkshopInput(startTime);
+      const workshopEnd = parseWorkshopInput(endTime);
+      if (workshopEnd <= workshopStart) {
+        throw new Error("End time must be after start time.");
+      }
       let bannerImageKey = initialData?.bannerImage;
 
       if (file) {
-        const presignedResult = await getPresignedUrl(
+        const presignedResult = await getWorkshopImagePresignedUrl(
           file.name,
           file.type,
-          "workshops/banner",
+          "banner",
         );
 
         if (
@@ -98,19 +106,18 @@ export function WorkshopFormDialog({
         name,
         description,
         content,
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
+        startTime: workshopStart,
+        endTime: workshopEnd,
         onlinePrice: Number(onlinePrice),
         offlinePrice: Number(offlinePrice),
         isCompleted,
         ...(bannerImageKey && { bannerImage: bannerImageKey }),
       };
 
-      if (initialData?.id) {
-        await updateWorkshop(initialData.id, workshopData);
-      } else {
-        await createWorkshop(workshopData as any);
-      }
+      const result = initialData?.id
+        ? await updateWorkshop(initialData.id, workshopData)
+        : await createWorkshop(workshopData);
+      if (result.error) throw new Error(result.error);
 
       setOpen(false);
 
@@ -127,7 +134,7 @@ export function WorkshopFormDialog({
       }
     } catch (err) {
       console.error(err);
-      alert("Something went wrong");
+      alert(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -209,7 +216,7 @@ export function WorkshopFormDialog({
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label>Start Time</Label>
+              <Label>Start Time (IST)</Label>
               <Input
                 required
                 type="datetime-local"
@@ -218,7 +225,7 @@ export function WorkshopFormDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>End Time</Label>
+              <Label>End Time (IST)</Label>
               <Input
                 required
                 type="datetime-local"

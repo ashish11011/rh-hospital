@@ -1,14 +1,26 @@
 import CourseList from "@/components/course/CourceList";
-import { getPublicCourses } from "@/actions/courseActions";
+import {
+  getCurrentCourseUser,
+  getPublicCourses,
+} from "@/actions/courseActions";
+import { getRhCardDiscountCard } from "@/lib/rhCardMembership";
 import React from "react";
+import Link from "next/link";
 
 const page = async () => {
-  const courses = await getPublicCourses();
+  const [courses, currentUser] = await Promise.all([
+    getPublicCourses(),
+    getCurrentCourseUser(),
+  ]);
+  const discountCard = await getRhCardDiscountCard(currentUser?.id);
 
   return (
     <div>
       <HeroSection />
-      <CourseList courses={courses} />
+      <CourseList
+        courses={courses}
+        rhCardDiscountEligible={Boolean(discountCard)}
+      />
     </div>
   );
 };
@@ -26,6 +38,12 @@ function HeroSection() {
           Advance your medical career with industry-leading clinical training
           and certifications, designed by top healthcare professionals.
         </p>
+        <Link
+          href="/#membership-benefits"
+          className="text-primary w-fit text-sm font-medium underline underline-offset-4"
+        >
+          Explore RH Membership Card benefits
+        </Link>
       </div>
     </div>
   );

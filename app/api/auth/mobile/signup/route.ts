@@ -1,3 +1,4 @@
+import { logCognitoEmail } from "@/lib/emailLogging";
 import { NextResponse } from "next/server";
 import { CognitoIdentityProviderClient, SignUpCommand } from "@aws-sdk/client-cognito-identity-provider";
 import { USER_POOL_CLIENT_ID, AWS_COGNITO_REGION, USER_POOL_CLIENT_SECRET } from "@/env";
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
       ],
     });
     
-    await cognitoClient.send(command);
+    await logCognitoEmail(data.email, "signup verification", () => cognitoClient.send(command));
     const existingUser = await db.select().from(user).where(eq(user.email, data.email.toLowerCase())).limit(1);
     
     if (!existingUser || existingUser.length === 0) {
@@ -52,6 +53,9 @@ export async function POST(req: Request) {
   } catch (error: any) {
     if (error.name === "UsernameExistsException") {
       return NextResponse.json({ error: "exists" }, { status: 409 });
+    }
+    if (error.name === "InvalidPasswordException") {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     return NextResponse.json({ error: error.message || "Failed to sign up" }, { status: 400 });
   }

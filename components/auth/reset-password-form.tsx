@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Mail } from "lucide-react";
 import PasswordInput from "./password-input";
-import Link from "next/link";
+import { AuthLink } from "./auth-link";
 
 export default function ResetPasswordForm() {
   const router = useRouter();
@@ -97,9 +97,9 @@ export default function ResetPasswordForm() {
       
       <p className="text-muted-foreground text-center text-sm">
         Remembered your password?{" "}
-        <Link href="/sign-in" className="text-primary font-semibold">
+        <AuthLink href="/sign-in">
           Sign In
-        </Link>
+        </AuthLink>
       </p>
     </form>
   );

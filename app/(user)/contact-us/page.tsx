@@ -78,7 +78,7 @@ export default function ContactUs() {
                 <div>
                   <p className="text-sm text-gray-500">Working Hours</p>
                   <p className="font-medium text-gray-900">
-                    Mon - Fri: 9:00 AM - 6:00 PM
+                    Mon - Sat: 9:00 AM - 6:00 PM
                   </p>
                 </div>
               </div>

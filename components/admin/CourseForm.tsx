@@ -8,7 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CLOUDFRONT_URL, cloudfrontAssetUrl } from "@/lib/cloudfront";
+import { CLOUDFRONT_URL } from "@/lib/cloudfront";
+import { publicAssetUrl, publicAssetKey } from "@/lib/publicAsset";
 
 const list = (value: string) => value.split("\n").map((item) => item.trim()).filter(Boolean);
 
@@ -18,7 +19,7 @@ export function CourseForm({ initialData, onSaved }: { initialData?: any; onSave
   const [form, setForm] = useState({
     title: initialData?.title ?? "", description: initialData?.description ?? "", content: initialData?.content ?? "",
     currency: initialData?.currency ?? "INR", price: initialData?.price ?? 0, isActive: initialData?.isActive ?? true,
-    bannerImageUrl: initialData?.bannerImageUrl ?? "", courseHours: initialData?.courseHours ?? 0,
+    bannerImageUrl: publicAssetKey(initialData?.bannerImageUrl ?? "").replace(/^public\//, ""), courseHours: initialData?.courseHours ?? 0,
     courseDuration: initialData?.courseDuration ?? "", totalLectures: initialData?.totalLectures ?? 0,
     slug: initialData?.slug ?? "", courseOverview: initialData?.courseOverview ?? "",
     whatYouWillLearn: initialData?.whatYouWillLearn?.join("\n") ?? "", skillsAcquired: initialData?.skillsAcquired?.join("\n") ?? "",
@@ -63,8 +64,8 @@ export function CourseForm({ initialData, onSaved }: { initialData?: any; onSave
       <Field label="Skills acquired (one per line)"><Textarea value={form.skillsAcquired} onChange={(e) => set("skillsAcquired", e.target.value)} /></Field>
     </div>
     <Field label="Banner image key">
-      <div className="flex rounded-md border bg-background focus-within:ring-2 focus-within:ring-ring"><span className="flex items-center border-r bg-muted px-3 text-sm text-muted-foreground">{CLOUDFRONT_URL}/</span><Input required value={form.bannerImageUrl} onChange={(e) => set("bannerImageUrl", e.target.value)} placeholder="courses/banner.jpg" className="border-0 focus-visible:ring-0" /></div>
-      {form.bannerImageUrl && <a href={cloudfrontAssetUrl(form.bannerImageUrl)} target="_blank" rel="noreferrer" className="text-sm text-primary underline">Preview banner</a>}
+      <div className="flex rounded-md border bg-background focus-within:ring-2 focus-within:ring-ring"><span className="flex items-center border-r bg-muted px-3 text-sm text-muted-foreground">{CLOUDFRONT_URL}/public/</span><Input required value={form.bannerImageUrl} onChange={(e) => set("bannerImageUrl", e.target.value)} placeholder="courses/banner.jpg" className="border-0 focus-visible:ring-0" /></div>
+      {form.bannerImageUrl && <a href={publicAssetUrl(form.bannerImageUrl)} target="_blank" rel="noreferrer" className="text-sm text-primary underline">Preview banner</a>}
     </Field>
     <div className="flex items-center gap-2"><Checkbox id="course-active" checked={form.isActive} onCheckedChange={(value) => set("isActive", value === true)} /><Label htmlFor="course-active">Active</Label></div>
     <div className="flex justify-end"><Button disabled={saving}>{saving ? "Saving…" : initialData ? "Save course information" : "Create course"}</Button></div>

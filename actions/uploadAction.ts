@@ -5,6 +5,7 @@ import { AWS_ACCESS_KEY, AWS_BUCKET, AWS_REGION, AWS_SECRET_KEY } from "@/env";
 
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { requireAdmin } from "@/lib/adminAuth";
+import { publicAssetKey } from "@/lib/publicAsset";
 
 const s3Client = new S3Client({
   region: AWS_REGION,
@@ -21,7 +22,7 @@ function createS3Key(filename: string, folder?: string) {
     .replace(/[^a-zA-Z0-9/_-]/g, "_");
   const key = `${Date.now()}-${safeFilename}`;
 
-  return cleanFolder ? `${cleanFolder}/${key}` : key;
+  return publicAssetKey(cleanFolder ? `${cleanFolder}/${key}` : key);
 }
 
 type PresignedUploadResult = {
@@ -66,6 +67,36 @@ export async function getBlogImagePresignedUrl(filename: string, fileType: strin
       ContentType: fileType,
     });
 
+    const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+
+    return { uploadUrl, key };
+  } catch (error) {
+    console.error("Presigned URL Error:", error);
+    return { error: "Failed to generate presigned upload URL" };
+  }
+}
+
+export async function getWorkshopImagePresignedUrl(
+  filename: string,
+  fileType: string,
+  kind: "banner" | "gallery",
+): Promise<PresignedUploadResult> {
+  try {
+    await requireAdmin("workshop");
+
+    if (!fileType.startsWith("image/")) {
+      return { error: "Only image uploads are allowed" };
+    }
+    if (kind !== "banner" && kind !== "gallery") {
+      return { error: "Invalid workshop image folder" };
+    }
+
+    const key = createS3Key(filename, `workshops/${kind}`);
+    const command = new PutObjectCommand({
+      Bucket: AWS_BUCKET,
+      Key: key,
+      ContentType: fileType,
+    });
     const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 
     return { uploadUrl, key };

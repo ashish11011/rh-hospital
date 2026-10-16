@@ -31,7 +31,7 @@ export default auth((request) => {
     return NextResponse.redirect(new URL(getAdminHomePath(access), request.url));
   }
 
-  if (pathname === "/admin" && access === "blog") {
+  if (pathname === "/admin" && access !== "full") {
     return NextResponse.redirect(new URL(getAdminHomePath(access), request.url));
   }
 

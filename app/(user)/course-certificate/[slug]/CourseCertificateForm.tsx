@@ -1,4 +1,5 @@
 "use client";
+import { publicAssetUrl } from "@/lib/publicAsset";
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -105,7 +106,7 @@ export function CourseCertificateForm({ workshopId }: { workshopId: string }) {
             className="h-11 w-full bg-green-600 text-white hover:bg-green-700"
           >
             <a
-              href={`https://d2c3lsl35lix55.cloudfront.net/${certificateUrl}`}
+              href={publicAssetUrl(certificateUrl)}
               target="_blank"
               rel="noopener noreferrer"
             >

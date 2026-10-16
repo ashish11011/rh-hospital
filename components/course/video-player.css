@@ -1,0 +1,16 @@
+.course-video .video-js { width: 100%; }
+.course-video .course-watermark {
+  position: absolute;
+  z-index: 30;
+  padding: 5px 9px;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.38);
+  font: 600 clamp(12px, 2vw, 9px) system-ui, sans-serif;
+  text-shadow: 0 1px 3px #000;
+  pointer-events: none;
+  user-select: none;
+  max-width: 90%;
+  overflow-wrap: anywhere;
+}
+.course-video .vjs-control-bar { z-index: 40; }

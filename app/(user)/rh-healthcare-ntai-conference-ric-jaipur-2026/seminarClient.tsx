@@ -18,7 +18,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Checkbox } from "@/components/ui/checkbox";
 import { UserCircle } from "lucide-react";
 
 export const registrationSchema = z
@@ -173,6 +172,9 @@ const SeminarClient = () => {
     }));
   }, [searchParams]);
 
+  const [couponCode, setCouponCode] = useState("");
+  const [isCouponApplied, setIsCouponApplied] = useState(false);
+
   const [form, setForm] = useState<any>({
     name: "",
     gender: "",
@@ -196,8 +198,8 @@ const SeminarClient = () => {
     referencePersonName: "",
     referencePersonMobile: "",
     socialMediaName: "",
-    registrationMode: "online",
-    offlineDuration: "",
+    registrationMode: "offline",
+    offlineDuration: "one_day",
     isNaitMember: "no",
     naitRegistrationId: "",
   });
@@ -217,21 +219,21 @@ const SeminarClient = () => {
     }
 
     if (form.registrationMode === "online") {
-      return isNait ? 400 : 500;
+      return isNait ? 500 : 500;
     }
 
     if (
       form.registrationMode === "offline" &&
       form.offlineDuration === "one_day"
     ) {
-      return isNait ? 1000 : 1500;
+      return isNait ? 1500 : 1500;
     }
 
     if (
       form.registrationMode === "offline" &&
       form.offlineDuration === "two_day"
     ) {
-      return isNait ? 2000 : 2500;
+      return isNait ? 2500 : 2500;
     }
 
     return 0;
@@ -270,13 +272,28 @@ const SeminarClient = () => {
       setLoading(false);
       return;
     }
+    if (isCouponApplied) {
+      try {
+        const res = await axios.post("/api/seminar/free", data);
+        const responseData = res.data.data;
+        toast.success(
+          "Registration successful, your registration is confirmed",
+        );
+        // router.push("/rh-healthcare-ntai-conference-ric-jaipur-2026/thank-you");
+        return;
+      } catch (error) {
+        console.log(error);
+        return;
+      }
+    }
 
     try {
       const res = await axios.post("/api/seminar/register", data);
       const responseData = res.data.data;
 
       if (!responseData) throw new Error("Request Failed, please try again");
-      if (!responseData.paymentUrl) throw new Error("Payment link was not generated. Please try again.");
+      if (!responseData.paymentUrl)
+        throw new Error("Payment link was not generated. Please try again.");
 
       window.sessionStorage.setItem(
         "hdfcPaymentOrder",
@@ -315,7 +332,11 @@ const SeminarClient = () => {
       // });
     } catch (error) {
       console.log(error);
-      toast.error(error instanceof Error ? error.message : "Unable to start payment. Please try again.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Unable to start payment. Please try again.",
+      );
       setLoading(false);
     }
   };
@@ -437,6 +458,13 @@ const SeminarClient = () => {
               onChange={(e) => handleChange("state", e.target.value)}
             />
           </div>
+          <div>
+            <Label>Country</Label>
+            <Input
+              value={form.country}
+              onChange={(e) => handleChange("country", e.target.value)}
+            />
+          </div>
         </div>
 
         <p className="mt-12 text-xl">Presentation Participation</p>
@@ -459,23 +487,23 @@ const SeminarClient = () => {
             <SelectValue placeholder="Select presentation participation" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="paper">
+            {/* <SelectItem value="paper">
               <div className="flex flex-col items-start text-left">
                 <span className="font-medium">Paper Presentation</span>
                 <span className="text-muted-foreground mt-0.5 text-xs whitespace-normal">
                   I will present a paper.
                 </span>
               </div>
-            </SelectItem>
-            <SelectItem value="poster">
+            </SelectItem> */}
+            {/* <SelectItem value="poster">
               <div className="flex flex-col items-start text-left">
                 <span className="font-medium">Poster Presentation</span>
                 <span className="text-muted-foreground mt-0.5 text-xs whitespace-normal">
                   I will present a poster.
                 </span>
               </div>
-            </SelectItem>
-            <SelectItem value="both_offile">
+            </SelectItem> */}
+            {/* <SelectItem value="both_offile">
               <div className="flex flex-col items-start text-left">
                 <span className="font-medium">
                   Both Paper & poster presentation
@@ -484,7 +512,7 @@ const SeminarClient = () => {
                   I will present both paper & poster.
                 </span>
               </div>
-            </SelectItem>
+            </SelectItem> */}
             <SelectItem value="no">
               <div className="flex flex-col items-start text-left">
                 <span className="font-medium">No Presentation</span>
@@ -493,14 +521,14 @@ const SeminarClient = () => {
                 </span>
               </div>
             </SelectItem>
-            <SelectItem value="online_paper">
+            {/* <SelectItem value="online_paper">
               <div className="flex flex-col items-start text-left">
                 <span className="font-medium">Online Paper Presentation</span>
                 <span className="text-muted-foreground mt-0.5 text-xs whitespace-normal">
                   I will present a paper online.
                 </span>
               </div>
-            </SelectItem>
+            </SelectItem> */}
           </SelectContent>
         </Select>
 
@@ -609,7 +637,7 @@ const SeminarClient = () => {
                         Attend for a single day.
                         <br />
                         <span className="text-gray-800">
-                          Rs. {form.isNaitMember === "yes" ? 1000 : 1500}
+                          Rs. {form.isNaitMember === "yes" ? 1500 : 1500}
                         </span>
                       </>
                     ),
@@ -624,7 +652,7 @@ const SeminarClient = () => {
                         Attend both days.
                         <br />
                         <span className="text-gray-800">
-                          Rs. {form.isNaitMember === "yes" ? 2000 : 2500}
+                          Rs. {form.isNaitMember === "yes" ? 2500 : 2500}
                         </span>
                       </>
                     ),
@@ -692,9 +720,32 @@ const SeminarClient = () => {
           </Select>
         )}
       </div>
+      <div className="space-y-2">
+        <p className="text-base font-semibold">Coupon Code:</p>
+        <div className="flex">
+          <Input
+            placeholder="Coupon Code"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value)}
+          />
+          <Button
+            onClick={() => {
+              if (couponCode.toLowerCase() === "globalaccess")
+                setIsCouponApplied(true);
+            }}
+          >
+            Apply
+          </Button>
+        </div>
+        {isCouponApplied && (
+          <p className="text-green-600">Coupon applied successfully</p>
+        )}
+      </div>
 
       <div className="mt-6">
-        <p className="text-lg font-semibold">Registration Fee: ₹{amount}</p>
+        <p className="text-lg font-semibold">
+          Registration Fee: ₹{isCouponApplied ? 0 : amount}
+        </p>
       </div>
 
       <div className="pt-4">
@@ -703,7 +754,7 @@ const SeminarClient = () => {
         <Link
           target="_blank"
           className="text-blue-600 underline"
-          href="https://chat.whatsapp.com/GCEWIjqS8exIn6z2UeZKZ4"
+          href="https://chat.whatsapp.com/D700DEYAzTsIfCe8Nh5Uss"
         >
           WhatsApp Group
         </Link>{" "}
@@ -715,7 +766,11 @@ const SeminarClient = () => {
         disabled={loading}
         className="mt-4 h-10 w-full font-semibold"
       >
-        {loading ? "Processing..." : `Register and pay ₹ ${amount}`}
+        {loading
+          ? "Processing..."
+          : isCouponApplied
+            ? "Register"
+            : `Register and pay ₹ ${amount}`}
       </Button>
     </div>
   );

@@ -1,3 +1,4 @@
+import { AccountDeletionSection } from "@/components/dashboard/account-deletion-section";
 import { ProfileForm } from "@/components/dashboard/profile-form";
 import { checkAuthGetUser } from "../action";
 
@@ -21,6 +22,8 @@ export default async function ProfilePage() {
           email={userProfile?.email as string}
         />
       </div>
+
+      <AccountDeletionSection />
     </div>
   );
 }

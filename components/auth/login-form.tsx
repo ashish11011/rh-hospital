@@ -5,7 +5,7 @@ import { useState } from "react";
 import { loginWithCredentials } from "@/lib/actions/auth";
 
 import { loginSchema, LoginValues } from "@/lib/validations/auth";
-import Link from "next/link";
+import { AuthLink } from "./auth-link";
 import { Mail } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -34,21 +34,27 @@ export default function LoginForm() {
 
   const onSubmit = async (data: LoginValues) => {
     setError(null);
-    const res = await loginWithCredentials(data);
+    try {
+      const res = await loginWithCredentials(data);
 
-    if (res?.error === "unconfirmed") {
-      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
-    } else if (res?.error) {
-      setError(res.error);
-    } else if (res?.success) {
-      const searchParams = new URLSearchParams(window.location.search);
-      const callbackUrl = searchParams.get("callbackUrl");
-      router.push(
-        callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
-          ? callbackUrl
-          : "/dashboard",
+      if (res?.error === "unconfirmed") {
+        router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+      } else if (res?.error) {
+        setError(res.error);
+      } else if (res?.success) {
+        const searchParams = new URLSearchParams(window.location.search);
+        const callbackUrl = searchParams.get("callbackUrl");
+        router.push(
+          callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
+            ? callbackUrl
+            : "/dashboard",
+        );
+        router.refresh();
+      }
+    } catch {
+      setError(
+        "Unable to sign in. Please check your connection and try again.",
       );
-      router.refresh();
     }
   };
 
@@ -56,7 +62,10 @@ export default function LoginForm() {
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
         {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-500">
+          <div
+            role="alert"
+            className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-500"
+          >
             {error}
           </div>
         )}
@@ -93,12 +102,9 @@ export default function LoginForm() {
           <Label htmlFor="remember">Remember me</Label>
         </div>
 
-        <Link
-          href="/forgot-password"
-          className="text-primary text-sm font-medium hover:underline"
-        >
+        <AuthLink href="/forgot-password" className="text-sm">
           Forgot password?
-        </Link>
+        </AuthLink>
       </div>
 
       <Button
@@ -120,9 +126,7 @@ export default function LoginForm() {
 
       <p className="text-muted-foreground text-center text-sm">
         Don't have an account?{" "}
-        <Link href="/sign-up" className="text-primary font-semibold">
-          Create Account
-        </Link>
+        <AuthLink href="/sign-up">Create Account</AuthLink>
       </p>
     </form>
   );

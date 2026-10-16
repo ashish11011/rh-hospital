@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { payment } from "@/db";
 import { db } from "@/lib/dbConfig";
-import { getHdfcOrderStatus, normalizeHdfcOrderStatus } from "@/lib/hdfcGateway";
+import {
+  getHdfcOrderStatus,
+  normalizeHdfcOrderStatus,
+} from "@/lib/hdfcGateway";
 import { eq } from "drizzle-orm";
+import { isRhCardPayment } from "@/lib/rhIdCardPayment";
 
 function getGatewayAmount(data: Record<string, unknown>) {
   const txnDetail = data.txn_detail as Record<string, unknown> | undefined;
@@ -63,7 +67,9 @@ export async function POST(req: NextRequest) {
         success: normalizedStatus === "completed",
         status: hdfcStatus.status,
         normalizedStatus,
-        orderType: paymentRecord.orderType,
+        orderType: isRhCardPayment(paymentRecord)
+          ? "rh_id_card"
+          : paymentRecord.orderType,
         orderId: paymentRecord.gatewayOrderId,
         amount: paymentRecord.amount,
         currency: paymentRecord.currency,

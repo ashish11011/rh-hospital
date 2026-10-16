@@ -1,13 +1,26 @@
 "use server";
 
+import { logCognitoEmail } from "@/lib/emailLogging";
 import { signIn } from "@/auth";
-import { CognitoIdentityProviderClient, SignUpCommand, ConfirmSignUpCommand, ForgotPasswordCommand, ConfirmForgotPasswordCommand, ResendConfirmationCodeCommand } from "@aws-sdk/client-cognito-identity-provider";
-import { USER_POOL_CLIENT_ID, AWS_COGNITO_REGION, USER_POOL_CLIENT_SECRET } from "@/env";
+import {
+  CognitoIdentityProviderClient,
+  SignUpCommand,
+  ConfirmSignUpCommand,
+  ForgotPasswordCommand,
+  ConfirmForgotPasswordCommand,
+  ResendConfirmationCodeCommand,
+} from "@aws-sdk/client-cognito-identity-provider";
+import {
+  USER_POOL_CLIENT_ID,
+  AWS_COGNITO_REGION,
+  USER_POOL_CLIENT_SECRET,
+} from "@/env";
 import crypto from "crypto";
-import { AuthError } from "next-auth";
+import { AuthError, CredentialsSignin } from "next-auth";
 import { db } from "@/lib/dbConfig";
 import { user } from "@/db";
 import { eq } from "drizzle-orm";
+import { getLoginError } from "@/lib/login-errors";
 
 const cognitoClient = new CognitoIdentityProviderClient({
   region: AWS_COGNITO_REGION,
@@ -23,10 +36,14 @@ export async function loginWithCredentials(data: any) {
     return { success: true };
   } catch (error) {
     if (error instanceof AuthError) {
-      if (error.cause?.err?.message === "UserNotConfirmedException") {
+      const code = error instanceof CredentialsSignin
+        ? error.code
+        : error.cause?.err?.message;
+      const loginError = getLoginError(code === "credentials" ? "INVALID_CREDENTIALS" : code);
+      if (loginError.code === "EMAIL_NOT_VERIFIED") {
         return { error: "unconfirmed", email: data.email };
       }
-      return { error: error.cause?.err?.message || "Authentication failed" };
+      return { error: loginError.message };
     }
     throw error;
   }
@@ -51,7 +68,7 @@ export async function signupWithCognito(data: any) {
       ],
     });
     
-    await cognitoClient.send(command);
+    await logCognitoEmail(data.email, "signup verification", () => cognitoClient.send(command));
 
     const existingUser = await db.select().from(user).where(eq(user.email, data.email.toLowerCase())).limit(1);
     
@@ -117,7 +134,7 @@ export async function forgotPasswordWithCognito(email: string) {
       SecretHash: secretHash,
     });
     
-    await cognitoClient.send(command);
+    await logCognitoEmail(email, "password reset", () => cognitoClient.send(command));
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "Failed to initiate password reset" };
@@ -159,7 +176,7 @@ export async function resendVerificationCode(email: string) {
       SecretHash: secretHash,
     });
     
-    await cognitoClient.send(command);
+    await logCognitoEmail(email, "verification code resend", () => cognitoClient.send(command));
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "Failed to resend verification code" };

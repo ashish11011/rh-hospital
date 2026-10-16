@@ -3,15 +3,13 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { adminLogoutAction } from "@/app/admin/actions";
 import { Button } from "@/components/ui/button";
 import { getCurrentAdminAccess } from "@/lib/adminAuth";
+import { canAccessAdminPath } from "@/lib/adminAccess";
 import { LogOut } from "lucide-react";
-import Link from "next/link";
+import { AdminSidebarMenu } from "@/components/admin/AdminSidebarMenu";
 
 export async function SidebarAdmin() {
   const { access } = await getCurrentAdminAccess();
@@ -19,17 +17,18 @@ export async function SidebarAdmin() {
     {
       name: "Dashboard",
       url: "/admin",
-      access: "full",
     },
     {
       name: "Users",
       url: "/admin/users",
-      access: "full",
+    },
+    {
+      name: "RH Membership Card",
+      url: "/admin/rh-card",
     },
     {
       name: "Workshops",
       url: "/admin/workshop",
-      access: "full",
     },
     {
       name: "Courses",
@@ -46,40 +45,30 @@ export async function SidebarAdmin() {
     {
       name: "Workshop Registrations",
       url: "/admin/workshop-registration",
-      access: "full",
     },
     {
       name: "Seminar Registrations",
       url: "/admin/seminar-registration",
-      access: "full",
+    },
+    {
+      name: "Contact Enquiries",
+      url: "/admin/contact-enquiries",
     },
     {
       name: "Generate Certificate",
       url: "/admin/generate-certificate",
-      access: "full",
     },
     {
       name: "Blog",
       url: "/admin/blog",
-      access: "blog",
     },
-  ].filter((project) => access === "full" || project.access === access);
+  ].filter((project) => access !== null && canAccessAdminPath(project.url, access));
 
   return (
     <Sidebar>
       <SidebarHeader />
       <SidebarContent>
-        <SidebarMenu>
-          {projects.map((project) => (
-            <SidebarMenuItem key={project.name}>
-              <SidebarMenuButton asChild>
-                <Link href={project.url}>
-                  <span>{project.name}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        <AdminSidebarMenu items={projects} />
       </SidebarContent>
       <SidebarFooter>
         <form action={adminLogoutAction} className="w-full">

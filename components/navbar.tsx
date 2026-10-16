@@ -1,12 +1,17 @@
 "use client";
+import { BrandLogo } from "@/components/BrandLogo";
 
 import Link from "next/link";
 import { Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
-import Image from "next/image";
 import CallbackDialog from "./CallbackDialog";
 import { useEffect, useState } from "react";
 
@@ -54,14 +59,7 @@ export function Navbar() {
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 md:h-16">
           {/* Logo */}
           <Link href="/" className="flex h-full w-auto items-center gap-2 py-1">
-            <Image
-              src={"/logo.png"}
-              loading="eager"
-              height={100}
-              width={250}
-              className="h-full w-auto"
-              alt="logo"
-            />
+            <BrandLogo className="h-full" />
           </Link>
 
           {/* Desktop Menu */}
@@ -116,39 +114,48 @@ export function Navbar() {
                 <div className="mt-6 flex flex-col gap-4">
                   {NAV_LINKS.map((link) => {
                     return (
-                      <Link
-                        prefetch={false}
-                        key={link.title}
-                        href={link.href}
-                        className="text-sm"
-                      >
-                        {link.title}
-                      </Link>
+                      <SheetClose key={link.title} asChild>
+                        <Link
+                          prefetch={false}
+                          href={link.href}
+                          className="text-sm"
+                        >
+                          {link.title}
+                        </Link>
+                      </SheetClose>
                     );
                   })}
 
                   <div className="mt-4 flex flex-col gap-2 pr-4">
                     {hasSession ? (
-                      <Button className="" asChild>
-                        <Link prefetch={false} href="/dashboard">
-                          Dashboard
-                        </Link>
-                      </Button>
+                      <SheetClose asChild>
+                        <Button className="" asChild>
+                          <Link prefetch={false} href="/dashboard">
+                            Dashboard
+                          </Link>
+                        </Button>
+                      </SheetClose>
                     ) : (
                       <>
-                        <Button variant={"outline"} asChild>
-                          <Link prefetch={false} href="/sign-in">
-                            Sign in
-                          </Link>
-                        </Button>
-                        <Button asChild>
-                          <Link prefetch={false} href="/sign-up">
-                            Sign up
-                          </Link>
-                        </Button>
+                        <SheetClose asChild>
+                          <Button variant={"outline"} asChild>
+                            <Link prefetch={false} href="/sign-in">
+                              Sign in
+                            </Link>
+                          </Button>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Button asChild>
+                            <Link prefetch={false} href="/sign-up">
+                              Sign up
+                            </Link>
+                          </Button>
+                        </SheetClose>
                       </>
                     )}
-                    <Button onClick={() => setOpen(true)}>Contact Us</Button>
+                    <SheetClose asChild>
+                      <Button onClick={() => setOpen(true)}>Contact Us</Button>
+                    </SheetClose>
                   </div>
                 </div>
               </SheetContent>

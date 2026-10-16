@@ -1,6 +1,6 @@
 export const RH_CARD_DISCOUNT_PERCENT = 20;
 export const RH_ID_CARD_LIST_AMOUNT_INR = 1200;
-export const RH_ID_CARD_AMOUNT_INR = 501;
+export const RH_ID_CARD_AMOUNT_INR = 11;
 export const RH_CARD_OTHER_PROFESSION_MAX_LENGTH = 120;
 
 export const GLOBAL_CONFRENCE_IMAGES = [

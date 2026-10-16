@@ -18,10 +18,6 @@ import {
   validateInput,
   type ValidatedUserCardInput,
 } from "@/lib/rhIdCard";
-import {
-  sendPaymentEventEmail,
-  sendRhIdCardCreatedEmail,
-} from "@/lib/sesClient";
 import { publicAssetUrl, isMembershipPhotoKey } from "@/lib/publicAsset";
 import type { HdfcPaymentEventName } from "@/lib/paymentConfirmation";
 
@@ -36,7 +32,7 @@ type CardPaymentNotes = {
   };
   checkout: { paymentUrl: string; expiresAt: string };
   fulfilledCardId?: string;
-  confirmationEmailSentAt?: string;
+  invoiceQueuedAt?: string;
 };
 type PaymentRecord = typeof payment.$inferSelect;
 
@@ -63,10 +59,9 @@ export function readRhCardPaymentNotes(
 export function isRhCardPayment(
   record: Pick<PaymentRecord, "orderType" | "notes">,
 ) {
-  return (
-    record.orderType === "product" &&
-    readRhCardPaymentNotes(record.notes) !== null
-  );
+  // Product is the stored payment type for RH Membership Cards.
+  // Confirmation separately validates the notes and account before fulfillment.
+  return record.orderType === "product";
 }
 
 function checkoutIsValid(notes: CardPaymentNotes) {
@@ -321,9 +316,7 @@ export async function confirmRhCardPayment(input: {
       fulfilledCard = existingCard || null;
       if (!fulfilledCard) {
         const details = validateInput(notes.details);
-        if (
-          !isMembershipPhotoKey(details.passportPhoto, account.id)
-        )
+        if (!isMembershipPhotoKey(details.passportPhoto, account.id))
           throw new Error("Invalid RH Membership Card passport photo");
         const activationDate = new Date();
         const [created] = await tx
@@ -403,55 +396,6 @@ export async function confirmRhCardPayment(input: {
     };
   });
 
-  if (outcome.status === "completed" && outcome.card) {
-    const confirmedCard = outcome.card;
-    // Commit the card first. Serialize email delivery separately so retries can recover a send failure.
-    await db.transaction(async (tx) => {
-      const [record] = await tx
-        .select()
-        .from(payment)
-        .where(eq(payment.id, outcome.record.id))
-        .for("update");
-      const notes = readRhCardPaymentNotes(record.notes);
-      if (
-        !notes ||
-        notes.confirmationEmailSentAt ||
-        record.status !== "completed"
-      )
-        return;
-      await sendRhIdCardCreatedEmail({
-        toEmail: confirmedCard.email,
-        name: confirmedCard.fullName,
-        memberShipId:
-          confirmedCard.memberShipId || buildMemberShipId(confirmedCard),
-        validityDate: confirmedCard.validityDate,
-        orderId: record.gatewayOrderId,
-        amount: record.amount,
-      });
-      await tx
-        .update(payment)
-        .set({
-          notes: JSON.stringify({
-            ...notes,
-            confirmationEmailSentAt: new Date().toISOString(),
-          }),
-        })
-        .where(eq(payment.id, record.id));
-    });
-  } else if (
-    !outcome.alreadyCompleted &&
-    outcome.record.email &&
-    input.gatewayEventName
-  ) {
-    await sendPaymentEventEmail({
-      toEmail: outcome.record.email,
-      name: initialNotes.details.fullName,
-      eventName: input.gatewayEventName,
-      orderId: outcome.record.gatewayOrderId,
-      amount: outcome.record.amount,
-      currency: outcome.record.currency,
-    });
-  }
   return {
     status: outcome.status,
     orderType: "rh_id_card",

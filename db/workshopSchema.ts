@@ -11,6 +11,12 @@ import {
 } from "drizzle-orm/pg-core";
 import { userSchema } from "./userSchema";
 import { paymentStatusEnumSchema } from "./paymentSchema";
+import { WORKSHOP_ATTENDANCE_MODES } from "../lib/workshopAttendance";
+
+export const workshopAttendanceModeEnum = pgEnum(
+  "workshop_attendance_mode",
+  WORKSHOP_ATTENDANCE_MODES,
+);
 
 export const workshopSchema = pgTable("workshop", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -24,6 +30,9 @@ export const workshopSchema = pgTable("workshop", {
   // certificate:
   onlinePrice: integer("online_price").notNull(),
   offlinePrice: integer("offline_price").notNull(),
+  attendanceMode: workshopAttendanceModeEnum("attendance_mode")
+    .notNull()
+    .default("both"),
   isCompleted: boolean("is_completed").default(false),
   whatsappLink: varchar("whatsapp_link"),
 });
@@ -54,9 +63,9 @@ export const workshopRegistrationSchema = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     workshopId: uuid("workshop_id")
       .notNull()
-      .references(() => workshopSchema.id),
+      .references(() => workshopSchema.id, { onDelete: "set null" }),
     userId: uuid("user_id")
-      .references(() => userSchema.id)
+      .references(() => userSchema.id, { onDelete: "set null" })
       .notNull(),
     email: varchar("email").notNull(),
     name: varchar("name").notNull(),

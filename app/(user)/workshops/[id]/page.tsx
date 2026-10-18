@@ -11,6 +11,7 @@ import { Suspense } from "react";
 import Image from "next/image";
 import { getS3AssetUrl } from "@/lib/s3Asset";
 import { formatWorkshopDate as formatDate, formatWorkshopTime as formatTime } from "@/helper/workshopDateTime";
+import { getWorkshopAttendanceModes, getWorkshopModePrice } from "@/lib/workshopAttendance";
 
 export const revalidate = 600;
 export const dynamic = "force-static"
@@ -112,26 +113,21 @@ async function WsForm({ ws }: any) {
 
           <div className="pt-4 border-t border-gray-200">
             <p className="text-sm text-gray-500 font-medium mb-3">Investment</p>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center text-gray-600">
-                <Video className="w-4 h-4 mr-2" /> Online
+            {getWorkshopAttendanceModes(ws.attendanceMode).map((mode) => (
+              <div key={mode} className="flex items-center justify-between mb-2">
+                <div className="flex items-center text-gray-600 capitalize">
+                  {mode === "online" ? <Video className="w-4 h-4 mr-2" /> : <MapPin className="w-4 h-4 mr-2" />}
+                  {mode}
+                </div>
+                <div className="font-bold text-xl text-gray-900 flex items-center">
+                  <IndianRupee className="w-5 h-5" /> {getWorkshopModePrice(ws, mode)}
+                </div>
               </div>
-              <div className="font-bold text-xl text-gray-900 flex items-center">
-                <IndianRupee className="w-5 h-5" /> {ws.onlinePrice}
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center text-gray-600">
-                <MapPin className="w-4 h-4 mr-2" /> Offline
-              </div>
-              <div className="font-bold text-xl text-gray-900 flex items-center">
-                <IndianRupee className="w-5 h-5" /> {ws.offlinePrice}
-              </div>
-            </div>
+            ))}
           </div>
 
           <div className="space-y-3">
-            <WorkshopRegistration workshopId={ws.id} priceOnline={ws.onlinePrice} priceOffline={ws.offlinePrice} />
+            <WorkshopRegistration workshopId={ws.id} attendanceMode={ws.attendanceMode} priceOnline={ws.onlinePrice} priceOffline={ws.offlinePrice} />
 
           </div>
         </CardContent>

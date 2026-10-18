@@ -12,6 +12,21 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  WORKSHOP_ATTENDANCE_MODES,
+  WORKSHOP_ATTENDANCE_LABELS,
+  getWorkshopAttendanceModes,
+  isWorkshopAttendanceMode,
+  validateWorkshopAttendance,
+  type WorkshopAttendanceMode,
+} from "@/lib/workshopAttendance";
 import { Textarea } from "@/components/ui/textarea";
 import RichTextEditor from "@/components/RichTextEditor";
 import { getWorkshopImagePresignedUrl } from "@/actions/uploadAction";
@@ -52,6 +67,10 @@ export function WorkshopFormDialog({
   const [offlinePrice, setOfflinePrice] = useState(
     initialData?.offlinePrice || 0,
   );
+  const [attendanceMode, setAttendanceMode] = useState<WorkshopAttendanceMode>(
+    initialData?.attendanceMode ?? "both",
+  );
+  const availableModes = getWorkshopAttendanceModes(attendanceMode);
   const [file, setFile] = useState<File | null>(null);
   const [isCompleted, setIsCompleted] = useState(
     initialData?.isCompleted || false,
@@ -63,6 +82,7 @@ export function WorkshopFormDialog({
     setLoading(true);
 
     try {
+      validateWorkshopAttendance({ attendanceMode, onlinePrice, offlinePrice });
       const workshopStart = parseWorkshopInput(startTime);
       const workshopEnd = parseWorkshopInput(endTime);
       if (workshopEnd <= workshopStart) {
@@ -110,6 +130,7 @@ export function WorkshopFormDialog({
         endTime: workshopEnd,
         onlinePrice: Number(onlinePrice),
         offlinePrice: Number(offlinePrice),
+        attendanceMode,
         isCompleted,
         ...(bannerImageKey && { bannerImage: bannerImageKey }),
       };
@@ -130,6 +151,7 @@ export function WorkshopFormDialog({
         setEndTime("");
         setOnlinePrice(0);
         setOfflinePrice(0);
+        setAttendanceMode("both");
         setFile(null);
       }
     } catch (err) {
@@ -235,25 +257,54 @@ export function WorkshopFormDialog({
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="workshop-attendance-mode">Attendance Mode</Label>
+            <Select
+              value={attendanceMode}
+              onValueChange={(value) => {
+                if (isWorkshopAttendanceMode(value)) setAttendanceMode(value);
+              }}
+            >
+              <SelectTrigger id="workshop-attendance-mode" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {WORKSHOP_ATTENDANCE_MODES.map((mode) => (
+                  <SelectItem key={mode} value={mode}>
+                    {WORKSHOP_ATTENDANCE_LABELS[mode]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Online Price (INR)</Label>
-              <Input
-                required
-                type="number"
-                value={onlinePrice}
-                onChange={(e) => setOnlinePrice(Number(e.target.value))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Offline Price (INR)</Label>
-              <Input
-                required
-                type="number"
-                value={offlinePrice}
-                onChange={(e) => setOfflinePrice(Number(e.target.value))}
-              />
-            </div>
+            {availableModes.includes("online") && (
+              <div className="space-y-2">
+                <Label>Online Price (INR)</Label>
+                <Input
+                  required
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={onlinePrice}
+                  onChange={(e) => setOnlinePrice(Number(e.target.value))}
+                />
+              </div>
+            )}
+            {availableModes.includes("offline") && (
+              <div className="space-y-2">
+                <Label>Offline Price (INR)</Label>
+                <Input
+                  required
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={offlinePrice}
+                  onChange={(e) => setOfflinePrice(Number(e.target.value))}
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

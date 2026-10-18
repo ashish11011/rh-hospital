@@ -13,6 +13,7 @@ import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "
 import { SourceOfRegistraion } from "./sourceOfRegistration";
 import { sourceOfRegistraion } from "@/const/workshopRegistration";
 import { useSearchParams } from "next/navigation";
+import { WORKSHOP_REGISTRATION_MODES, getWorkshopAttendanceModes, isWorkshopRegistrationAllowed, type WorkshopAttendanceMode } from "@/lib/workshopAttendance";
 
 const schema = z.object({
     workshopId: z.string(),
@@ -26,7 +27,7 @@ const schema = z.object({
     instituteName: z.string().min(1, "Required"),
     city: z.string().min(1, "Required"),
     couponCode: z.string().optional(),
-    modeOfAttandnace: z.enum(["online", "offline"]),
+    modeOfAttandnace: z.enum(WORKSHOP_REGISTRATION_MODES),
     registrationSource: z.enum(sourceOfRegistraion.map((it) => it.value))
 });
 
@@ -34,13 +35,16 @@ export function WorkshopRegistration({
     workshopId,
     priceOnline,
     priceOffline,
+    attendanceMode = "both",
 }: {
     workshopId: string;
     priceOnline: number;
     priceOffline: number;
+    attendanceMode?: WorkshopAttendanceMode;
 }) {
 
     const searchParams = useSearchParams()
+    const availableModes = getWorkshopAttendanceModes(attendanceMode);
 
 
     const [form, setForm] = useState<any>({
@@ -52,9 +56,12 @@ export function WorkshopRegistration({
         instituteName: "",
         city: "",
         couponCode: "",
-        modeOfAttandnace: "online",
+        modeOfAttandnace: availableModes[0],
         registrationSource: "website",
     });
+    const selectedMode = isWorkshopRegistrationAllowed(attendanceMode, form.modeOfAttandnace)
+        ? form.modeOfAttandnace
+        : availableModes[0];
     const [couponDiscount, setCouponDiscount] = useState({
         onlineDiscount: 0,
         offlineDiscount: 0
@@ -125,7 +132,8 @@ export function WorkshopRegistration({
     const handleSubmit = async () => {
         setLoading(true);
 
-        const result = schema.safeParse(form);
+        const registration = { ...form, modeOfAttandnace: selectedMode };
+        const result = schema.safeParse(registration);
 
         if (!result.success) {
             toast.error("Please fill all the fields")
@@ -135,7 +143,7 @@ export function WorkshopRegistration({
         }
 
         try {
-            const res = await axios.post("/api/workshop/register", form);
+            const res = await axios.post("/api/workshop/register", registration);
             const responseData = res.data.data;
             // if (res.status === 200) {
 
@@ -151,7 +159,9 @@ export function WorkshopRegistration({
 
         } catch (error) {
             console.log(error);
-            toast.error(error instanceof Error ? error.message : "Unable to start payment. Please try again.");
+            toast.error(axios.isAxiosError(error)
+                ? error.response?.data?.message || "Unable to start payment. Please try again."
+                : error instanceof Error ? error.message : "Unable to start payment. Please try again.");
             setLoading(false);
         }
     };
@@ -224,8 +234,8 @@ export function WorkshopRegistration({
                 </div>
 
                 <CustomRadioGroup
-                    label="Mode of Attendace"
-                    value={form.modeOfAttandnace}
+                    label="Mode of Attendance"
+                    value={selectedMode}
                     onChange={(val) => handleChange("modeOfAttandnace", val)}
                     options={[
                         {
@@ -256,7 +266,7 @@ export function WorkshopRegistration({
                                 </>
                             ),
                         },
-                    ]}
+                    ].filter((option) => isWorkshopRegistrationAllowed(attendanceMode, option.value))}
                 />
                 <SourceOfRegistraion
                     value={form.registrationSource}

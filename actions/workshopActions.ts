@@ -5,6 +5,20 @@ import { workshop, workshopImage } from "@/db/index";
 import { eq, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/adminAuth";
+import { validateWorkshopAttendance, type WorkshopAttendanceMode } from "@/lib/workshopAttendance";
+
+type WorkshopInput = {
+  name: string;
+  bannerImage?: string | null;
+  description: string;
+  content: string;
+  startTime: Date;
+  endTime: Date;
+  onlinePrice: number;
+  offlinePrice: number;
+  attendanceMode: WorkshopAttendanceMode;
+  isCompleted: boolean;
+};
 
 export async function getWorkshops() {
   try {
@@ -25,19 +39,10 @@ export async function getWorkshopById(id: string) {
   }
 }
 
-export async function createWorkshop(data: {
-  name: string;
-  bannerImage?: string;
-  description: string;
-  content: string;
-  startTime: Date;
-  endTime: Date;
-  onlinePrice: number;
-  offlinePrice: number;
-  isCompleted: boolean;
-}) {
+export async function createWorkshop(data: WorkshopInput) {
   try {
     await requireAdmin("workshop");
+    validateWorkshopAttendance(data);
     await db.insert(workshop).values(data);
     revalidatePath("/admin/workshop");
     revalidatePath("/workshops");
@@ -50,17 +55,7 @@ export async function createWorkshop(data: {
 
 export async function updateWorkshop(
   id: string,
-  data: Partial<{
-    name: string;
-    bannerImage: string | null;
-    description: string;
-    content: string;
-    startTime: Date;
-    endTime: Date;
-    onlinePrice: number;
-    offlinePrice: number;
-    isCompleted: boolean;
-  }>
+  data: Partial<WorkshopInput>
 ) {
   try {
     await requireAdmin("workshop");
@@ -68,6 +63,10 @@ export async function updateWorkshop(
     const updateData = Object.fromEntries(
       Object.entries(data).filter(([_, v]) => v !== undefined)
     );
+
+    const existing = await getWorkshopById(id);
+    if (!existing) throw new Error("Workshop not found");
+    validateWorkshopAttendance({ ...existing, ...updateData });
 
     await db.update(workshop).set(updateData).where(eq(workshop.id, id));
     revalidatePath("/admin/workshop");

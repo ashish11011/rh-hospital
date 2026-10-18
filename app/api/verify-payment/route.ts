@@ -55,9 +55,7 @@ function isHdfcPaymentEventName(
 
 export async function POST(req: NextRequest) {
   const merchantCreds = process.env.HDFC_SMARTGATEWAY_AUTHORIZATION;
-  console.log("merchantCreds: ", merchantCreds);
   const authorization = req.headers.get("authorization");
-  console.log("authorization: ", authorization);
 
   if (!merchantCreds || !authorization || authorization !== merchantCreds) {
     return NextResponse.json(
@@ -68,7 +66,6 @@ export async function POST(req: NextRequest) {
 
   const body = (await req.json()) as HdfcWebhookPayload;
   const order = getWebhookOrder(body);
-  console.log("order: ", order);
   const orderId = order.order_id || order.orderId;
   const gatewayStatus = order.status || order.txn_detail?.status;
   const eventName = body.event_name;
@@ -88,14 +85,11 @@ export async function POST(req: NextRequest) {
   }
   console.log("HDFC Webhook received:", {
     orderId,
-    eventName: body.event_name,
-    order,
   });
 
   try {
     const normalizedStatus = normalizeHdfcWebhookEvent(eventName);
 
-    console.log("normalizedStatus: ", normalizedStatus);
     await updatePaymentFromGatewayStatus({
       gatewayOrderId: String(orderId),
       gatewayEventName: eventName,

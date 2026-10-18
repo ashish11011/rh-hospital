@@ -23,7 +23,6 @@ export async function POST(req: NextRequest) {
 
   const body = (await req.json()) as HdfcOrderStatusResponse;
   const orderId = body.order_id || body.orderId;
-  console.log("OrderId - ", orderId);
   if (!orderId) {
     return NextResponse.json(
       { success: false, message: "Order ID is required" },
@@ -33,7 +32,6 @@ export async function POST(req: NextRequest) {
 
   try {
     const normalizedStatus = normalizeHdfcOrderStatus(body.status);
-    console.log("Normalized Status - ", normalizedStatus);
     await updatePaymentFromGatewayStatus({
       gatewayOrderId: String(orderId),
       gatewayStatus: body.status || "UNKNOWN",

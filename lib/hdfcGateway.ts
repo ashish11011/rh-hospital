@@ -62,6 +62,7 @@ function getHdfcAuthorizationHeader() {
 }
 
 function getHdfcHeaders(customerId?: string) {
+  console.log("customerId: ", customerId);
   const headers: Record<string, string> = {
     Authorization: getHdfcAuthorizationHeader(),
     "Content-Type": "application/json",
@@ -114,7 +115,7 @@ export async function createHdfcPaymentSession(input: HdfcSessionInput) {
     process.env.HDFC_SMARTGATEWAY_SESSION_URL || DEFAULT_HDFC_SESSION_URL;
   const returnUrl =
     process.env.NODE_ENV === "production"
-      ? PRODUCTION_PAYMENT_RETURN_URL
+      ? process.env.HDFC_SMARTGATEWAY_RETURN_URL!
       : LOCAL_PAYMENT_RETURN_URL;
   const paymentReturnUrl = new URL(returnUrl);
   for (const [key, value] of Object.entries(input.returnQuery || {})) {

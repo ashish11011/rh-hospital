@@ -1,6 +1,6 @@
 export const RH_CARD_DISCOUNT_PERCENT = 20;
 export const RH_ID_CARD_LIST_AMOUNT_INR = 1200;
-export const RH_ID_CARD_AMOUNT_INR = 21;
+export const RH_ID_CARD_AMOUNT_INR = 1;
 export const RH_ID_CARD_VALIDITY_YEARS = 2;
 export const RH_CARD_OTHER_PROFESSION_MAX_LENGTH = 120;
 

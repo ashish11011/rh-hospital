@@ -23,7 +23,11 @@ function load(file, modules = {}, globals = {}) {
       Date,
       Buffer,
       console: { log() {}, error() {} },
-      process: { env: { HDFC_SMARTGATEWAY_AUTHORIZATION: "test:secret" } },
+      process: {
+        env: {
+          HDFC_SMARTGATEWAY_AUTHORIZATION: `Basic ${Buffer.from("test:secret").toString("base64")}`,
+        },
+      },
       require: (id) => {
         assert.ok(id in modules, `Unexpected dependency: ${id}`);
         return modules[id];
@@ -48,7 +52,7 @@ const details = {
   termsAccepted: true,
 };
 
-function setup({ amount = 21, empty = false } = {}) {
+function setup({ amount = constants.RH_ID_CARD_AMOUNT_INR, empty = false } = {}) {
   const table = (name, fields) =>
     Object.fromEntries(fields.map((field) => [field, `${name}.${field}`]));
   const tables = {
@@ -298,10 +302,10 @@ function setup({ amount = 21, empty = false } = {}) {
   };
 }
 
-test("checkout creates a pending INR 21 order; only the webhook creates a two-year card", async () => {
+test("checkout creates a pending INR 1 order; only the webhook creates a two-year card", async () => {
   const app = setup({ empty: true });
   await app.start();
-  assert.equal(app.controls.sessions[0].amount, 21);
+  assert.equal(app.controls.sessions[0].amount, 1);
   assert.equal(app.state.payments[0].status, "pending");
   assert.equal(app.state.cards.length, 0);
   assert.equal((await app.card()).body.pendingPurchase.status, "pending");
@@ -318,7 +322,7 @@ test("checkout creates a pending INR 21 order; only the webhook creates a two-ye
   );
   assert.ok(card.memberShipId);
   assert.equal(app.state.payments[0].status, "completed");
-  assert.equal(app.state.payments[0].amountPaid, 21);
+  assert.equal(app.state.payments[0].amountPaid, 1);
   assert.equal(app.state.payments[0].amountDue, 0);
   assert.equal(app.controls.queueSends, 1);
   const dashboard = (await app.card()).body;
@@ -400,12 +404,14 @@ test("a deleted card is recreated only by a successful webhook retry", async () 
   assert.equal(app.controls.queueSends, 1);
 });
 
-test("existing INR 501 purchases retain their saved amount during fulfillment", async () => {
-  const app = setup({ amount: 501 });
-  assert.equal((await app.webhook()).status, 200);
-  assert.equal(app.state.payments[0].amountPaid, 501);
-  assert.equal(app.state.cards.length, 1);
-});
+for (const amount of [21, 501]) {
+  test(`existing INR ${amount} purchases retain their saved amount during fulfillment`, async () => {
+    const app = setup({ amount });
+    assert.equal((await app.webhook()).status, 200);
+    assert.equal(app.state.payments[0].amountPaid, amount);
+    assert.equal(app.state.cards.length, 1);
+  });
+}
 
 test("unauthenticated webhook cannot change the database or enqueue an invoice", async () => {
   const app = setup();

@@ -130,7 +130,7 @@ function setup({ authenticated = true, existing = null } = {}) {
   );
   dependencies["@/lib/rhIdCard"] = cardHelpers;
   dependencies["@/lib/rhIdCardPayment"] = {
-    RH_ID_CARD_AMOUNT_INR: 21,
+    RH_ID_CARD_AMOUNT_INR: 1,
     getRhCardPendingPurchase: async () => null,
     startRhCardPurchase: async (signedInAccount, details) => {
       writes.push({
@@ -142,7 +142,7 @@ function setup({ authenticated = true, existing = null } = {}) {
         card: null,
         purchase: {
           orderId: "RHC123",
-          amount: 21,
+          amount: 1,
           currency: "INR",
           status: "pending",
           paymentUrl: "https://checkout.example.com/order",
@@ -229,14 +229,14 @@ test("checkout uses the signed-in account and ignores a client-supplied price wi
     ...validInput,
     userId: "other-user",
     email: "other@example.com",
-    amount: 1,
+    amount: 999,
   });
   assert.equal(result.status, 200);
   assert.equal(api.writes[0].userId, account.id);
   assert.equal(api.writes[0].email, account.email);
   assert.equal(result.body.card, null);
   assert.equal(result.body.paymentRequired, true);
-  assert.equal(result.body.data.amount, 21);
+  assert.equal(result.body.data.amount, 1);
   assert.equal(
     result.body.data.paymentUrl,
     "https://checkout.example.com/order",

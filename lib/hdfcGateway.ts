@@ -52,10 +52,7 @@ function getRequiredEnv(name: string) {
 
 function getHdfcAuthorizationHeader() {
   // Prefer dedicated API credentials; the legacy variable also authenticates webhooks.
-  const value =
-    process.env.HDFC_API_KEY_BASE64 ||
-    process.env.HDFC_SMARTGATEWAY_AUTHORIZATION ||
-    process.env.HDFC_AUTHORIZATION;
+  const value = process.env.HDFC_SMARTGATEWAY_AUTHORIZATION_CREATE_PAYMENT;
 
   if (!value) {
     throw new Error("HDFC authorization is not configured");
@@ -68,7 +65,7 @@ function getHdfcHeaders(customerId?: string) {
   const headers: Record<string, string> = {
     Authorization: getHdfcAuthorizationHeader(),
     "Content-Type": "application/json",
-    "x-merchantid": getRequiredEnv("HDFC_SMARTGATEWAY_MERCHANT_ID"),
+    "x-merchantid": process.env.HDFC_SMARTGATEWAY_MERCHANT_ID!,
     "x-customerid":
       customerId || process.env.HDFC_SMARTGATEWAY_HEADER_CUSTOMER_ID || "",
   };

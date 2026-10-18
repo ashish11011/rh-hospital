@@ -5,7 +5,13 @@ import { eq } from "drizzle-orm";
 import { payment } from "@/db";
 import { db } from "@/lib/dbConfig";
 
-const sqsClient = new SQSClient({ region: "ap-south-1" });
+const sqsClient = new SQSClient({
+  region: "ap-south-1",
+  credentials: {
+    accessKeyId: process.env.ACCESS_KEY!,
+    secretAccessKey: process.env.SECRET_KEY!,
+  },
+});
 const queueUrl =
   "https://sqs.ap-south-1.amazonaws.com/339712816914/RH_payment_Invoice_mail";
 

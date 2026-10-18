@@ -95,6 +95,7 @@ export async function POST(req: NextRequest) {
   try {
     const normalizedStatus = normalizeHdfcWebhookEvent(eventName);
 
+    console.log("normalizedStatus: ", normalizedStatus);
     await updatePaymentFromGatewayStatus({
       gatewayOrderId: String(orderId),
       gatewayEventName: eventName,

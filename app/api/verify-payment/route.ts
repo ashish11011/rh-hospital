@@ -57,19 +57,9 @@ export async function POST(req: NextRequest) {
   const merchantCreds = process.env.HDFC_SMARTGATEWAY_AUTHORIZATION;
   console.log("merchantCreds: ", merchantCreds);
   const authorization = req.headers.get("authorization");
-  const token = authorization?.startsWith("Basic ")
-    ? authorization.slice(6)
-    : authorization;
-  console.log("token- ", token);
-  const decodedAuthorization = token
-    ? Buffer.from(token, "base64").toString("utf-8")
-    : null;
-  console.log("decodedAuthorization: ", decodedAuthorization);
-  if (
-    !merchantCreds ||
-    !decodedAuthorization ||
-    decodedAuthorization !== merchantCreds
-  ) {
+  console.log("authorization: ", authorization);
+
+  if (!merchantCreds || !authorization || authorization !== merchantCreds) {
     return NextResponse.json(
       { success: false, message: "Unauthorized" },
       { status: 401 },

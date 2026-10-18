@@ -33,6 +33,7 @@ import {
   seminarRegistrationsSchema,
   seminarSchema,
   presentationType,
+  workshopAttendanceModeEnum,
 } from "./workshopSchema";
 
 export * from "./userSchema";
@@ -61,6 +62,7 @@ export const workshop = workshopSchema;
 export const workshopImage = workshopImageSchema;
 export const workshopRegistration = workshopRegistrationSchema;
 export const workshopCouponCodeSchema = couponCodeSchema;
+export const workshopAttendanceModeEnumSchema = workshopAttendanceModeEnum;
 export const seminar = seminarSchema;
 export const seminarRegistrations = seminarRegistrationsSchema;
 

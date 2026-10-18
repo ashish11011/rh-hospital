@@ -4,6 +4,10 @@ import Link from "next/link";
 import { Card } from "../ui/card";
 import { getS3AssetUrl } from "@/lib/s3Asset";
 import Image from "next/image";
+import {
+  getWorkshopAttendanceModes,
+  getWorkshopModePrice,
+} from "@/lib/workshopAttendance";
 
 export const WorkshowListCard = ({ ws, isCompleted }: any) => {
   const bannerImageUrl = getS3AssetUrl(ws.bannerImage);
@@ -56,7 +60,10 @@ export const WorkshowListCard = ({ ws, isCompleted }: any) => {
             {!isCompleted && (
               <div className="flex items-center text-lg font-semibold text-gray-900">
                 <IndianRupee className="mr-1 h-4 w-4 text-gray-600" />
-                {ws.onlinePrice}
+                {getWorkshopModePrice(
+                  ws,
+                  getWorkshopAttendanceModes(ws.attendanceMode)[0],
+                )}
               </div>
             )}
             <span className="text-primary flex items-center gap-2 text-sm font-medium group-hover:underline">

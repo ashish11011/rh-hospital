@@ -17,6 +17,11 @@ import { WorkshopFormDialog } from "./WorkshopFormDialog";
 import { WorkshopImages } from "./WorkshopImages";
 import { getS3AssetUrl } from "@/lib/s3Asset";
 import { formatWorkshopDateTime } from "@/helper/workshopDateTime";
+import {
+  WORKSHOP_ATTENDANCE_LABELS,
+  getWorkshopAttendanceModes,
+  type WorkshopAttendanceMode,
+} from "@/lib/workshopAttendance";
 
 export function WorkshopClient({ workshops }: { workshops: any[] }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -55,6 +60,7 @@ export function WorkshopClient({ workshops }: { workshops: any[] }) {
               <TableHead>Name</TableHead>
               <TableHead>Start Time</TableHead>
               <TableHead>End Time</TableHead>
+              <TableHead>Attendance Mode</TableHead>
               <TableHead>Online Price</TableHead>
               <TableHead>Offline Price</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -64,7 +70,7 @@ export function WorkshopClient({ workshops }: { workshops: any[] }) {
             {workshops.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={8}
                   className="py-6 text-center text-gray-500"
                 >
                   No workshops found. Create one.
@@ -91,8 +97,27 @@ export function WorkshopClient({ workshops }: { workshops: any[] }) {
                   <TableCell className="font-medium">{ws.name}</TableCell>
                   <TableCell>{formatWorkshopDateTime(ws.startTime)}</TableCell>
                   <TableCell>{formatWorkshopDateTime(ws.endTime)}</TableCell>
-                  <TableCell>₹{ws.onlinePrice}</TableCell>
-                  <TableCell>₹{ws.offlinePrice}</TableCell>
+                  <TableCell>
+                    {
+                      WORKSHOP_ATTENDANCE_LABELS[
+                        (ws.attendanceMode ?? "both") as WorkshopAttendanceMode
+                      ]
+                    }
+                  </TableCell>
+                  <TableCell>
+                    {getWorkshopAttendanceModes(ws.attendanceMode).includes(
+                      "online",
+                    )
+                      ? `₹${ws.onlinePrice}`
+                      : "—"}
+                  </TableCell>
+                  <TableCell>
+                    {getWorkshopAttendanceModes(ws.attendanceMode).includes(
+                      "offline",
+                    )
+                      ? `₹${ws.offlinePrice}`
+                      : "—"}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <WorkshopImages

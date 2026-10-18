@@ -56,17 +56,8 @@ function isHdfcPaymentEventName(
 export async function POST(req: NextRequest) {
   const merchantCreds = process.env.HDFC_SMARTGATEWAY_AUTHORIZATION;
   const authorization = req.headers.get("authorization");
-  const token = authorization?.startsWith("Basic ")
-    ? authorization.slice(6)
-    : authorization;
-  const decodedAuthorization = token
-    ? Buffer.from(token, "base64").toString("utf-8")
-    : null;
-  if (
-    !merchantCreds ||
-    !decodedAuthorization ||
-    decodedAuthorization !== merchantCreds
-  ) {
+
+  if (!merchantCreds || !authorization || authorization !== merchantCreds) {
     return NextResponse.json(
       { success: false, message: "Unauthorized" },
       { status: 401 },
@@ -94,8 +85,6 @@ export async function POST(req: NextRequest) {
   }
   console.log("HDFC Webhook received:", {
     orderId,
-    eventName: body.event_name,
-    order,
   });
 
   try {

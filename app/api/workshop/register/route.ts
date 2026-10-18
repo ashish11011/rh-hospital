@@ -6,11 +6,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { userSchema } from "@/db/userSchema";
 import { getCouponCodeDetails } from "@/helper/workshop/getCouponCodeDetails";
 import { createHdfcCustomerId, createHdfcGatewayOrderId, createHdfcPaymentSession } from "@/lib/hdfcGateway";
+import { getWorkshopModePrice, isWorkshopRegistrationAllowed } from "@/lib/workshopAttendance";
 
 
 export async function POST(req: NextRequest) {
     const { workshopId, email, name, mobileNumber, designation, instituteName, city, modeOfAttandnace, couponCode, registrationSource, utmSource, utmMedium, utmCampaign, utmContent } = await req.json();
     if (!email || !name || !mobileNumber || !designation || !instituteName || !city || !modeOfAttandnace || !workshopId) return NextResponse.json({ message: "All fields are required" });
+
+    const [workshopDetail] = await db.select().from(workshop).where(eq(workshop.id, workshopId));
+    if (!workshopDetail) return notFound();
+    if (!isWorkshopRegistrationAllowed(workshopDetail.attendanceMode, modeOfAttandnace)) {
+        return NextResponse.json(
+            { message: "The selected attendance mode is not available for this workshop. Please refresh and choose an available mode." },
+            { status: 400 },
+        );
+    }
 
     let userId;
     // Take userId
@@ -29,12 +39,7 @@ export async function POST(req: NextRequest) {
         userId = userDetail.id;
     }
 
-    // get workshop details
-    const [workshopDetail] = await db.select().from(workshop).where(eq(workshop.id, workshopId));
-
-    if (!workshopDetail) return notFound();
-
-    let workshopAmount = modeOfAttandnace === "online" ? workshopDetail.onlinePrice : workshopDetail.offlinePrice;
+    let workshopAmount = getWorkshopModePrice(workshopDetail, modeOfAttandnace);
     let couponDiscount = 0;
     try {
         if (couponCode) {

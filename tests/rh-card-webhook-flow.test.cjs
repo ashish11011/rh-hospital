@@ -302,10 +302,10 @@ function setup({ amount = constants.RH_ID_CARD_AMOUNT_INR, empty = false } = {})
   };
 }
 
-test("checkout creates a pending INR 21 order; only the webhook creates a two-year card", async () => {
+test("checkout creates a pending INR 501 order; only the webhook creates a two-year card", async () => {
   const app = setup({ empty: true });
   await app.start();
-  assert.equal(app.controls.sessions[0].amount, 21);
+  assert.equal(app.controls.sessions[0].amount, 501);
   assert.equal(app.state.payments[0].status, "pending");
   assert.equal(app.state.cards.length, 0);
   assert.equal((await app.card()).body.pendingPurchase.status, "pending");
@@ -322,7 +322,7 @@ test("checkout creates a pending INR 21 order; only the webhook creates a two-ye
   );
   assert.ok(card.memberShipId);
   assert.equal(app.state.payments[0].status, "completed");
-  assert.equal(app.state.payments[0].amountPaid, 21);
+  assert.equal(app.state.payments[0].amountPaid, 501);
   assert.equal(app.state.payments[0].amountDue, 0);
   assert.equal(app.controls.queueSends, 1);
   const dashboard = (await app.card()).body;

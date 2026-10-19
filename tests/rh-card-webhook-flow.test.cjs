@@ -302,10 +302,10 @@ function setup({ amount = constants.RH_ID_CARD_AMOUNT_INR, empty = false } = {})
   };
 }
 
-test("checkout creates a pending INR 1 order; only the webhook creates a two-year card", async () => {
+test("checkout creates a pending INR 21 order; only the webhook creates a two-year card", async () => {
   const app = setup({ empty: true });
   await app.start();
-  assert.equal(app.controls.sessions[0].amount, 1);
+  assert.equal(app.controls.sessions[0].amount, 21);
   assert.equal(app.state.payments[0].status, "pending");
   assert.equal(app.state.cards.length, 0);
   assert.equal((await app.card()).body.pendingPurchase.status, "pending");
@@ -322,7 +322,7 @@ test("checkout creates a pending INR 1 order; only the webhook creates a two-yea
   );
   assert.ok(card.memberShipId);
   assert.equal(app.state.payments[0].status, "completed");
-  assert.equal(app.state.payments[0].amountPaid, 1);
+  assert.equal(app.state.payments[0].amountPaid, 21);
   assert.equal(app.state.payments[0].amountDue, 0);
   assert.equal(app.controls.queueSends, 1);
   const dashboard = (await app.card()).body;
@@ -404,7 +404,7 @@ test("a deleted card is recreated only by a successful webhook retry", async () 
   assert.equal(app.controls.queueSends, 1);
 });
 
-for (const amount of [21, 501]) {
+for (const amount of [1, 21, 501]) {
   test(`existing INR ${amount} purchases retain their saved amount during fulfillment`, async () => {
     const app = setup({ amount });
     assert.equal((await app.webhook()).status, 200);

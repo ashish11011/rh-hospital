@@ -43,6 +43,17 @@ test('logs before SES send, includes all recipients, preserves tags, and records
   assert.equal(calls[1][1].Tags[1].Value, 'attempt-1');
   assert.equal(calls[2][1].sesMessageId, 'ses-1');
 });
+test('SES recipients and log recipients are trimmed and lowercased across To, Cc and Bcc', async () => {
+  const api = sender();
+  await api.sendLoggedEmail(new Command({ Destination: {
+    ToAddresses: [' Member@Example.COM '], CcAddresses: [' TEAM@Example.COM '], BccAddresses: [' Audit@Example.COM '],
+  }, Message: { Subject: { Data: 'Hello' } } }));
+  assert.equal(api.calls[0][1].join(','), 'member@example.com,team@example.com,audit@example.com');
+  const destination = api.calls[1][1].Destination;
+  assert.equal(destination.ToAddresses[0], 'member@example.com');
+  assert.equal(destination.CcAddresses[0], 'team@example.com');
+  assert.equal(destination.BccAddresses[0], 'audit@example.com');
+});
 test('SES errors are logged and rethrown; failed initial log prevents send', async () => {
   const error = new Error('SES rejected');
   const a = sender({ sendError: error });
@@ -68,11 +79,15 @@ test('Cognito requests log recipients without a user and distinguish requested f
       update: () => ({ set: value => ({ where: async () => { updates.push(value); } }) }),
     } },
   });
-  await api.logCognitoEmail('new@example.com', 'signup', async () => ({ CodeDeliveryDetails: { DeliveryMedium: 'EMAIL' } }));
+  await api.logCognitoEmail(' New@Example.COM ', 'signup', async () => ({ CodeDeliveryDetails: { DeliveryMedium: 'EMAIL' } }));
   assert.equal(inserts[0][0].userId, null);
+  assert.equal(inserts[0][0].email, 'new@example.com');
   assert.equal(updates[0].status, 'requested');
   await api.logCognitoEmail('new@example.com', 'signup', async () => ({}));
   assert.equal(updates[1].status, 'not_sent');
   await assert.rejects(api.logCognitoEmail('new@example.com', 'reset', async () => { throw new Error('rejected'); }), /rejected/);
   assert.equal(updates[2].status, 'failed');
+  await api.createEmailLogs([' New@Example.COM ', 'new@example.com'], 'deduplicated');
+  assert.equal(inserts[3].length, 1);
+  assert.equal(inserts[3][0].email, 'new@example.com');
 });

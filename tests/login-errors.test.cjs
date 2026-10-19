@@ -146,10 +146,10 @@ function setup({
     config,
     website: () =>
       actions.loginWithCredentials({
-        email: " member@example.com ",
+        email: " Member@Example.COM ",
         password: "wrong",
       }),
-    mobile: (body = { email: " member@example.com ", password: "wrong" }) =>
+    mobile: (body = { email: " Member@Example.COM ", password: "wrong" }) =>
       route.POST({ json: async () => body }),
   };
 }
@@ -276,7 +276,7 @@ test("unverified email preserves website verification routing and gives mobile a
   );
 });
 
-test("successful logins trim email without changing passwords or querying account existence", async () => {
+test("successful logins lowercase and trim email without changing passwords or querying account existence", async () => {
   const harness = setup();
   assert.equal((await harness.website()).success, true);
   const mobile = await harness.mobile();
@@ -287,7 +287,19 @@ test("successful logins trim email without changing passwords or querying accoun
   for (const command of harness.commands) {
     assert.equal(command.input.AuthParameters.USERNAME, "member@example.com");
     assert.equal(command.input.AuthParameters.PASSWORD, "wrong");
+    assert.equal(
+      command.input.AuthParameters.SECRET_HASH,
+      crypto.createHmac("sha256", "test-secret")
+        .update("member@example.comtest-client").digest("base64"),
+    );
   }
+});
+
+test("Cognito sessions normalize email from existing identity provider profiles", async () => {
+  const harness = setup();
+  const token = await harness.config.callbacks.jwt({ token: { email: " Member@Example.COM ", sub: "member-id" } });
+  assert.equal(token.email, "member@example.com");
+  assert.equal(token.sub, "member-id");
 });
 
 test("mobile rejects blank credentials without calling Cognito", async () => {

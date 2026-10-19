@@ -10,12 +10,13 @@ const cognitoClient = new CognitoIdentityProviderClient({
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
+    const data = await req.json();
     
-    if (!email) {
+    if (typeof data.email !== "string" || !data.email.trim()) {
        return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
+    const email = data.email.trim().toLowerCase();
     const secretHash = crypto
       .createHmac("sha256", USER_POOL_CLIENT_SECRET)
       .update(email + USER_POOL_CLIENT_ID)

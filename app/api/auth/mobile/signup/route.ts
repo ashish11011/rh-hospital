@@ -15,33 +15,34 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
     
-    if (!data.email || !data.password || !data.name) {
+    if (typeof data.email !== "string" || !data.email.trim() || !data.password || !data.name) {
        return NextResponse.json({ error: "Email, password, and name are required" }, { status: 400 });
     }
 
+    const email = data.email.trim().toLowerCase();
     const secretHash = crypto
       .createHmac("sha256", USER_POOL_CLIENT_SECRET)
-      .update(data.email + USER_POOL_CLIENT_ID)
+      .update(email + USER_POOL_CLIENT_ID)
       .digest("base64");
 
     const command = new SignUpCommand({
       ClientId: USER_POOL_CLIENT_ID,
-      Username: data.email,
+      Username: email,
       Password: data.password,
       SecretHash: secretHash,
       UserAttributes: [
-        { Name: "email", Value: data.email },
+        { Name: "email", Value: email },
         { Name: "name", Value: data.name }
       ],
     });
     
-    await logCognitoEmail(data.email, "signup verification", () => cognitoClient.send(command));
-    const existingUser = await db.select().from(user).where(eq(user.email, data.email.toLowerCase())).limit(1);
+    await logCognitoEmail(email, "signup verification", () => cognitoClient.send(command));
+    const existingUser = await db.select().from(user).where(eq(user.email, email)).limit(1);
     
     if (!existingUser || existingUser.length === 0) {
       await db.insert(user).values({
         name: data.name,
-        email: data.email.toLowerCase(),
+        email,
         mobileNumber: data.phone || "",
         designation: "",
         instituteName: "",

@@ -35,8 +35,8 @@ export async function POST(req: Request) {
       );
     }
 
-    cognitoUsername = email.trim();
-    const normalizedEmail = cognitoUsername.toLowerCase();
+    cognitoUsername = email.trim().toLowerCase();
+    const normalizedEmail = cognitoUsername;
 
     const secretHash = crypto
       .createHmac("sha256", USER_POOL_CLIENT_SECRET)

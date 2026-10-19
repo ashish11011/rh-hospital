@@ -43,7 +43,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-        const email = (credentials.email as string).trim();
+        const email = (credentials.email as string).trim().toLowerCase();
 
         try {
           const secretHash = crypto
@@ -78,4 +78,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  callbacks: {
+    async jwt({ token }) {
+      if (token.email) token.email = token.email.trim().toLowerCase();
+      return token;
+    },
+  },
 });

@@ -14,12 +14,12 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
 
-    if (typeof data.email !== "string" || typeof data.code !== "string" || !data.email || !data.code) {
+    if (typeof data.email !== "string" || typeof data.code !== "string" || !data.email.trim() || !data.code) {
        return NextResponse.json({ error: "Email and code are required" }, { status: 400 });
     }
 
-    const cognitoUsername = data.email.trim();
-    const normalizedEmail = cognitoUsername.toLowerCase();
+    const cognitoUsername = data.email.trim().toLowerCase();
+    const normalizedEmail = cognitoUsername;
     const existingUser = await db.select().from(user).where(eq(user.email, normalizedEmail)).limit(1);
     if (!existingUser || existingUser.length === 0) {
       return NextResponse.json({ error: "User not found in database" }, { status: 404 });

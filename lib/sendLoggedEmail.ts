@@ -12,7 +12,11 @@ const client = new SESClient({
 
 export async function sendLoggedEmail(command: SendEmailCommand) {
   const input = command.input;
-  const destination = input.Destination;
+  const destination = {
+    ToAddresses: input.Destination?.ToAddresses?.map((email) => email.trim().toLowerCase()),
+    CcAddresses: input.Destination?.CcAddresses?.map((email) => email.trim().toLowerCase()),
+    BccAddresses: input.Destination?.BccAddresses?.map((email) => email.trim().toLowerCase()),
+  };
   const { ids, sendAttemptId } = await createEmailLogs([
     ...(destination?.ToAddresses ?? []), ...(destination?.CcAddresses ?? []), ...(destination?.BccAddresses ?? []),
   ], input.Message?.Subject?.Data ?? "(subject unavailable)");
@@ -20,6 +24,7 @@ export async function sendLoggedEmail(command: SendEmailCommand) {
   try {
     result = await client.send(new SendEmailCommand({
       ...input,
+      Destination: destination,
       ConfigurationSetName: input.ConfigurationSetName ?? process.env.SES_CONFIGURATION_SET,
       Tags: [...(input.Tags ?? []).filter((tag) => tag.Name !== "emailSendAttemptId"),
         { Name: "emailSendAttemptId", Value: sendAttemptId }],

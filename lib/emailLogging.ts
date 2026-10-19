@@ -6,7 +6,7 @@ import { emailLogsSchema, userSchema } from "@/db/userSchema";
 export async function createEmailLogs(emails: string[], subject: string) {
   const sendAttemptId = randomUUID();
   const values = [];
-  for (const email of new Set(emails)) {
+  for (const email of new Set(emails.map((value) => value.trim().toLowerCase()))) {
     const users = await db.select({ id: userSchema.id }).from(userSchema)
       .where(sql`lower(${userSchema.email}) = ${email.toLowerCase()}`).limit(2);
     values.push({ email, subject, sendAttemptId, userId: users.length === 1 ? users[0].id : null,

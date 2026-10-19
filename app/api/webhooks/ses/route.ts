@@ -56,13 +56,13 @@ export async function POST(request: Request) {
     await db.transaction(async (tx) => {
       // Serialize all recipients for a message, including first-event inserts.
       await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${mail.messageId}, 0))`);
-      for (const email of new Set(update.recipients)) {
+      for (const email of new Set(update.recipients.map((value) => value.trim().toLowerCase()))) {
         const [existing] = await tx.select().from(emailLogsSchema).where(and(
           or(eq(emailLogsSchema.sesMessageId, mail.messageId),
             sendAttemptId ? eq(emailLogsSchema.sendAttemptId, sendAttemptId) : undefined),
-          eq(emailLogsSchema.email, email),
+          sql`lower(${emailLogsSchema.email}) = ${email}`,
         )).limit(1);
-        const failureReason = update.diagnostics?.find((item) => item.emailAddress === email)?.diagnosticCode ?? update.failureReason;
+        const failureReason = update.diagnostics?.find((item) => item.emailAddress.trim().toLowerCase() === email)?.diagnosticCode ?? update.failureReason;
         if (existing) {
           const advance = statusPriority[update.status] > (statusPriority[existing.status] ?? -1);
           const openedAt = update.openedAt && (!existing.openedAt || update.openedAt < existing.openedAt)

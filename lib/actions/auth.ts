@@ -29,7 +29,7 @@ const cognitoClient = new CognitoIdentityProviderClient({
 export async function loginWithCredentials(data: any) {
   try {
     await signIn("credentials", {
-      email: data.email,
+      email: data.email.trim().toLowerCase(),
       password: data.password,
       redirect: false,
     });
@@ -41,7 +41,7 @@ export async function loginWithCredentials(data: any) {
         : error.cause?.err?.message;
       const loginError = getLoginError(code === "credentials" ? "INVALID_CREDENTIALS" : code);
       if (loginError.code === "EMAIL_NOT_VERIFIED") {
-        return { error: "unconfirmed", email: data.email };
+        return { error: "unconfirmed", email: data.email.trim().toLowerCase() };
       }
       return { error: loginError.message };
     }
@@ -51,31 +51,32 @@ export async function loginWithCredentials(data: any) {
 
 export async function signupWithCognito(data: any) {
   try {
+    const email = data.email.trim().toLowerCase();
     const secretHash = crypto
       .createHmac("sha256", USER_POOL_CLIENT_SECRET)
-      .update(data.email + USER_POOL_CLIENT_ID)
+      .update(email + USER_POOL_CLIENT_ID)
       .digest("base64");
 
     const command = new SignUpCommand({
       ClientId: USER_POOL_CLIENT_ID,
-      Username: data.email,
+      Username: email,
       Password: data.password,
       SecretHash: secretHash,
       UserAttributes: [
-        { Name: "email", Value: data.email },
+        { Name: "email", Value: email },
         { Name: "name", Value: data.name },
         ...(data.phone ? [{ Name: "phone_number", Value: data.phone }] : []),
       ],
     });
     
-    await logCognitoEmail(data.email, "signup verification", () => cognitoClient.send(command));
+    await logCognitoEmail(email, "signup verification", () => cognitoClient.send(command));
 
-    const existingUser = await db.select().from(user).where(eq(user.email, data.email.toLowerCase())).limit(1);
+    const existingUser = await db.select().from(user).where(eq(user.email, email)).limit(1);
     
     if (!existingUser || existingUser.length === 0) {
       await db.insert(user).values({
         name: data.name,
-        email: data.email.toLowerCase(),
+        email,
         mobileNumber: data.phone || "",
         designation: "",
         instituteName: "",
@@ -94,26 +95,27 @@ export async function signupWithCognito(data: any) {
 
 export async function confirmWithCognito(data: { email: string, code: string }) {
   try {
-    const existingUser = await db.select().from(user).where(eq(user.email, data.email)).limit(1);
+    const email = data.email.trim().toLowerCase();
+    const existingUser = await db.select().from(user).where(eq(user.email, email)).limit(1);
     if (!existingUser || existingUser.length === 0) {
       return { error: "User not found in database" };
     }
 
     const secretHash = crypto
       .createHmac("sha256", USER_POOL_CLIENT_SECRET)
-      .update(data.email + USER_POOL_CLIENT_ID)
+      .update(email + USER_POOL_CLIENT_ID)
       .digest("base64");
 
     const command = new ConfirmSignUpCommand({
       ClientId: USER_POOL_CLIENT_ID,
-      Username: data.email,
+      Username: email,
       ConfirmationCode: data.code,
       SecretHash: secretHash,
     });
     
     await cognitoClient.send(command);
 
-    await db.update(user).set({ isVarifiedEmail: true }).where(eq(user.email, data.email));
+    await db.update(user).set({ isVarifiedEmail: true }).where(eq(user.email, email));
 
     return { success: true };
   } catch (error: any) {
@@ -123,6 +125,7 @@ export async function confirmWithCognito(data: { email: string, code: string }) 
 
 export async function forgotPasswordWithCognito(email: string) {
   try {
+    email = email.trim().toLowerCase();
     const secretHash = crypto
       .createHmac("sha256", USER_POOL_CLIENT_SECRET)
       .update(email + USER_POOL_CLIENT_ID)
@@ -143,14 +146,15 @@ export async function forgotPasswordWithCognito(email: string) {
 
 export async function resetPasswordWithCognito(data: any) {
   try {
+    const email = data.email.trim().toLowerCase();
     const secretHash = crypto
       .createHmac("sha256", USER_POOL_CLIENT_SECRET)
-      .update(data.email + USER_POOL_CLIENT_ID)
+      .update(email + USER_POOL_CLIENT_ID)
       .digest("base64");
 
     const command = new ConfirmForgotPasswordCommand({
       ClientId: USER_POOL_CLIENT_ID,
-      Username: data.email,
+      Username: email,
       ConfirmationCode: data.code,
       Password: data.password,
       SecretHash: secretHash,
@@ -165,6 +169,7 @@ export async function resetPasswordWithCognito(data: any) {
 
 export async function resendVerificationCode(email: string) {
   try {
+    email = email.trim().toLowerCase();
     const secretHash = crypto
       .createHmac("sha256", USER_POOL_CLIENT_SECRET)
       .update(email + USER_POOL_CLIENT_ID)

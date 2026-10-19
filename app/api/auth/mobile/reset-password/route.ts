@@ -11,18 +11,19 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
 
-    if (!data.email || !data.code || !data.password) {
+    if (typeof data.email !== "string" || !data.email.trim() || !data.code || !data.password) {
        return NextResponse.json({ error: "Email, code, and new password are required" }, { status: 400 });
     }
 
+    const email = data.email.trim().toLowerCase();
     const secretHash = crypto
       .createHmac("sha256", USER_POOL_CLIENT_SECRET)
-      .update(data.email + USER_POOL_CLIENT_ID)
+      .update(email + USER_POOL_CLIENT_ID)
       .digest("base64");
 
     const command = new ConfirmForgotPasswordCommand({
       ClientId: USER_POOL_CLIENT_ID,
-      Username: data.email,
+      Username: email,
       ConfirmationCode: data.code,
       Password: data.password,
       SecretHash: secretHash,

@@ -102,7 +102,7 @@ export async function resolveCognitoLoginError(error: unknown, email: string) {
         const account = await accountLookup.send(
           new AdminGetUserCommand({
             UserPoolId: USER_POOL_ID,
-            Username: email.trim(),
+            Username: email.trim().toLowerCase(),
           }),
         );
         if (account.Enabled === false) return getLoginError("ACCOUNT_DISABLED");

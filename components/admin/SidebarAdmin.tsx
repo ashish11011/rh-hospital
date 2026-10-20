@@ -23,12 +23,20 @@ export async function SidebarAdmin() {
       url: "/admin/users",
     },
     {
+      name: "Payments",
+      url: "/admin/payments",
+    },
+    {
       name: "RH Membership Card",
       url: "/admin/rh-card",
     },
     {
       name: "Workshops",
       url: "/admin/workshop",
+    },
+    {
+      name: "Workshop Registrations",
+      url: "/admin/workshop-registration",
     },
     {
       name: "Courses",
@@ -41,10 +49,6 @@ export async function SidebarAdmin() {
     {
       name: "Course Reviews",
       url: "/admin/course-reviews",
-    },
-    {
-      name: "Workshop Registrations",
-      url: "/admin/workshop-registration",
     },
     {
       name: "Seminar Registrations",
@@ -62,7 +66,9 @@ export async function SidebarAdmin() {
       name: "Blog",
       url: "/admin/blog",
     },
-  ].filter((project) => access !== null && canAccessAdminPath(project.url, access));
+  ].filter(
+    (project) => access !== null && canAccessAdminPath(project.url, access),
+  );
 
   return (
     <Sidebar>

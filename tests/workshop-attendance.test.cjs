@@ -25,9 +25,13 @@ function load(filename, mocks = {}) {
 }
 
 const attendance = load("lib/workshopAttendance.ts");
+const pricing = load("lib/workshopPricing.ts", { "@/lib/constants": load("lib/constants.ts") });
+class WorkshopMemberError extends Error {
+  constructor(message, status = 401) { super(message); this.status = status; }
+}
 
 test("workshop schema stores a required enum with both as the default", () => {
-  const { workshopSchema, workshopAttendanceModeEnumSchema } = load(
+  const { workshopSchema, workshopAttendanceModeEnum: workshopAttendanceModeEnumSchema } = load(
     "db/workshopSchema.ts",
   );
   assert.deepEqual(workshopAttendanceModeEnumSchema.enumValues, [
@@ -95,7 +99,7 @@ test("only enabled prices are validated and zero does not disable attendance", (
   );
 });
 
-function setup(attendanceMode) {
+function setup(attendanceMode, memberCard = null) {
   const workshop = { id: "workshop.id" };
   const user = { id: "user.id", email: "user.email" };
   const registrationTable = {};
@@ -147,6 +151,16 @@ function setup(attendanceMode) {
       }),
     },
     "@/lib/workshopAttendance": attendance,
+    "@/lib/workshopPricing": pricing,
+    "@/lib/workshopMemberOtp": { memberCookieName: () => "member" },
+    "@/lib/workshopMember": {
+      WorkshopMemberError,
+      getVerifiedWorkshopMember: async (cookie) => {
+        if (!memberCard || cookie !== "valid") throw new WorkshopMemberError("Verify membership first.");
+        return memberCard;
+      },
+      workshopMemberDetails: (card) => card.details,
+    },
     "@/lib/hdfcGateway": {
       createHdfcCustomerId: () => "customer-1",
       createHdfcGatewayOrderId: () => "order-1",
@@ -163,8 +177,9 @@ function setup(attendanceMode) {
   return {
     saved,
     sessions,
-    async register(mode, couponCode) {
+    async register(mode, couponCode, overrides = {}, cookie) {
       return POST({
+        cookies: { get: () => cookie ? { value: cookie } : undefined },
         json: async () => ({
           workshopId: "workshop-1",
           email: "test@example.com",
@@ -175,6 +190,7 @@ function setup(attendanceMode) {
           city: "Jaipur",
           modeOfAttandnace: mode,
           couponCode,
+          ...overrides,
         }),
       });
     },
@@ -232,6 +248,8 @@ test("registration form shows and preselects only available attendance modes", (
     "components/workshop/takeRegistratoinDialog.tsx",
     {
       "@/lib/workshopAttendance": attendance,
+      "@/lib/workshopPricing": pricing,
+      "./MemberWorkshopVerification": { MemberWorkshopVerification: () => null },
       "@/components/ui/input": { Input: () => null },
       "@/components/ui/label": { Label: element("label") },
       "@/components/ui/button": { Button: element("button") },
@@ -273,4 +291,59 @@ test("registration form shows and preselects only available attendance modes", (
     );
     assert.equal(selection.value, expected[0]);
   }
+});
+
+const memberCard = {
+  id: "card-1", userId: "card-owner", memberShipId: "RH-NUR-2026-0001",
+  details: { email: "owner@example.com", name: "Card Owner", mobileNumber: "9999999999", designation: "Nursing Officer", instituteName: "Card Hospital", city: "Jaipur" },
+};
+
+test("verified membership uses server card details and charges 80% of the selected workshop price", async () => {
+  for (const [mode, amount] of [["online", 80], ["offline", 400]]) {
+    const app = setup("both", memberCard);
+    const response = await app.register(mode, undefined, {
+      registrationType: "member", name: "Attacker", email: "attacker@example.com", amount: 1,
+      memberDiscount: 499, payableAmount: 1,
+    }, "valid");
+    assert.equal(response.status, 200);
+    assert.equal(app.sessions[0].amount, amount);
+    assert.equal(app.sessions[0].customerEmail, memberCard.details.email);
+    assert.equal(app.saved[0].data.userId, "card-owner");
+    assert.equal(app.saved[0].data.name, "Card Owner");
+    assert.equal(app.saved[0].data.instituteName, "Card Hospital");
+    assert.equal(app.saved[0].data.couponDiscount, 0);
+    assert.equal(app.saved[0].data.payableAmount, amount);
+    const notes = JSON.parse(app.saved[1].data.notes);
+    assert.equal(notes.memberDiscount, mode === "online" ? 20 : 100);
+    assert.equal(notes.rhCardId, "card-1");
+    assert.equal(app.saved[1].data.amount, amount);
+  }
+});
+
+test("unverified member cannot create a registration or payment", async () => {
+  const app = setup("both", memberCard);
+  const response = await app.register("online", undefined, { registrationType: "member" });
+  assert.equal(response.status, 401);
+  assert.equal(app.saved.length, 0);
+  assert.equal(app.sessions.length, 0);
+});
+
+test("member discount cannot stack with a coupon", async () => {
+  const app = setup("both", memberCard);
+  const response = await app.register("online", "COUPON", { registrationType: "member" }, "valid");
+  assert.equal(response.status, 400);
+  assert.equal(app.saved.length, 0);
+});
+
+test("regular users cannot claim a member discount through request fields", async () => {
+  const app = setup("both", memberCard);
+  const response = await app.register("offline", undefined, { memberDiscount: 100, rhCardId: "card-1", payableAmount: 1 }, "valid");
+  assert.equal(response.status, 200);
+  assert.equal(app.sessions[0].amount, 500);
+  assert.equal(JSON.parse(app.saved[1].data.notes).memberDiscount, 0);
+});
+
+test("membership pricing uses whole rupees and ignores coupon values", () => {
+  assert.deepEqual(pricing.getWorkshopPricing(501, true, 400), { amount: 401, memberDiscount: 100, couponDiscount: 0 });
+  assert.deepEqual(pricing.getWorkshopPricing(999, true), { amount: 799, memberDiscount: 200, couponDiscount: 0 });
 });

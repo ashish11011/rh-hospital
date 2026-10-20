@@ -4,6 +4,17 @@ import { sendLoggedEmail } from "@/lib/sendLoggedEmail";
 const EMAIL_SOURCE = "no-reply@rhhealthcaresimulation.com";
 const ACCOUNT_REQUEST_ADMIN_EMAIL = "bishnoi11011@gmail.com";
 
+export async function sendWorkshopMemberOtpEmail({ toEmail, otp }: { toEmail: string; otp: string }) {
+    await sendLoggedEmail(new SendEmailCommand({
+        Source: EMAIL_SOURCE,
+        Destination: { ToAddresses: [toEmail] },
+        Message: {
+            Subject: { Data: "Verify your RH Membership Card for workshop registration" },
+            Body: { Text: { Data: `Your RH Healthcare workshop verification code is ${otp}. It expires in 5 minutes. Use the latest code if you requested another OTP. Do not share this code. If you did not request it, you can ignore this email.` } },
+        },
+    }));
+}
+
 export async function sendRhIdCardCreatedEmail({
     toEmail, name, memberShipId, validityDate, orderId, amount,
 }: {

@@ -148,6 +148,9 @@ export function RhIdCardPanel({
             </p>
           )}
           <IdCardView card={result.card} />
+          <Button asChild variant="outline">
+            <Link href="/workshops">Register for a workshop</Link>
+          </Button>
         </div>
       ) : result.pendingPurchase && !editPending ? (
         <div className="space-y-4 rounded-xl bg-slate-50 p-5">

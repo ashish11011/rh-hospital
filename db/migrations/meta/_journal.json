@@ -50,6 +50,13 @@
       "when": 1792338995771,
       "tag": "0006_colorful_leopardon",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792523242818,
+      "tag": "0007_giant_toad",
+      "breakpoints": true
     }
   ]
 }

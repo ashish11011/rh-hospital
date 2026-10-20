@@ -127,7 +127,7 @@ async function WsForm({ ws }: any) {
           </div>
 
           <div className="space-y-3">
-            <WorkshopRegistration workshopId={ws.id} attendanceMode={ws.attendanceMode} priceOnline={ws.onlinePrice} priceOffline={ws.offlinePrice} />
+            <WorkshopRegistration workshopId={ws.id} attendanceMode={ws.attendanceMode} priceOnline={ws.onlinePrice} priceOffline={ws.offlinePrice} whatsappLink={ws.whatsappLink} />
 
           </div>
         </CardContent>

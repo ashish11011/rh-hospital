@@ -38,6 +38,7 @@ import {
 
 export * from "./userSchema";
 export * from "./courseSchema";
+export * from "./workshopMemberSchema";
 
 export const itemEnum = itemEnumSchema;
 export const modeOfAttandace = modeOfAttandaceEnumSchema;

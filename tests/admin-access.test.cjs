@@ -83,6 +83,8 @@ test("workshop registrations and unrelated admin routes remain blocked", () => {
       "blog-extra",
       "contact-enquiries-extra",
       "users",
+      "payments",
+      "payments/example",
       "rh-card",
       "course",
       "course-enrolments",
@@ -150,6 +152,9 @@ test("proxy enforces route permissions for pages and APIs", () => {
     /\/admin\/blog$/,
   );
   assert.equal(request("/api/admin/workshop-registration").status, 403);
+  assert.match(request("/admin/payments").location, /\/admin\/blog$/);
+  assert.equal(request("/admin/payments", "bishnoi11011@gmail.com").status, 200);
+  assert.match(request("/admin/payments", null).location, /\/sign-in/);
   assert.equal(
     request("/api/admin/contact-enquiries/export", null).status,
     401,
@@ -163,6 +168,7 @@ test("proxy enforces route permissions for pages and APIs", () => {
 
 test("workshop operations work for the limited admin while registration queries stay protected", async () => {
   let operations = 0;
+  const workshopInput = { attendanceMode: "both", onlinePrice: 100, offlinePrice: 200 };
   const query = {
     values: async () => {
       operations++;
@@ -176,11 +182,12 @@ test("workshop operations work for the limited admin while registration queries 
     },
     then: (resolve) => {
       operations++;
-      return Promise.resolve().then(resolve);
+      return Promise.resolve([workshopInput]).then(resolve);
     },
   };
   const dependencies = {
     "@/lib/adminAuth": authFor(limitedEmail),
+    "@/lib/workshopAttendance": load("lib/workshopAttendance.ts"),
     "@/lib/dbConfig": {
       db: {
         insert: () => query,
@@ -195,7 +202,7 @@ test("workshop operations work for the limited admin while registration queries 
   };
   const workshop = load("actions/workshopActions.ts", dependencies);
   for (const [name, args] of [
-    ["createWorkshop", [{}]],
+    ["createWorkshop", [workshopInput]],
     ["updateWorkshop", ["id", {}]],
     ["deleteWorkshop", ["id"]],
     ["addWorkshopImage", [{ workshopId: "id", image: "image.png" }]],
@@ -204,14 +211,14 @@ test("workshop operations work for the limited admin while registration queries 
     assert.equal((await workshop[name](...args)).success, true, name);
   }
   await workshop.getWorkshopImages("id");
-  assert.equal(operations, 6);
+  assert.equal(operations, 7);
   const registration = load("actions/registrationActions.ts", dependencies);
   await registration.getRegistrations({});
   await registration.getAllRegistrations();
   await registration.getWorkshopsList();
   assert.equal(
     operations,
-    6,
+    7,
     "registration actions must not access the database",
   );
 });

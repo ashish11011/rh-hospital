@@ -14,6 +14,8 @@ import { SourceOfRegistraion } from "./sourceOfRegistration";
 import { sourceOfRegistraion } from "@/const/workshopRegistration";
 import { useSearchParams } from "next/navigation";
 import { WORKSHOP_REGISTRATION_MODES, getWorkshopAttendanceModes, isWorkshopRegistrationAllowed, type WorkshopAttendanceMode } from "@/lib/workshopAttendance";
+import { MemberWorkshopVerification, type WorkshopMemberDetails } from "./MemberWorkshopVerification";
+import { getWorkshopPricing } from "@/lib/workshopPricing";
 
 const schema = z.object({
     workshopId: z.string(),
@@ -36,11 +38,13 @@ export function WorkshopRegistration({
     priceOnline,
     priceOffline,
     attendanceMode = "both",
+    whatsappLink,
 }: {
     workshopId: string;
     priceOnline: number;
     priceOffline: number;
     attendanceMode?: WorkshopAttendanceMode;
+    whatsappLink?: string | null;
 }) {
 
     const searchParams = useSearchParams()
@@ -69,6 +73,32 @@ export function WorkshopRegistration({
 
     const [loading, setLoading] = useState(false);
     const [hasJoinedWhatsapp, setHasJoinedWhatsapp] = useState(false);
+    const [registrationType, setRegistrationType] = useState<"regular" | "member">("regular");
+    const [memberDetails, setMemberDetails] = useState<WorkshopMemberDetails | null>(null);
+    const [verifiedUntil, setVerifiedUntil] = useState(0);
+
+    useEffect(() => {
+        if (!verifiedUntil) return;
+        const timeout = setTimeout(() => {
+            setMemberDetails(null);
+            setVerifiedUntil(0);
+            toast.error("Your membership verification has expired. Please verify again.");
+        }, Math.max(0, verifiedUntil - Date.now()));
+        return () => clearTimeout(timeout);
+    }, [verifiedUntil]);
+
+    function changeRegistrationType(type: "regular" | "member") {
+        setRegistrationType(type);
+        setMemberDetails(null);
+        setVerifiedUntil(0);
+        setCouponDiscount({ onlineDiscount: 0, offlineDiscount: 0 });
+        setHasJoinedWhatsapp(false);
+        setForm((prev: any) => ({ ...prev, email: "", name: "", mobileNumber: "", designation: "", instituteName: "", city: "", couponCode: "" }));
+    }
+
+    const memberVerified = registrationType === "member" && Boolean(memberDetails);
+    const onlinePricing = getWorkshopPricing(priceOnline, memberVerified, couponDiscount.onlineDiscount);
+    const offlinePricing = getWorkshopPricing(priceOffline, memberVerified, couponDiscount.offlineDiscount);
 
     useEffect(() => {
 
@@ -132,7 +162,12 @@ export function WorkshopRegistration({
     const handleSubmit = async () => {
         setLoading(true);
 
-        const registration = { ...form, modeOfAttandnace: selectedMode };
+        if (registrationType === "member" && (!memberDetails || verifiedUntil <= Date.now())) {
+            toast.error("Please verify your RH Membership Card first.");
+            setLoading(false);
+            return;
+        }
+        const registration = { ...form, registrationType, modeOfAttandnace: selectedMode };
         const result = schema.safeParse(registration);
 
         if (!result.success) {
@@ -168,11 +203,26 @@ export function WorkshopRegistration({
 
     return (
         <>
+            <div className="space-y-4 border-t pt-4">
+                <Label>Register for this workshop</Label>
+                <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant={registrationType === "regular" ? "default" : "outline"} disabled={loading} onClick={() => changeRegistrationType("regular")}>Regular registration</Button>
+                    <Button type="button" variant={registrationType === "member" ? "default" : "outline"} disabled={loading} onClick={() => changeRegistrationType("member")}>RH member · 20% off</Button>
+                </div>
+                {registrationType === "member" && !memberDetails && <MemberWorkshopVerification workshopId={workshopId} onVerified={(details, expiresIn) => {
+                    setMemberDetails(details);
+                    setVerifiedUntil(Date.now() + expiresIn * 1000);
+                    setForm((prev: any) => ({ ...prev, ...details, couponCode: "" }));
+                }} />}
+                {memberVerified && <p role="status" className="rounded-lg bg-green-50 p-3 text-sm text-green-800">Membership verified. Your card details are filled below. You get 20% off the listed workshop fee; coupons cannot be combined.</p>}
+            </div>
+            {(registrationType === "regular" || memberVerified) && <>
             <div className="grid gap-4 py-4">
                 <div className=" space-y-1">
                     <Label>Name</Label>
                     <Input
                         value={form.name}
+                        readOnly={memberVerified}
                         onChange={(e) => handleChange("name", e.target.value)}
                     />
                 </div>
@@ -182,6 +232,7 @@ export function WorkshopRegistration({
                     <Input
                         type="email"
                         value={form.email}
+                        readOnly={memberVerified}
                         onChange={(e) => handleChange("email", e.target.value)}
                     />
                 </div>
@@ -190,6 +241,7 @@ export function WorkshopRegistration({
                     <Label>Mobile Number</Label>
                     <Input
                         value={form.mobileNumber}
+                        readOnly={memberVerified}
                         onChange={(e) =>
                             handleChange("mobileNumber", e.target.value)
                         }
@@ -200,6 +252,7 @@ export function WorkshopRegistration({
                     <Label>Designation</Label>
                     <Input
                         value={form.designation}
+                        readOnly={memberVerified}
                         onChange={(e) =>
                             handleChange("designation", e.target.value)
                         }
@@ -210,6 +263,7 @@ export function WorkshopRegistration({
                     <Label>Institute Name</Label>
                     <Input
                         value={form.instituteName}
+                        readOnly={memberVerified && Boolean(memberDetails?.instituteName)}
                         onChange={(e) =>
                             handleChange("instituteName", e.target.value)
                         }
@@ -220,18 +274,19 @@ export function WorkshopRegistration({
                     <Label>City</Label>
                     <Input
                         value={form.city}
+                        readOnly={memberVerified}
                         onChange={(e) => handleChange("city", e.target.value)}
                     />
                 </div>
-                <div className=" space-y-1">
+                {!memberVerified && <div className=" space-y-1">
                     <Label>Coupon <span className="text-gray-500">(optional)</span></Label>
                     <InputGroup>
-                        <InputGroupInput value={form.couponCode} onChange={(e) => handleChange("couponCode", e.target.value)} placeholder="Enter coupon code..." />
+                        <InputGroupInput value={form.couponCode} onChange={(e) => { handleChange("couponCode", e.target.value); setCouponDiscount({ onlineDiscount: 0, offlineDiscount: 0 }); }} placeholder="Enter coupon code..." />
                         <InputGroupAddon align="inline-end">
                             <InputGroupButton onClick={handleApplyCoupon} disabled={loading} className=" cursor-pointer" variant={"default"} >Apply</InputGroupButton>
                         </InputGroupAddon>
                     </InputGroup>
-                </div>
+                </div>}
 
                 <CustomRadioGroup
                     label="Mode of Attendance"
@@ -247,7 +302,8 @@ export function WorkshopRegistration({
                                     Attend remotely via internet.
                                     <br />
                                     <span className="text-gray-800">
-                                        Rs. {priceOnline - couponDiscount.onlineDiscount}
+                                        {memberVerified && <s className="mr-2 text-gray-500">Rs. {priceOnline}</s>}
+                                        Rs. {onlinePricing.amount}
                                     </span>
                                 </>
                             ),
@@ -261,7 +317,8 @@ export function WorkshopRegistration({
                                     Attend physically at location.
                                     <br />
                                     <span className="text-gray-800">
-                                        Rs. {priceOffline - couponDiscount.offlineDiscount}
+                                        {memberVerified && <s className="mr-2 text-gray-500">Rs. {priceOffline}</s>}
+                                        Rs. {offlinePricing.amount}
                                     </span>
                                 </>
                             ),
@@ -276,6 +333,7 @@ export function WorkshopRegistration({
                 />
             </div>
 
+            {whatsappLink && <a href={whatsappLink} target="_blank" rel="noreferrer" className="text-sm text-green-700 underline">Join the workshop WhatsApp group</a>}
             <div className="flex items-center space-x-2 py-4">
                 <Checkbox
                     id="whatsappgroup"
@@ -297,6 +355,7 @@ export function WorkshopRegistration({
             >
                 Register & Pay
             </Button>
+            </>}
         </>
     );
 }

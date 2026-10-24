@@ -42,6 +42,7 @@ import SideForm from "@/app/(user)/contact-us/SideForm";
 import { RhCardBenefits } from "@/components/id-card/RhCardBenefits";
 import { CreateRhCardLink } from "@/components/id-card/CreateRhCardLink";
 import { GlobalNursingSummitGallery } from "@/components/GlobalNursingSummitGallery";
+import { MobileAppCTA } from "@/components/MobileAppCTA";
 
 export const metadata: Metadata = {
   title: {
@@ -163,7 +164,7 @@ export default async function Home() {
         </div>
       </section>
       {/* <HomeProductCrousel /> */}
-
+      <MobileAppCTA />
       <AwardSection />
       <CTASection />
       <HomeContactSection />

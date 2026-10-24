@@ -1,4 +1,5 @@
 import { getWorkshops } from "@/actions/workshopActions";
+import { MobileAppCTA } from "@/components/MobileAppCTA";
 import WorkshopFAQ from "@/components/ui/AccordionStudio";
 import { WorkshowListCard } from "@/components/workshop/WorkshowListCard";
 
@@ -76,6 +77,7 @@ export default async function WorkshopsPage() {
         </div>
         <WorkshopFAQ />
       </div>
+      <MobileAppCTA />
     </div>
   );
 }

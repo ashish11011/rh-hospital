@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { forgotPasswordSchema, ForgotPasswordValues } from "@/lib/validations/auth";
+import {
+  forgotPasswordSchema,
+  ForgotPasswordValues,
+} from "@/lib/validations/auth";
 import { forgotPasswordWithCognito } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,17 +17,18 @@ import { AuthLink } from "./auth-link";
 
 export default function ForgotPasswordForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<ForgotPasswordValues>({
     resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: { email: "" },
+    defaultValues: { email: searchParams.get("email") || "" },
   });
 
   const onSubmit = async (data: ForgotPasswordValues) => {
     setError(null);
     const res = await forgotPasswordWithCognito(data.email);
-    
+
     if (res?.error) {
       setError(res.error);
     } else if (res?.success) {
@@ -40,9 +44,9 @@ export default function ForgotPasswordForm() {
             {error}
           </div>
         )}
-        
+
         <Label>Email Address</Label>
-        
+
         <div className="relative">
           <Mail className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
@@ -72,10 +76,7 @@ export default function ForgotPasswordForm() {
       </Button>
 
       <p className="text-muted-foreground text-center text-sm">
-        Remember your password?{" "}
-        <AuthLink href="/sign-in">
-          Sign In
-        </AuthLink>
+        Remember your password? <AuthLink href="/sign-in">Sign In</AuthLink>
       </p>
     </form>
   );

@@ -89,6 +89,12 @@ export default async function PaymentsPage({
           View payment records across workshops, courses, seminars, and
           membership cards, newest first.
         </p>
+        <Link
+          href="/admin/payment-recovery"
+          className="mt-3 inline-block text-sm font-medium text-green-700 underline underline-offset-4"
+        >
+          Recover a missed payment confirmation
+        </Link>
       </div>
       <form action="/admin/payments" className="flex flex-wrap items-end gap-3">
         <div className="w-full sm:max-w-sm">
@@ -204,6 +210,12 @@ export default async function PaymentsPage({
                     <p className="mt-1 font-mono text-xs break-all">
                       {record.gatewayOrderId}
                     </p>
+                    <Link
+                      href={`/admin/payment-recovery?orderId=${encodeURIComponent(record.gatewayOrderId)}`}
+                      className="mt-2 inline-block text-xs font-medium text-green-700 underline underline-offset-4"
+                    >
+                      Check / recover payment
+                    </Link>
                     <details className="mt-2 text-xs">
                       <summary className="cursor-pointer text-slate-600">
                         Record IDs

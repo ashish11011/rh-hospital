@@ -15,10 +15,15 @@ import GoogleButton from "./google-button";
 import { useForm } from "react-hook-form";
 import { signupSchema, SignupValues } from "@/lib/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PasswordRequirements } from "./password-requirements";
 
 export default function SignupForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [existingAccount, setExistingAccount] = useState<{
+    email: string;
+    canVerify: boolean;
+  } | null>(null);
 
   const form = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
@@ -26,14 +31,33 @@ export default function SignupForm() {
 
   const onSubmit = async (data: SignupValues) => {
     setError(null);
-    const res = await signupWithCognito(data);
-
-    if (res?.error === "exists") {
-      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
-    } else if (res?.error) {
-      setError(res.error);
-    } else if (res?.success) {
-      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+    setExistingAccount(null);
+    try {
+      const res = await signupWithCognito(data);
+      const emailQuery = `email=${encodeURIComponent(data.email)}`;
+      if ("nextStep" in res && res.nextStep === "verify_email") {
+        router.push(`/verify-email?${emailQuery}`);
+      } else if ("nextStep" in res && res.nextStep === "reset_password") {
+        router.push(`/forgot-password?${emailQuery}`);
+      } else if ("error" in res) {
+        setError("message" in res ? res.message : res.error);
+        if (
+          res.error === "exists" &&
+          "nextStep" in res &&
+          res.nextStep !== "none"
+        ) {
+          setExistingAccount({
+            email: data.email,
+            canVerify: res.nextStep === "choose",
+          });
+        }
+      } else if (res.success) {
+        router.push(`/verify-email?${emailQuery}`);
+      }
+    } catch {
+      setError(
+        "Unable to create your account. Please check your connection and try again.",
+      );
     }
   };
 
@@ -41,8 +65,32 @@ export default function SignupForm() {
     <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
       <div className="space-y-2">
         {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-500">
-            {error}
+          <div
+            role="alert"
+            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          >
+            <p>{error}</p>
+            {existingAccount && (
+              <div className="mt-3 flex flex-wrap gap-4">
+                <AuthLink
+                  href={`/sign-in?email=${encodeURIComponent(existingAccount.email)}`}
+                >
+                  Sign in
+                </AuthLink>
+                <AuthLink
+                  href={`/forgot-password?email=${encodeURIComponent(existingAccount.email)}`}
+                >
+                  Reset password
+                </AuthLink>
+                {existingAccount.canVerify && (
+                  <AuthLink
+                    href={`/verify-email?email=${encodeURIComponent(existingAccount.email)}`}
+                  >
+                    Verify email
+                  </AuthLink>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -91,6 +139,7 @@ export default function SignupForm() {
       <div className="space-y-2">
         <Label>Password</Label>
         <PasswordInput {...form.register("password")} />
+        <PasswordRequirements password={form.watch("password") || ""} />
         <p className="text-sm text-red-500">
           {form.formState.errors.password?.message}
         </p>
@@ -129,10 +178,7 @@ export default function SignupForm() {
       <GoogleButton /> */}
 
       <p className="text-muted-foreground text-center text-sm">
-        Already have an account?{" "}
-        <AuthLink href="/sign-in">
-          Sign In
-        </AuthLink>
+        Already have an account? <AuthLink href="/sign-in">Sign In</AuthLink>
       </p>
     </form>
   );

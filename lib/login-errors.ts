@@ -78,6 +78,77 @@ function getErrorDetails(error: unknown) {
   return { name: details?.name || "", message: details?.message || "" };
 }
 
+export type ExistingSignupResult = {
+  error: "exists";
+  code: string;
+  message: string;
+  nextStep: "verify_email" | "sign_in" | "reset_password" | "choose" | "none";
+  email: string;
+};
+
+export async function resolveExistingCognitoSignup(
+  email: string,
+): Promise<ExistingSignupResult> {
+  const normalizedEmail = email.trim().toLowerCase();
+  const result = (
+    code: string,
+    message: string,
+    nextStep: ExistingSignupResult["nextStep"],
+  ): ExistingSignupResult => ({
+    error: "exists",
+    code,
+    message,
+    nextStep,
+    email: normalizedEmail,
+  });
+  try {
+    const account = await accountLookup.send(
+      new AdminGetUserCommand({
+        UserPoolId: USER_POOL_ID,
+        Username: normalizedEmail,
+      }),
+    );
+    if (account.Enabled === false)
+      return result(
+        "ACCOUNT_DISABLED",
+        getLoginError("ACCOUNT_DISABLED").message,
+        "none",
+      );
+    if (account.UserStatus === "UNCONFIRMED")
+      return result(
+        "EMAIL_NOT_VERIFIED",
+        "Your account is waiting for email verification. Verify your email to continue.",
+        "verify_email",
+      );
+    if (account.UserStatus === "RESET_REQUIRED")
+      return result(
+        "PASSWORD_RESET_REQUIRED",
+        getLoginError("PASSWORD_RESET_REQUIRED").message,
+        "reset_password",
+      );
+    if (
+      account.UserStatus === "CONFIRMED" ||
+      account.UserStatus === "FORCE_CHANGE_PASSWORD"
+    ) {
+      return result(
+        "ACCOUNT_EXISTS",
+        "An account already exists for this email. Sign in or reset your password.",
+        "sign_in",
+      );
+    }
+  } catch (error) {
+    logger.warning("Signup account status lookup unavailable", {
+      details: [getErrorDetails(error).name],
+    });
+  }
+  // Keep recovery reachable when IAM or Cognito cannot tell us the account state.
+  return result(
+    "ACCOUNT_EXISTS",
+    "An account already exists for this email. Sign in, reset your password, or verify your email if signup is unfinished.",
+    "choose",
+  );
+}
+
 export async function resolveCognitoLoginError(error: unknown, email: string) {
   return runLoggedOperation(
     "integration",

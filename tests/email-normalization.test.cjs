@@ -24,7 +24,7 @@ function load(file, dependencies) {
 
 const input = {
   email: " Member@Example.COM ", name: "Member", code: "123456",
-  password: " MixedCase Password! ", confirmPassword: " MixedCase Password! ",
+  password: " MixedCase Password1! ", confirmPassword: " MixedCase Password1! ",
 };
 const email = "member@example.com";
 const expectedHash = crypto.createHmac("sha256", "secret")
@@ -98,7 +98,7 @@ for (const [action, route, argument] of [
 }
 
 test("auth form schemas normalize email and preserve passwords and verification codes", () => {
-  const schemas = load("lib/validations/auth.ts", { zod: require("zod") });
+  const schemas = load("lib/validations/auth.ts", { zod: require("zod"), "@/lib/passwordPolicy": load("lib/passwordPolicy.ts", {}) });
   for (const name of ["loginSchema", "signupSchema", "forgotPasswordSchema", "resetPasswordSchema"]) {
     const result = schemas[name].parse(input);
     assert.equal(result.email, email);

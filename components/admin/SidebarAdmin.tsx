@@ -27,6 +27,10 @@ export async function SidebarAdmin() {
       url: "/admin/payments",
     },
     {
+      name: "Payment Recovery",
+      url: "/admin/payment-recovery",
+    },
+    {
       name: "RH Membership Card",
       url: "/admin/rh-card",
     },

@@ -16,6 +16,7 @@ import crypto from "crypto";
 import { db } from "@/lib/dbConfig";
 import { user } from "@/db";
 import { eq } from "drizzle-orm";
+import { resolveExistingCognitoSignup } from "@/lib/login-errors";
 
 const cognitoClient = new CognitoIdentityProviderClient({
   region: AWS_COGNITO_REGION,
@@ -25,6 +26,7 @@ instrumentAwsClient(cognitoClient, "app/api/auth/mobile/signup/route.ts");
 export const POST = withApiLogging(
   "/app/api/auth/mobile/signup",
   async function POST(req: Request) {
+    let signupEmail = "";
     try {
       const data = await req.json();
 
@@ -41,6 +43,7 @@ export const POST = withApiLogging(
       }
 
       const email = data.email.trim().toLowerCase();
+      signupEmail = email;
       const secretHash = crypto
         .createHmac("sha256", USER_POOL_CLIENT_SECRET)
         .update(email + USER_POOL_CLIENT_ID)
@@ -80,7 +83,10 @@ export const POST = withApiLogging(
       return NextResponse.json({ success: true }, { status: 200 });
     } catch (error: any) {
       if (error.name === "UsernameExistsException") {
-        return NextResponse.json({ error: "exists" }, { status: 409 });
+        return NextResponse.json(
+          await resolveExistingCognitoSignup(signupEmail),
+          { status: 409 },
+        );
       }
       if (error.name === "InvalidPasswordException") {
         return NextResponse.json({ error: error.message }, { status: 400 });

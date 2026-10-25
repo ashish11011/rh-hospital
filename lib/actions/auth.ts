@@ -23,7 +23,11 @@ import { AuthError, CredentialsSignin } from "next-auth";
 import { db } from "@/lib/dbConfig";
 import { user } from "@/db";
 import { eq } from "drizzle-orm";
-import { getLoginError } from "@/lib/login-errors";
+import {
+  getLoginError,
+  resolveExistingCognitoSignup,
+  type ExistingSignupResult,
+} from "@/lib/login-errors";
 
 const cognitoClient = new CognitoIdentityProviderClient({
   region: AWS_COGNITO_REGION,
@@ -66,7 +70,9 @@ export async function loginWithCredentials(data: any) {
   );
 }
 
-export async function signupWithCognito(data: any) {
+export async function signupWithCognito(
+  data: any,
+): Promise<ExistingSignupResult | { success: true } | { error: string }> {
   return runLoggedOperation(
     "integration",
     "lib/actions/auth.ts:signupWithCognito",
@@ -116,7 +122,7 @@ export async function signupWithCognito(data: any) {
         return { success: true };
       } catch (error: any) {
         if (error.name === "UsernameExistsException") {
-          return { error: "exists" };
+          return resolveExistingCognitoSignup(data.email);
         }
         return { error: error.message || "Failed to sign up" };
       }

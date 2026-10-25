@@ -17,6 +17,7 @@ function load(file, dependencies = {}) {
     {
       exports,
       require: (id) => {
+      if (id in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[id];
         assert.ok(id in dependencies, `Unexpected dependency: ${id}`);
         return dependencies[id];
       },

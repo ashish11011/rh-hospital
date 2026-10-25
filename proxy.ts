@@ -5,46 +5,59 @@ import {
   getAdminHomePath,
 } from "@/lib/adminAccess";
 import { NextResponse } from "next/server";
+import { withApiLogging } from "@/lib/logging/api";
 
-export default auth((request) => {
-  const pathname = request.nextUrl.pathname;
-  const isAdminApi = pathname.startsWith("/api/admin");
-  const isAdminPage = pathname.startsWith("/admin");
+export default auth(
+  withApiLogging(
+    "/admin/:path*",
+    async (request) => {
+      const pathname = request.nextUrl.pathname;
+      const isAdminApi = pathname.startsWith("/api/admin");
+      const isAdminPage = pathname.startsWith("/admin");
 
-  if (!isAdminApi && !isAdminPage) {
-    return NextResponse.next();
-  }
+      if (!isAdminApi && !isAdminPage) {
+        return NextResponse.next();
+      }
 
-  const access = getAdminAccessForEmail(request.auth?.user?.email);
+      const access = getAdminAccessForEmail(request.auth?.user?.email);
 
-  if (!access) {
-    if (isAdminApi) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+      if (!access) {
+        if (isAdminApi) {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
 
-    const loginUrl = new URL("/sign-in", request.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
+        const loginUrl = new URL("/sign-in", request.url);
+        loginUrl.searchParams.set("callbackUrl", pathname);
+        return NextResponse.redirect(loginUrl);
+      }
 
-  if (pathname === "/admin/login") {
-    return NextResponse.redirect(new URL(getAdminHomePath(access), request.url));
-  }
+      if (pathname === "/admin/login") {
+        return NextResponse.redirect(
+          new URL(getAdminHomePath(access), request.url),
+        );
+      }
 
-  if (pathname === "/admin" && access !== "full") {
-    return NextResponse.redirect(new URL(getAdminHomePath(access), request.url));
-  }
+      if (pathname === "/admin" && access !== "full") {
+        return NextResponse.redirect(
+          new URL(getAdminHomePath(access), request.url),
+        );
+      }
 
-  if (!canAccessAdminPath(pathname, access)) {
-    if (isAdminApi) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+      if (!canAccessAdminPath(pathname, access)) {
+        if (isAdminApi) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
 
-    return NextResponse.redirect(new URL(getAdminHomePath(access), request.url));
-  }
+        return NextResponse.redirect(
+          new URL(getAdminHomePath(access), request.url),
+        );
+      }
 
-  return NextResponse.next();
-});
+      return NextResponse.next();
+    },
+    { logSuccess: false },
+  ),
+);
 
 export const config = {
   matcher: ["/admin/:path*", "/api/admin/:path*"],

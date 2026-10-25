@@ -14,6 +14,7 @@ function load(file, dependencies) {
   vm.runInNewContext(compiled, {
     exports,
     require: (name) => {
+      if (name in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[name];
       assert.ok(name in dependencies, `Unexpected dependency: ${name}`);
       return dependencies[name];
     },

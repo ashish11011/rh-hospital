@@ -1,4 +1,6 @@
 "use client";
+import { createClientLogger } from "@/lib/logging/client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +21,11 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import Link from "next/link";
 import { UserCircle } from "lucide-react";
+
+const logger = createClientLogger(
+  "service",
+  "app/(user)/rh-healthcare-ntai-conference-ric-jaipur-2026/seminarClient.tsx",
+);
 
 export const registrationSchema = z
   .object({
@@ -268,7 +275,9 @@ const SeminarClient = () => {
       }
 
       toast.error(errorMsg);
-      console.log("Validation Errors:", zodResult.error.flatten().fieldErrors);
+      logger.warning("Validation Errors:", {
+        details: [zodResult.error.flatten().fieldErrors],
+      });
       setLoading(false);
       return;
     }
@@ -282,7 +291,10 @@ const SeminarClient = () => {
         // router.push("/rh-healthcare-ntai-conference-ric-jaipur-2026/thank-you");
         return;
       } catch (error) {
-        console.log(error);
+        logger.error(
+          "app/(user)/rh-healthcare-ntai-conference-ric-jaipur-2026/seminarClient.tsx: diagnostic",
+          { details: [error] },
+        );
         return;
       }
     }
@@ -331,7 +343,10 @@ const SeminarClient = () => {
       //   naitRegistrationId: "",
       // });
     } catch (error) {
-      console.log(error);
+      logger.error(
+        "app/(user)/rh-healthcare-ntai-conference-ric-jaipur-2026/seminarClient.tsx: diagnostic",
+        { details: [error] },
+      );
       toast.error(
         error instanceof Error
           ? error.message

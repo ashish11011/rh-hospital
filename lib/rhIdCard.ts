@@ -1,3 +1,4 @@
+import { runLoggedOperation } from "@/lib/logging/operations";
 import "server-only";
 import { desc, eq } from "drizzle-orm";
 import { userCardSchema } from "@/db/userSchema";
@@ -233,12 +234,18 @@ export function validateInput(body: UserCardInput): ValidatedUserCardInput {
 }
 
 export async function getLatestUserCard(userId: string) {
-  const [card] = await db
-    .select()
-    .from(userCardSchema)
-    .where(eq(userCardSchema.userId, userId))
-    .orderBy(desc(userCardSchema.createdAt))
-    .limit(1);
+  return runLoggedOperation(
+    "service",
+    "lib/rhIdCard.ts:getLatestUserCard",
+    async () => {
+      const [card] = await db
+        .select()
+        .from(userCardSchema)
+        .where(eq(userCardSchema.userId, userId))
+        .orderBy(desc(userCardSchema.createdAt))
+        .limit(1);
 
-  return card || null;
+      return card || null;
+    },
+  );
 }

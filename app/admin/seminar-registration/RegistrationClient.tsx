@@ -1,4 +1,5 @@
 "use client";
+import { createClientLogger } from "@/lib/logging/client";
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -16,6 +17,11 @@ import { getAllSeminarRegistrations } from "@/actions/seminarAdminActions";
 import * as XLSX from "xlsx";
 import { Download, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+
+const logger = createClientLogger(
+  "service",
+  "app/admin/seminar-registration/RegistrationClient.tsx",
+);
 
 type Registration = {
   id: string;
@@ -43,19 +49,34 @@ interface RegistrationClientProps {
   limit: number;
 }
 
-export function RegistrationClient({ data, total, seminars, limit }: RegistrationClientProps) {
+export function RegistrationClient({
+  data,
+  total,
+  seminars,
+  limit,
+}: RegistrationClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [emailFilter, setEmailFilter] = useState(searchParams.get("email") || "");
-  const [seminarId, setSeminarId] = useState(searchParams.get("seminarId") || "");
-  const [paymentStatusFilter, setPaymentStatusFilter] = useState(searchParams.get("paymentStatus") || "");
+  const [emailFilter, setEmailFilter] = useState(
+    searchParams.get("email") || "",
+  );
+  const [seminarId, setSeminarId] = useState(
+    searchParams.get("seminarId") || "",
+  );
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState(
+    searchParams.get("paymentStatus") || "",
+  );
   const [isExporting, setIsExporting] = useState(false);
 
   const currentPage = Number(searchParams.get("page")) || 1;
   const totalPages = Math.ceil(total / limit);
 
-  const applyFilters = (newEmail: string, newSeminarId: string, newPaymentStatus: string) => {
+  const applyFilters = (
+    newEmail: string,
+    newSeminarId: string,
+    newPaymentStatus: string,
+  ) => {
     const params = new URLSearchParams();
     if (newEmail) params.set("email", newEmail);
     if (newSeminarId) params.set("seminarId", newSeminarId);
@@ -74,9 +95,12 @@ export function RegistrationClient({ data, total, seminars, limit }: Registratio
   const handleExport = async () => {
     try {
       setIsExporting(true);
-      const allData = await getAllSeminarRegistrations(seminarId, paymentStatusFilter);
+      const allData = await getAllSeminarRegistrations(
+        seminarId,
+        paymentStatusFilter,
+      );
 
-      const worksheetData = allData.map(reg => ({
+      const worksheetData = allData.map((reg) => ({
         ID: reg.id,
         "Seminar Name": reg.seminarName || "N/A",
         Name: reg.name,
@@ -106,11 +130,13 @@ export function RegistrationClient({ data, total, seminars, limit }: Registratio
         "Offline Duration": reg.offlineDuration || "N/A",
         "NAIT Member": reg.isNaitMember ? "Yes" : "No",
         "NAIT Registration ID": reg.naitRegistrationId || "N/A",
-        "Amount": reg.amount,
+        Amount: reg.amount,
         "Payment Status": reg.paymentStatus || "N/A",
         "Payment ID": reg.paymentId || "N/A",
         "Order ID": reg.orderId || "N/A",
-        "Created At": reg.createdAt ? new Date(reg.createdAt).toLocaleString() : "N/A",
+        "Created At": reg.createdAt
+          ? new Date(reg.createdAt).toLocaleString()
+          : "N/A",
       }));
 
       const ws = XLSX.utils.json_to_sheet(worksheetData);
@@ -118,7 +144,7 @@ export function RegistrationClient({ data, total, seminars, limit }: Registratio
       XLSX.utils.book_append_sheet(wb, ws, "Registrations");
       XLSX.writeFile(wb, "SeminarRegistrations.xlsx");
     } catch (error) {
-      console.error("Export failed", error);
+      logger.error("Export failed", { details: [error] });
       alert("Failed to export data");
     } finally {
       setIsExporting(false);
@@ -187,7 +213,11 @@ export function RegistrationClient({ data, total, seminars, limit }: Registratio
           </div>
         </div>
 
-        <Button onClick={handleExport} disabled={isExporting} className="whitespace-nowrap">
+        <Button
+          onClick={handleExport}
+          disabled={isExporting}
+          className="whitespace-nowrap"
+        >
           <Download className="mr-2 h-4 w-4" />
           {isExporting ? "Exporting..." : "Export Excel"}
         </Button>
@@ -210,7 +240,10 @@ export function RegistrationClient({ data, total, seminars, limit }: Registratio
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="text-center py-8 text-muted-foreground"
+                >
                   No registrations found
                 </TableCell>
               </TableRow>
@@ -222,10 +255,21 @@ export function RegistrationClient({ data, total, seminars, limit }: Registratio
                   <TableCell>{reg.mobileNumber}</TableCell>
                   <TableCell>{reg.seminarName}</TableCell>
                   <TableCell>{reg.instituteName}</TableCell>
-                  <TableCell className="capitalize">{reg.registrationMode}</TableCell>
+                  <TableCell className="capitalize">
+                    {reg.registrationMode}
+                  </TableCell>
                   <TableCell>₹{reg.amount}</TableCell>
                   <TableCell>
-                    <Badge variant={reg.paymentStatus === "completed" || reg.paymentStatus === "paid" ? "default" : "secondary"}>{reg.paymentStatus}</Badge>
+                    <Badge
+                      variant={
+                        reg.paymentStatus === "completed" ||
+                        reg.paymentStatus === "paid"
+                          ? "default"
+                          : "secondary"
+                      }
+                    >
+                      {reg.paymentStatus}
+                    </Badge>
                   </TableCell>
                 </TableRow>
               ))
@@ -237,7 +281,8 @@ export function RegistrationClient({ data, total, seminars, limit }: Registratio
       {(totalPages > 1 || total > 0) && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Showing {Math.min((currentPage - 1) * limit + 1, total)} to {Math.min(currentPage * limit, total)} of {total} results
+            Showing {Math.min((currentPage - 1) * limit + 1, total)} to{" "}
+            {Math.min(currentPage * limit, total)} of {total} results
           </div>
           <div className="flex items-center space-x-2">
             <Button

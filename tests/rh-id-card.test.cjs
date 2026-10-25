@@ -123,6 +123,7 @@ function setup({ authenticated = true, existing = null } = {}) {
       exports: cardHelpers,
       Date,
       require: (id) => {
+      if (id in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[id];
         assert.ok(dependencies[id], `Unexpected dependency: ${id}`);
         return dependencies[id];
       },
@@ -167,6 +168,7 @@ function setup({ authenticated = true, existing = null } = {}) {
       exports,
       Date,
       require: (id) => {
+      if (id in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[id];
         assert.ok(dependencies[id], `Unexpected dependency: ${id}`);
         return dependencies[id];
       },

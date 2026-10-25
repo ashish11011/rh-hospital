@@ -1,3 +1,4 @@
+import { runLoggedOperation } from "@/lib/logging/operations";
 import { blog } from "@/db";
 import { normalizeBlogSlug } from "@/lib/blogUtils";
 import { db } from "@/lib/dbConfig";
@@ -28,18 +29,29 @@ const publishedBlogSelect = {
 };
 
 async function fetchPublishedBlogs() {
-  const now = new Date();
+  return runLoggedOperation(
+    "resources",
+    "lib/blogData.ts:fetchPublishedBlogs",
+    async () => {
+      const now = new Date();
 
-  return db
-    .select(publishedBlogSelect)
-    .from(blog)
-    .where(
-      and(
-        eq(blog.status, "published"),
-        or(lte(blog.publishedAt, now), isNull(blog.publishedAt)),
-      ),
-    )
-    .orderBy(desc(blog.isFeatured), desc(blog.publishedAt), desc(blog.createdAt));
+      return db
+        .select(publishedBlogSelect)
+        .from(blog)
+        .where(
+          and(
+            eq(blog.status, "published"),
+            or(lte(blog.publishedAt, now), isNull(blog.publishedAt)),
+          ),
+        )
+        .orderBy(
+          desc(blog.isFeatured),
+          desc(blog.publishedAt),
+          desc(blog.createdAt),
+        );
+    },
+    false,
+  );
 }
 
 export const getPublishedBlogs = unstable_cache(
@@ -52,20 +64,27 @@ export const getPublishedBlogs = unstable_cache(
 );
 
 async function fetchFeaturedPublishedBlogs(limit = 3) {
-  const now = new Date();
+  return runLoggedOperation(
+    "resources",
+    "lib/blogData.ts:fetchFeaturedPublishedBlogs",
+    async () => {
+      const now = new Date();
 
-  return db
-    .select(publishedBlogSelect)
-    .from(blog)
-    .where(
-      and(
-        eq(blog.status, "published"),
-        eq(blog.isFeatured, true),
-        or(lte(blog.publishedAt, now), isNull(blog.publishedAt)),
-      ),
-    )
-    .orderBy(desc(blog.publishedAt), desc(blog.createdAt))
-    .limit(limit);
+      return db
+        .select(publishedBlogSelect)
+        .from(blog)
+        .where(
+          and(
+            eq(blog.status, "published"),
+            eq(blog.isFeatured, true),
+            or(lte(blog.publishedAt, now), isNull(blog.publishedAt)),
+          ),
+        )
+        .orderBy(desc(blog.publishedAt), desc(blog.createdAt))
+        .limit(limit);
+    },
+    false,
+  );
 }
 
 export const getFeaturedPublishedBlogs = unstable_cache(
@@ -78,33 +97,47 @@ export const getFeaturedPublishedBlogs = unstable_cache(
 );
 
 async function fetchPublishedBlogBySlug(slug: string) {
-  const cleanSlug = normalizeBlogSlug(slug);
-  const now = new Date();
+  return runLoggedOperation(
+    "resources",
+    "lib/blogData.ts:fetchPublishedBlogBySlug",
+    async () => {
+      const cleanSlug = normalizeBlogSlug(slug);
+      const now = new Date();
 
-  const [record] = await db
-    .select()
-    .from(blog)
-    .where(
-      and(
-        eq(blog.slug, cleanSlug),
-        eq(blog.status, "published"),
-        or(lte(blog.publishedAt, now), isNull(blog.publishedAt)),
-      ),
-    )
-    .limit(1);
+      const [record] = await db
+        .select()
+        .from(blog)
+        .where(
+          and(
+            eq(blog.slug, cleanSlug),
+            eq(blog.status, "published"),
+            or(lte(blog.publishedAt, now), isNull(blog.publishedAt)),
+          ),
+        )
+        .limit(1);
 
-  return record ?? null;
+      return record ?? null;
+    },
+    false,
+  );
 }
 
 export async function getPublishedBlogBySlug(slug: string) {
-  const cleanSlug = normalizeBlogSlug(slug);
+  return runLoggedOperation(
+    "resources",
+    "lib/blogData.ts:getPublishedBlogBySlug",
+    async () => {
+      const cleanSlug = normalizeBlogSlug(slug);
 
-  return unstable_cache(
-    () => fetchPublishedBlogBySlug(cleanSlug),
-    ["published-blog-by-slug", cleanSlug],
-    {
-      revalidate: BLOG_CACHE_SECONDS,
-      tags: [blogDetailCacheTag(cleanSlug)],
+      return unstable_cache(
+        () => fetchPublishedBlogBySlug(cleanSlug),
+        ["published-blog-by-slug", cleanSlug],
+        {
+          revalidate: BLOG_CACHE_SECONDS,
+          tags: [blogDetailCacheTag(cleanSlug)],
+        },
+      )();
     },
-  )();
+    false,
+  );
 }

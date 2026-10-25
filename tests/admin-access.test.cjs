@@ -22,6 +22,7 @@ function load(file, dependencies = {}) {
     Response,
     console: { error() {} },
     require: (name) => {
+      if (name in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[name];
       assert.ok(name in dependencies, `Unexpected dependency: ${name}`);
       return dependencies[name];
     },
@@ -121,7 +122,7 @@ test("server permission guards allow the requested sections and keep full admin 
   await assert.rejects(limited.requireAdmin(), /redirect:\/admin\/blog/);
 });
 
-test("proxy enforces route permissions for pages and APIs", () => {
+test("proxy enforces route permissions for pages and APIs", async () => {
   const proxy = load("proxy.ts", {
     "@/auth": { auth: (handler) => handler },
     "@/lib/adminAccess": access,
@@ -145,23 +146,23 @@ test("proxy enforces route permissions for pages and APIs", () => {
     "/admin/contact-enquiries",
     "/api/admin/contact-enquiries/export",
   ]) {
-    assert.equal(request(pathname).status, 200);
+    assert.equal((await request(pathname)).status, 200);
   }
   assert.match(
-    request("/admin/workshop-registration").location,
+    (await request("/admin/workshop-registration")).location,
     /\/admin\/blog$/,
   );
-  assert.equal(request("/api/admin/workshop-registration").status, 403);
-  assert.match(request("/admin/payments").location, /\/admin\/blog$/);
-  assert.equal(request("/admin/payments", "bishnoi11011@gmail.com").status, 200);
-  assert.match(request("/admin/payments", null).location, /\/sign-in/);
+  assert.equal((await request("/api/admin/workshop-registration")).status, 403);
+  assert.match((await request("/admin/payments")).location, /\/admin\/blog$/);
+  assert.equal((await request("/admin/payments", "bishnoi11011@gmail.com")).status, 200);
+  assert.match((await request("/admin/payments", null)).location, /\/sign-in/);
   assert.equal(
-    request("/api/admin/contact-enquiries/export", null).status,
+    (await request("/api/admin/contact-enquiries/export", null)).status,
     401,
   );
-  assert.match(request("/admin").location, /\/admin\/blog$/);
+  assert.match((await request("/admin")).location, /\/admin\/blog$/);
   assert.equal(
-    request("/admin/workshop-registration", "bishnoi11011@gmail.com").status,
+    (await request("/admin/workshop-registration", "bishnoi11011@gmail.com")).status,
     200,
   );
 });

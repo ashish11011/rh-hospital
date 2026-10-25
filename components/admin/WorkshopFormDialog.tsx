@@ -1,4 +1,5 @@
 "use client";
+import { createClientLogger } from "@/lib/logging/client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,11 @@ import {
   formatWorkshopInput,
   parseWorkshopInput,
 } from "@/helper/workshopDateTime";
+
+const logger = createClientLogger(
+  "service",
+  "components/admin/WorkshopFormDialog.tsx",
+);
 
 export function WorkshopFormDialog({
   initialData,
@@ -155,7 +161,9 @@ export function WorkshopFormDialog({
         setFile(null);
       }
     } catch (err) {
-      console.error(err);
+      logger.error("components/admin/WorkshopFormDialog.tsx: diagnostic", {
+        details: [err],
+      });
       alert(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);

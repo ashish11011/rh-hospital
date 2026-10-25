@@ -1,29 +1,47 @@
+import { withApiLogging } from "@/lib/logging/api";
+import { createLogger } from "@/lib/logging/logger";
 import { seminarRegistrations } from "@/db";
 import { db } from "@/lib/dbConfig";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
+const logger = createLogger(
+  "api",
+  "app/api/seminar/mark-second-day-login/route.ts",
+);
+
+export const POST = withApiLogging(
+  "/app/api/seminar/mark-second-day-login",
+  async function POST(req: NextRequest) {
     const { id } = await req.json();
 
     if (!id) {
-        return NextResponse.json({ message: "ID is required" }, { status: 400 });
+      return NextResponse.json({ message: "ID is required" }, { status: 400 });
     }
 
     try {
-        const [updated] = await db
-            .update(seminarRegistrations)
-            .set({ isSecondDayLogged: true })
-            .where(eq(seminarRegistrations.id, id))
-            .returning({ id: seminarRegistrations.id });
+      const [updated] = await db
+        .update(seminarRegistrations)
+        .set({ isSecondDayLogged: true })
+        .where(eq(seminarRegistrations.id, id))
+        .returning({ id: seminarRegistrations.id });
 
-        if (!updated) {
-            return NextResponse.json({ message: "Registration not found" }, { status: 404 });
-        }
+      if (!updated) {
+        return NextResponse.json(
+          { message: "Registration not found" },
+          { status: 404 },
+        );
+      }
 
-        return NextResponse.json({ message: "Second day login marked successfully" });
+      return NextResponse.json({
+        message: "Second day login marked successfully",
+      });
     } catch (error) {
-        console.error("Mark second day login error:", error);
-        return NextResponse.json({ message: "Internal server error" }, { status: 500 });
+      logger.error("Mark second day login error:", { details: [error] });
+      return NextResponse.json(
+        { message: "Internal server error" },
+        { status: 500 },
+      );
     }
-}
+  },
+);

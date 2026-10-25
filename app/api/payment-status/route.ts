@@ -1,3 +1,5 @@
+import { withApiLogging } from "@/lib/logging/api";
+import { createLogger } from "@/lib/logging/logger";
 import { NextRequest, NextResponse } from "next/server";
 import { payment } from "@/db";
 import { db } from "@/lib/dbConfig";
@@ -7,6 +9,8 @@ import {
 } from "@/lib/hdfcGateway";
 import { eq } from "drizzle-orm";
 import { isRhCardPayment } from "@/lib/rhIdCardPayment";
+
+const logger = createLogger("api", "app/api/payment-status/route.ts");
 
 function getGatewayAmount(data: Record<string, unknown>) {
   const txnDetail = data.txn_detail as Record<string, unknown> | undefined;
@@ -22,71 +26,74 @@ function getGatewayAmount(data: Record<string, unknown>) {
   return Number.isFinite(amount) ? amount : null;
 }
 
-export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const orderId = body.orderId || body.order_id;
+export const POST = withApiLogging(
+  "/app/api/payment-status",
+  async function POST(req: NextRequest) {
+    const body = await req.json();
+    const orderId = body.orderId || body.order_id;
 
-  if (!orderId) {
-    return NextResponse.json(
-      { success: false, message: "Order ID is required" },
-      { status: 400 },
-    );
-  }
-
-  try {
-    const [paymentRecord] = await db
-      .select()
-      .from(payment)
-      .where(eq(payment.gatewayOrderId, String(orderId)))
-      .limit(1);
-
-    if (!paymentRecord) {
+    if (!orderId) {
       return NextResponse.json(
-        { success: false, message: "Payment record not found" },
-        { status: 404 },
+        { success: false, message: "Order ID is required" },
+        { status: 400 },
       );
     }
 
-    const hdfcStatus = await getHdfcOrderStatus(String(orderId));
-    const normalizedStatus = normalizeHdfcOrderStatus(hdfcStatus.status);
-    const gatewayAmount = getGatewayAmount(hdfcStatus);
+    try {
+      const [paymentRecord] = await db
+        .select()
+        .from(payment)
+        .where(eq(payment.gatewayOrderId, String(orderId)))
+        .limit(1);
 
-    if (
-      normalizedStatus === "completed" &&
-      gatewayAmount !== null &&
-      gatewayAmount !== paymentRecord.amount
-    ) {
+      if (!paymentRecord) {
+        return NextResponse.json(
+          { success: false, message: "Payment record not found" },
+          { status: 404 },
+        );
+      }
+
+      const hdfcStatus = await getHdfcOrderStatus(String(orderId));
+      const normalizedStatus = normalizeHdfcOrderStatus(hdfcStatus.status);
+      const gatewayAmount = getGatewayAmount(hdfcStatus);
+
+      if (
+        normalizedStatus === "completed" &&
+        gatewayAmount !== null &&
+        gatewayAmount !== paymentRecord.amount
+      ) {
+        return NextResponse.json(
+          { success: false, message: "Payment amount mismatch" },
+          { status: 409 },
+        );
+      }
+
       return NextResponse.json(
-        { success: false, message: "Payment amount mismatch" },
-        { status: 409 },
+        {
+          success: normalizedStatus === "completed",
+          status: hdfcStatus.status,
+          normalizedStatus,
+          orderType: isRhCardPayment(paymentRecord)
+            ? "rh_id_card"
+            : paymentRecord.orderType,
+          orderId: paymentRecord.gatewayOrderId,
+          amount: paymentRecord.amount,
+          currency: paymentRecord.currency,
+        },
+        { status: 200 },
+      );
+    } catch (error) {
+      logger.error("HDFC payment status display error:", { details: [error] });
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            error instanceof Error
+              ? error.message
+              : "Unable to fetch payment status",
+        },
+        { status: 500 },
       );
     }
-
-    return NextResponse.json(
-      {
-        success: normalizedStatus === "completed",
-        status: hdfcStatus.status,
-        normalizedStatus,
-        orderType: isRhCardPayment(paymentRecord)
-          ? "rh_id_card"
-          : paymentRecord.orderType,
-        orderId: paymentRecord.gatewayOrderId,
-        amount: paymentRecord.amount,
-        currency: paymentRecord.currency,
-      },
-      { status: 200 },
-    );
-  } catch (error) {
-    console.error("HDFC payment status display error:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Unable to fetch payment status",
-      },
-      { status: 500 },
-    );
-  }
-}
+  },
+);

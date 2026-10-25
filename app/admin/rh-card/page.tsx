@@ -142,7 +142,9 @@ export default async function RhCardsPage({
                         {card.mobileNumber}
                       </p>
                     </TableCell>
-                    <TableCell>{formatProfession(card.profession, card.otherProfession)}</TableCell>
+                    <TableCell>
+                      {formatProfession(card.profession, card.otherProfession)}
+                    </TableCell>
                     <TableCell>
                       {card.city}, {card.state}
                     </TableCell>
@@ -163,6 +165,7 @@ export default async function RhCardsPage({
                     <TableCell>
                       <Button asChild variant="outline" size="sm">
                         <Link
+                          prefetch={false}
                           href={`/admin/rh-card/${card.id}`}
                           aria-label={`View RH Membership Card details for ${card.fullName}`}
                         >
@@ -189,7 +192,7 @@ export default async function RhCardsPage({
         >
           {page > 1 ? (
             <Button asChild variant="outline">
-              <Link href={pageHref(page - 1)}>
+              <Link prefetch={false} href={pageHref(page - 1)}>
                 <ChevronLeft aria-hidden="true" /> Previous
               </Link>
             </Button>
@@ -203,7 +206,7 @@ export default async function RhCardsPage({
           </span>
           {page < pageCount ? (
             <Button asChild variant="outline">
-              <Link href={pageHref(page + 1)}>
+              <Link prefetch={false} href={pageHref(page + 1)}>
                 Next <ChevronRight aria-hidden="true" />
               </Link>
             </Button>

@@ -49,6 +49,7 @@ function setup({ invalidToken = false, wrongSubject = false, cognitoFailure = fa
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   vm.runInNewContext(code, { exports, require: (id) => {
+      if (id in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[id];
     assert.ok(dependencies[id], `Unexpected dependency: ${id}`);
     return dependencies[id];
   }, URL, console: { error() {} } });

@@ -10,6 +10,7 @@ function load(file, mocks = {}) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   new Function("require", "exports", compiled)((id) => {
+    if (id in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[id];
     if (id in mocks) return mocks[id];
     if (id.startsWith("@/")) return load(`${id.slice(2)}.ts`, mocks);
     return require(id);

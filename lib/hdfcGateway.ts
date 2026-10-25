@@ -1,5 +1,11 @@
+import { loggedFetch } from "@/lib/logging/fetch";
+
+import { runLoggedOperation } from "@/lib/logging/operations";
+import { createLogger } from "@/lib/logging/logger";
 import "server-only";
 import { randomBytes, randomUUID } from "crypto";
+
+const logger = createLogger("integration", "lib/hdfcGateway.ts");
 
 const DEFAULT_HDFC_SESSION_URL = "https://smartgateway.hdfcuat.bank.in/session";
 const LOCAL_PAYMENT_RETURN_URL = "http://localhost:3000/payment-status";
@@ -62,7 +68,6 @@ function getHdfcAuthorizationHeader() {
 }
 
 function getHdfcHeaders(customerId?: string) {
-  console.log("customerId: ", customerId);
   const headers: Record<string, string> = {
     Authorization: getHdfcAuthorizationHeader(),
     "Content-Type": "application/json",
@@ -110,106 +115,134 @@ export function createHdfcCustomerId(userId?: string | null) {
 }
 
 export async function createHdfcPaymentSession(input: HdfcSessionInput) {
-  const { firstName, lastName } = splitName(input.customerName);
-  const sessionUrl =
-    process.env.HDFC_SMARTGATEWAY_SESSION_URL || DEFAULT_HDFC_SESSION_URL;
-  const returnUrl =
-    process.env.NODE_ENV === "production"
-      ? process.env.HDFC_SMARTGATEWAY_RETURN_URL!
-      : LOCAL_PAYMENT_RETURN_URL;
-  const paymentReturnUrl = new URL(returnUrl);
-  for (const [key, value] of Object.entries(input.returnQuery || {})) {
-    paymentReturnUrl.searchParams.set(key, value);
-  }
+  return runLoggedOperation(
+    "integration",
+    "lib/hdfcGateway.ts:createHdfcPaymentSession",
+    async () => {
+      const { firstName, lastName } = splitName(input.customerName);
+      const sessionUrl =
+        process.env.HDFC_SMARTGATEWAY_SESSION_URL || DEFAULT_HDFC_SESSION_URL;
+      const returnUrl =
+        process.env.NODE_ENV === "production"
+          ? process.env.HDFC_SMARTGATEWAY_RETURN_URL!
+          : LOCAL_PAYMENT_RETURN_URL;
+      const paymentReturnUrl = new URL(returnUrl);
+      for (const [key, value] of Object.entries(input.returnQuery || {})) {
+        paymentReturnUrl.searchParams.set(key, value);
+      }
 
-  const body = {
-    order_id: input.gatewayOrderId,
-    amount: formatHdfcAmount(input.amount),
-    customer_id: input.customerId,
-    customer_email: input.customerEmail,
-    customer_phone: normalizePhone(input.customerPhone),
-    payment_page_client_id:
-      process.env.HDFC_SMARTGATEWAY_PAYMENT_PAGE_CLIENT_ID ||
-      process.env.HDFC_SMARTGATEWAY_CLIENT_ID ||
-      "hdfcmaster",
-    action: "paymentPage",
-    currency: "INR",
-    return_url: paymentReturnUrl.toString(),
-    description: input.description,
-    first_name: firstName,
-    last_name: lastName,
-  };
-  const requestHeader = getHdfcHeaders(input.customerId);
-  console.log(requestHeader, body);
-  const response = await fetch(sessionUrl, {
-    method: "POST",
-    headers: requestHeader,
-    body: JSON.stringify(body),
-    cache: "no-store",
-    signal: AbortSignal.timeout(30000),
-  });
+      const body = {
+        order_id: input.gatewayOrderId,
+        amount: formatHdfcAmount(input.amount),
+        customer_id: input.customerId,
+        customer_email: input.customerEmail,
+        customer_phone: normalizePhone(input.customerPhone),
+        payment_page_client_id:
+          process.env.HDFC_SMARTGATEWAY_PAYMENT_PAGE_CLIENT_ID ||
+          process.env.HDFC_SMARTGATEWAY_CLIENT_ID ||
+          "hdfcmaster",
+        action: "paymentPage",
+        currency: "INR",
+        return_url: paymentReturnUrl.toString(),
+        description: input.description,
+        first_name: firstName,
+        last_name: lastName,
+      };
+      const requestHeader = getHdfcHeaders(input.customerId);
+      logger.diagnostic("HDFC payment session requested", {
+        gatewayOrderId: input.gatewayOrderId,
+      });
+      const response = await loggedFetch("lib/hdfcGateway.ts", sessionUrl, {
+        method: "POST",
+        headers: requestHeader,
+        body: JSON.stringify(body),
+        cache: "no-store",
+        signal: AbortSignal.timeout(30000),
+      });
 
-  const responseText = await response.text();
-  console.log(responseText);
-  let data: HdfcSessionResponse & { error?: string; error_message?: string };
+      const responseText = await response.text();
+      logger.diagnostic("HDFC payment session response", {
+        status: response.status,
+      });
+      let data: HdfcSessionResponse & {
+        error?: string;
+        error_message?: string;
+      };
 
-  try {
-    data = JSON.parse(responseText);
-  } catch {
-    throw new Error(`HDFC session returned non-JSON response: ${responseText}`);
-  }
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        throw new Error(
+          `HDFC session returned non-JSON response: ${responseText}`,
+        );
+      }
 
-  if (!response.ok || !data.payment_links?.web) {
-    throw new Error(
-      data.error_message ||
-        data.error ||
-        "Failed to create HDFC payment session",
-    );
-  }
+      if (!response.ok || !data.payment_links?.web) {
+        throw new Error(
+          data.error_message ||
+            data.error ||
+            "Failed to create HDFC payment session",
+        );
+      }
 
-  return data;
+      logger.info("Payment checkout created", {
+        gatewayOrderId: input.gatewayOrderId,
+      });
+      return data;
+    },
+  );
 }
 
 export async function getHdfcOrderStatus(orderId: string, routingId?: string) {
-  const configuredUrl = process.env.HDFC_SMARTGATEWAY_ORDER_STATUS_URL;
+  return runLoggedOperation(
+    "integration",
+    "lib/hdfcGateway.ts:getHdfcOrderStatus",
+    async () => {
+      const configuredUrl = process.env.HDFC_SMARTGATEWAY_ORDER_STATUS_URL;
 
-  if (!configuredUrl) {
-    throw new Error("HDFC_SMARTGATEWAY_ORDER_STATUS_URL is not configured");
-  }
+      if (!configuredUrl) {
+        throw new Error("HDFC_SMARTGATEWAY_ORDER_STATUS_URL is not configured");
+      }
 
-  const statusUrl = configuredUrl.includes("{order_id}")
-    ? configuredUrl.replace("{order_id}", encodeURIComponent(orderId))
-    : `${configuredUrl.replace(/\/$/, "")}/${encodeURIComponent(orderId)}`;
+      const statusUrl = configuredUrl.includes("{order_id}")
+        ? configuredUrl.replace("{order_id}", encodeURIComponent(orderId))
+        : `${configuredUrl.replace(/\/$/, "")}/${encodeURIComponent(orderId)}`;
 
-  const response = await fetch(statusUrl, {
-    method: "GET",
-    headers: {
-      ...getHdfcHeaders(routingId),
-      "x-routing-id": routingId || orderId,
-      version: process.env.HDFC_SMARTGATEWAY_STATUS_VERSION || "2023-01-01",
+      const response = await loggedFetch("lib/hdfcGateway.ts", statusUrl, {
+        method: "GET",
+        headers: {
+          ...getHdfcHeaders(routingId),
+          "x-routing-id": routingId || orderId,
+          version: process.env.HDFC_SMARTGATEWAY_STATUS_VERSION || "2023-01-01",
+        },
+        cache: "no-store",
+        signal: AbortSignal.timeout(30000),
+      });
+
+      const responseText = await response.text();
+      let data: HdfcOrderStatusResponse;
+
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        throw new Error(
+          `HDFC status returned non-JSON response: ${responseText}`,
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          String(
+            data.error_message ||
+              data.error ||
+              "Failed to fetch HDFC order status",
+          ),
+        );
+      }
+
+      return data;
     },
-    cache: "no-store",
-    signal: AbortSignal.timeout(30000),
-  });
-
-  const responseText = await response.text();
-  let data: HdfcOrderStatusResponse;
-
-  try {
-    data = JSON.parse(responseText);
-  } catch {
-    throw new Error(`HDFC status returned non-JSON response: ${responseText}`);
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      String(
-        data.error_message || data.error || "Failed to fetch HDFC order status",
-      ),
-    );
-  }
-
-  return data;
+  );
 }
 
 export function normalizeHdfcOrderStatus(status?: string | null) {

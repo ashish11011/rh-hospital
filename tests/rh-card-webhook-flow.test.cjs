@@ -29,6 +29,7 @@ function load(file, modules = {}, globals = {}) {
         },
       },
       require: (id) => {
+      if (id in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[id];
         assert.ok(id in modules, `Unexpected dependency: ${id}`);
         return modules[id];
       },
@@ -248,6 +249,7 @@ function setup({ amount = constants.RH_ID_CARD_AMOUNT_INR, empty = false } = {})
         async send() {
           if (controls.failQueue) throw new Error("Invoice queue unavailable");
           controls.queueSends++;
+          return { MessageId: `sqs-message-${controls.queueSends}` };
         }
       },
     },

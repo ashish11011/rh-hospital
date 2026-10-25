@@ -25,6 +25,7 @@ function load(file, modules, globals = {}) {
       console,
       ...globals,
       require: (name) => {
+      if (name in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[name];
         if (!(name in modules))
           throw new Error(`Unexpected dependency ${name}`);
         return modules[name];

@@ -1,8 +1,14 @@
 "use client";
+import { createClientLogger } from "@/lib/logging/client";
 
 import { useState, useEffect, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { Button } from "@/components/ui/button";
+
+const logger = createClientLogger(
+  "service",
+  "app/(user)/rh-healthcare-ntai-conference-ric-jaipur-2026/verify/admin/page.tsx",
+);
 
 export default function Page() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -58,7 +64,11 @@ export default function Page() {
           const match = decodedText.match(/\/verify\/([a-f0-9-]+)/i);
           const extractedId = match ? match[1] : decodedText;
           setScannedId(extractedId);
-          html5Qrcode.stop().catch(console.error);
+          html5Qrcode
+            .stop()
+            .catch((error) =>
+              logger.error("Browser operation failed", { error }),
+            );
           setScanning(false);
           fetchStatus(extractedId);
         },
@@ -67,14 +77,16 @@ export default function Page() {
         },
       );
     } catch (err) {
-      console.error("Failed to start scanner:", err);
+      logger.error("Failed to start scanner:", { details: [err] });
       setScanning(false);
     }
   };
 
   const stopScanner = () => {
     if (scannerRef.current) {
-      scannerRef.current.stop().catch(console.error);
+      scannerRef.current
+        .stop()
+        .catch((error) => logger.error("Browser operation failed", { error }));
       scannerRef.current = null;
     }
     setScanning(false);

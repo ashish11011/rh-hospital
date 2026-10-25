@@ -10,6 +10,7 @@ const code = ts.transpileModule(fs.readFileSync(path.join(__dirname,'../../my-ap
 }).outputText;
 vm.runInNewContext(code, { exports:exportsForSource, URL, Date, Error,
   require:name => {
+      if (name in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[name];
     assert.equal(name,'./cloudfront'); return {COURSE_CLOUDFRONT_URL:'https://media.rhhealthcaresimulation.com'};
   } });
 const grant = (overrides = {}) => ({

@@ -1,4 +1,5 @@
 "use client";
+import { createClientLogger } from "@/lib/logging/client";
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -16,6 +17,11 @@ import { getAllRegistrations } from "@/actions/registrationActions";
 import * as XLSX from "xlsx";
 import { Download, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+
+const logger = createClientLogger(
+  "service",
+  "app/admin/workshop-registration/RegistrationClient.tsx",
+);
 
 type Registration = {
   id: string;
@@ -100,7 +106,7 @@ export function RegistrationClient({
       XLSX.utils.book_append_sheet(wb, ws, "Registrations");
       XLSX.writeFile(wb, "WorkshopRegistrations.xlsx");
     } catch (error) {
-      console.error("Export failed", error);
+      logger.error("Export failed", { details: [error] });
       alert("Failed to export data");
     } finally {
       setIsExporting(false);

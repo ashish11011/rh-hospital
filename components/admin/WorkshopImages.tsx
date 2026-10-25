@@ -1,4 +1,5 @@
 "use client";
+import { createClientLogger } from "@/lib/logging/client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,11 @@ import axios from "axios";
 import { toast } from "sonner";
 import { getS3AssetUrl } from "@/lib/s3Asset";
 import Image from "next/image";
+
+const logger = createClientLogger(
+  "service",
+  "components/admin/WorkshopImages.tsx",
+);
 
 export function WorkshopImages({
   initialData,
@@ -49,7 +55,7 @@ export function WorkshopImages({
       const data = await getWorkshopImages(initialData.id);
       setImages(data || []);
     } catch (error) {
-      console.error("Failed to fetch images", error);
+      logger.error("Failed to fetch images", { details: [error] });
     } finally {
       setFetching(false);
     }
@@ -98,7 +104,7 @@ export function WorkshopImages({
       toast.success("Images uploaded successfully");
       loadImages();
     } catch (error) {
-      console.error("Upload error", error);
+      logger.error("Upload error", { details: [error] });
       toast.error("An error occurred during upload");
     } finally {
       setLoading(false);

@@ -1,3 +1,5 @@
+import { withApiLogging } from "@/lib/logging/api";
+import { createLogger } from "@/lib/logging/logger";
 import { isMembershipPhotoKey } from "@/lib/publicAsset";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
@@ -17,6 +19,8 @@ import {
   startRhCardPurchase,
 } from "@/lib/rhIdCardPayment";
 
+const logger = createLogger("api", "app/api/auth/mobile/id-card/route.ts");
+
 export const dynamic = "force-dynamic";
 
 async function getAuthenticatedUser(req: Request) {
@@ -33,106 +37,114 @@ async function getAuthenticatedUser(req: Request) {
   return account || null;
 }
 
-export async function GET(req: Request) {
-  try {
-    const account = await getAuthenticatedUser(req);
-    if (!account)
-      return NextResponse.json(
-        { error: "Unauthorized: Invalid token or session" },
-        { status: 401 },
-      );
-    const card = await getLatestUserCard(account.id);
-    const pendingPurchase = card
-      ? null
-      : await getRhCardPendingPurchase(account.id, account.email);
-    return NextResponse.json({
-      success: true,
-      card: card
-        ? serializeCard({
-            ...card,
-            memberShipId: card.memberShipId || buildMemberShipId(card),
-          })
-        : null,
-      purchase: { amount: RH_ID_CARD_AMOUNT_INR, currency: "INR" },
-      pendingPurchase,
-      defaults: {
-        fullName: account.name || "",
-        mobileNumber: account.mobileNumber || "",
-        email: account.email,
-        city: account.city || "",
-        organizationName: account.instituteName || "",
-        ...pendingPurchase?.draft,
-      },
-    });
-  } catch (error) {
-    console.error("RH Membership Card load error", error);
-    return NextResponse.json(
-      { error: "Unable to load your RH Membership Card. Please try again." },
-      { status: 500 },
-    );
-  }
-}
-
-export async function POST(req: Request) {
-  try {
-    const account = await getAuthenticatedUser(req);
-    if (!account)
-      return NextResponse.json(
-        { error: "Unauthorized: Invalid token or session" },
-        { status: 401 },
-      );
-    const existing = await getLatestUserCard(account.id);
-    if (existing)
+export const GET = withApiLogging(
+  "/app/api/auth/mobile/id-card",
+  async function GET(req: Request) {
+    try {
+      const account = await getAuthenticatedUser(req);
+      if (!account)
+        return NextResponse.json(
+          { error: "Unauthorized: Invalid token or session" },
+          { status: 401 },
+        );
+      const card = await getLatestUserCard(account.id);
+      const pendingPurchase = card
+        ? null
+        : await getRhCardPendingPurchase(account.id, account.email);
       return NextResponse.json({
         success: true,
-        card: serializeCard({
-          ...existing,
-          memberShipId: existing.memberShipId || buildMemberShipId(existing),
-        }),
-        message: "Membership card already exists",
+        card: card
+          ? serializeCard({
+              ...card,
+              memberShipId: card.memberShipId || buildMemberShipId(card),
+            })
+          : null,
+        purchase: { amount: RH_ID_CARD_AMOUNT_INR, currency: "INR" },
+        pendingPurchase,
+        defaults: {
+          fullName: account.name || "",
+          mobileNumber: account.mobileNumber || "",
+          email: account.email,
+          city: account.city || "",
+          organizationName: account.instituteName || "",
+          ...pendingPurchase?.draft,
+        },
       });
-    let input;
-    try {
-      input = validateInput((await req.json()) as UserCardInput);
-      if (!isMembershipPhotoKey(input.passportPhoto, account.id))
-        throw new Error(
-          "Please upload your passport photo before continuing to payment",
-        );
     } catch (error) {
+      logger.error("RH Membership Card load error", { details: [error] });
+      return NextResponse.json(
+        { error: "Unable to load your RH Membership Card. Please try again." },
+        { status: 500 },
+      );
+    }
+  },
+);
+
+export const POST = withApiLogging(
+  "/app/api/auth/mobile/id-card",
+  async function POST(req: Request) {
+    try {
+      const account = await getAuthenticatedUser(req);
+      if (!account)
+        return NextResponse.json(
+          { error: "Unauthorized: Invalid token or session" },
+          { status: 401 },
+        );
+      const existing = await getLatestUserCard(account.id);
+      if (existing)
+        return NextResponse.json({
+          success: true,
+          card: serializeCard({
+            ...existing,
+            memberShipId: existing.memberShipId || buildMemberShipId(existing),
+          }),
+          message: "Membership card already exists",
+        });
+      let input;
+      try {
+        input = validateInput((await req.json()) as UserCardInput);
+        if (!isMembershipPhotoKey(input.passportPhoto, account.id))
+          throw new Error(
+            "Please upload your passport photo before continuing to payment",
+          );
+      } catch (error) {
+        return NextResponse.json(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Check your card details",
+          },
+          { status: 400 },
+        );
+      }
+      const result = await startRhCardPurchase(account, input);
+      return NextResponse.json({
+        success: true,
+        card: result.card
+          ? serializeCard({
+              ...result.card,
+              memberShipId:
+                result.card.memberShipId || buildMemberShipId(result.card),
+            })
+          : null,
+        paymentRequired: !result.card,
+        data: result.purchase,
+        message: result.card
+          ? "Membership card already exists"
+          : "Complete payment to create your RH Membership Card",
+      });
+    } catch (error) {
+      logger.error("RH Membership Card checkout error", { details: [error] });
       return NextResponse.json(
         {
           error:
-            error instanceof Error ? error.message : "Check your card details",
+            error instanceof Error
+              ? error.message
+              : "Unable to start payment. Please try again.",
         },
-        { status: 400 },
+        { status: 500 },
       );
     }
-    const result = await startRhCardPurchase(account, input);
-    return NextResponse.json({
-      success: true,
-      card: result.card
-        ? serializeCard({
-            ...result.card,
-            memberShipId:
-              result.card.memberShipId || buildMemberShipId(result.card),
-          })
-        : null,
-      paymentRequired: !result.card,
-      data: result.purchase,
-      message: result.card
-        ? "Membership card already exists"
-        : "Complete payment to create your RH Membership Card",
-    });
-  } catch (error) {
-    console.error("RH Membership Card checkout error", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unable to start payment. Please try again.",
-      },
-      { status: 500 },
-    );
-  }
-}
+  },
+);

@@ -1,41 +1,82 @@
+import { runLoggedOperation } from "@/lib/logging/operations";
 import { SendEmailCommand } from "@aws-sdk/client-ses";
 import { sendLoggedEmail } from "@/lib/sendLoggedEmail";
 
 const EMAIL_SOURCE = "no-reply@rhhealthcaresimulation.com";
 const ACCOUNT_REQUEST_ADMIN_EMAIL = "bishnoi11011@gmail.com";
 
-export async function sendWorkshopMemberOtpEmail({ toEmail, otp }: { toEmail: string; otp: string }) {
-    await sendLoggedEmail(new SendEmailCommand({
-        Source: EMAIL_SOURCE,
-        Destination: { ToAddresses: [toEmail] },
-        Message: {
-            Subject: { Data: "Verify your RH Membership Card for workshop registration" },
-            Body: { Text: { Data: `Your RH Healthcare workshop verification code is ${otp}. It expires in 5 minutes. Use the latest code if you requested another OTP. Do not share this code. If you did not request it, you can ignore this email.` } },
-        },
-    }));
+export async function sendWorkshopMemberOtpEmail({
+  toEmail,
+  otp,
+}: {
+  toEmail: string;
+  otp: string;
+}) {
+  return runLoggedOperation(
+    "integration",
+    "lib/sesClient.ts:sendWorkshopMemberOtpEmail",
+    async () => {
+      await sendLoggedEmail(
+        new SendEmailCommand({
+          Source: EMAIL_SOURCE,
+          Destination: { ToAddresses: [toEmail] },
+          Message: {
+            Subject: {
+              Data: "Verify your RH Membership Card for workshop registration",
+            },
+            Body: {
+              Text: {
+                Data: `Your RH Healthcare workshop verification code is ${otp}. It expires in 5 minutes. Use the latest code if you requested another OTP. Do not share this code. If you did not request it, you can ignore this email.`,
+              },
+            },
+          },
+        }),
+      );
+    },
+  );
 }
 
 export async function sendRhIdCardCreatedEmail({
-    toEmail, name, memberShipId, validityDate, orderId, amount,
+  toEmail,
+  name,
+  memberShipId,
+  validityDate,
+  orderId,
+  amount,
 }: {
-    toEmail: string;
-    name: string;
-    memberShipId: string;
-    validityDate: Date | null;
-    orderId: string;
-    amount: number;
+  toEmail: string;
+  name: string;
+  memberShipId: string;
+  validityDate: Date | null;
+  orderId: string;
+  amount: number;
 }) {
-    const paidAmount = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amount);
-    const validTill = validityDate?.toLocaleDateString("en-IN", {
-        day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata",
-    }) || "Not provided";
-    await sendLoggedEmail(new SendEmailCommand({
-        Source: EMAIL_SOURCE,
-        Destination: { ToAddresses: [toEmail] },
-        Message: {
-            Subject: { Data: "Your RH Membership Card Has Been Created - RH Healthcare" },
+  return runLoggedOperation(
+    "integration",
+    "lib/sesClient.ts:sendRhIdCardCreatedEmail",
+    async () => {
+      const paidAmount = new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+      }).format(amount);
+      const validTill =
+        validityDate?.toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          timeZone: "Asia/Kolkata",
+        }) || "Not provided";
+      await sendLoggedEmail(
+        new SendEmailCommand({
+          Source: EMAIL_SOURCE,
+          Destination: { ToAddresses: [toEmail] },
+          Message: {
+            Subject: {
+              Data: "Your RH Membership Card Has Been Created - RH Healthcare",
+            },
             Body: {
-                Html: { Data: `
+              Html: {
+                Data: `
 <p>Dear ${escapeHtml(name)},</p>
 <p>Your payment has been confirmed and your RH Membership Card has been created successfully.</p>
 <p><strong>RH Member ID:</strong> ${escapeHtml(memberShipId)}<br/>
@@ -45,40 +86,52 @@ export async function sendRhIdCardCreatedEmail({
 <p>You can view your card on your dashboard and in the RH Healthcare mobile app.</p>
 <p><a href="https://www.rhhealthcaresimulation.com/dashboard/id-card">View your RH Membership Card</a></p>
 <p>Warm regards,<br/>RH Healthcare Simulation Team<br/>
-Call: +91 9928907780, +91 9829507781<br/>Email: connect.rhhealth@gmail.com</p>` },
-                Text: { Data: `Dear ${name},\nYour payment is confirmed and your RH Membership Card has been created.\nRH Member ID: ${memberShipId}\nValid until: ${validTill}\nAmount paid: ${paidAmount}\nOrder number: ${orderId}\nView your card: https://www.rhhealthcaresimulation.com/dashboard/id-card` },
+Call: +91 9928907780, +91 9829507781<br/>Email: connect.rhhealth@gmail.com</p>`,
+              },
+              Text: {
+                Data: `Dear ${name},\nYour payment is confirmed and your RH Membership Card has been created.\nRH Member ID: ${memberShipId}\nValid until: ${validTill}\nAmount paid: ${paidAmount}\nOrder number: ${orderId}\nView your card: https://www.rhhealthcaresimulation.com/dashboard/id-card`,
+              },
             },
-        },
-    }));
+          },
+        }),
+      );
+    },
+  );
 }
 
 type AccountDeletionRequestUser = {
-    id?: string | null;
-    name?: string | null;
-    email: string;
-    mobileNumber?: string | null;
-    designation?: string | null;
-    instituteName?: string | null;
-    city?: string | null;
+  id?: string | null;
+  name?: string | null;
+  email: string;
+  mobileNumber?: string | null;
+  designation?: string | null;
+  instituteName?: string | null;
+  city?: string | null;
 };
 
 function escapeHtml(value: string | null | undefined) {
-    return String(value || "N/A")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+  return String(value || "N/A")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
-export async function sendAccountDeletionRequestEmails(user: AccountDeletionRequestUser) {
-    const requestedAt = new Date().toLocaleString("en-IN", {
+export async function sendAccountDeletionRequestEmails(
+  user: AccountDeletionRequestUser,
+) {
+  return runLoggedOperation(
+    "integration",
+    "lib/sesClient.ts:sendAccountDeletionRequestEmails",
+    async () => {
+      const requestedAt = new Date().toLocaleString("en-IN", {
         dateStyle: "medium",
         timeStyle: "short",
         timeZone: "Asia/Kolkata",
-    });
+      });
 
-    const adminHtml = `
+      const adminHtml = `
 <p>Hello Admin,</p>
 
 <p>A user has requested account deletion or deactivation from the RH Healthcare dashboard.</p>
@@ -100,7 +153,7 @@ export async function sendAccountDeletionRequestEmails(user: AccountDeletionRequ
 <p>Regards,<br/>RH Healthcare Simulation Center</p>
 `;
 
-    const userHtml = `
+      const userHtml = `
 <p>Dear ${escapeHtml(user.name || "User")},</p>
 
 <p>Your account deletion or deactivation request has been raised successfully.</p>
@@ -115,96 +168,99 @@ Warm Regards,<br/>
 </p>
 `;
 
-    await Promise.all([
+      await Promise.all([
         sendLoggedEmail(
-            new SendEmailCommand({
-                Source: EMAIL_SOURCE,
-                Destination: {
-                    ToAddresses: [ACCOUNT_REQUEST_ADMIN_EMAIL],
-                },
-                Message: {
-                    Subject: {
-                        Data: "Account deletion/deactivation request - RH Healthcare",
-                    },
-                    Body: {
-                        Html: { Data: adminHtml },
-                    },
-                },
-            }),
+          new SendEmailCommand({
+            Source: EMAIL_SOURCE,
+            Destination: {
+              ToAddresses: [ACCOUNT_REQUEST_ADMIN_EMAIL],
+            },
+            Message: {
+              Subject: {
+                Data: "Account deletion/deactivation request - RH Healthcare",
+              },
+              Body: {
+                Html: { Data: adminHtml },
+              },
+            },
+          }),
         ),
         sendLoggedEmail(
-            new SendEmailCommand({
-                Source: EMAIL_SOURCE,
-                Destination: {
-                    ToAddresses: [user.email],
-                },
-                Message: {
-                    Subject: {
-                        Data: "Account deletion/deactivation request received",
-                    },
-                    Body: {
-                        Html: { Data: userHtml },
-                    },
-                },
-            }),
+          new SendEmailCommand({
+            Source: EMAIL_SOURCE,
+            Destination: {
+              ToAddresses: [user.email],
+            },
+            Message: {
+              Subject: {
+                Data: "Account deletion/deactivation request received",
+              },
+              Body: {
+                Html: { Data: userHtml },
+              },
+            },
+          }),
         ),
-    ]);
+      ]);
+    },
+  );
 }
 
 type PaymentEventName =
-    | "ORDER_FAILED"
-    | "ORDER_SUCCEEDED"
-    | "ORDER_REFUNDED"
-    | "ORDER_REFUND_FAILED";
+  "ORDER_FAILED" | "ORDER_SUCCEEDED" | "ORDER_REFUNDED" | "ORDER_REFUND_FAILED";
 
 const paymentEventCopy: Record<
-    PaymentEventName,
-    { subject: string; heading: string; body: string }
+  PaymentEventName,
+  { subject: string; heading: string; body: string }
 > = {
-    ORDER_FAILED: {
-        subject: "Payment Failed - RH Healthcare",
-        heading: "Payment Failed",
-        body: "We could not complete your payment. If any amount was deducted, please contact our support team with your order number.",
-    },
-    ORDER_SUCCEEDED: {
-        subject: "Payment Successful - RH Healthcare",
-        heading: "Payment Successful",
-        body: "Your payment has been confirmed successfully.",
-    },
-    ORDER_REFUNDED: {
-        subject: "Payment Refunded - RH Healthcare",
-        heading: "Payment Refunded",
-        body: "Your payment refund has been processed successfully.",
-    },
-    ORDER_REFUND_FAILED: {
-        subject: "Refund Failed - RH Healthcare",
-        heading: "Refund Failed",
-        body: "We could not complete the refund for this payment. Our team will review this and assist you.",
-    },
+  ORDER_FAILED: {
+    subject: "Payment Failed - RH Healthcare",
+    heading: "Payment Failed",
+    body: "We could not complete your payment. If any amount was deducted, please contact our support team with your order number.",
+  },
+  ORDER_SUCCEEDED: {
+    subject: "Payment Successful - RH Healthcare",
+    heading: "Payment Successful",
+    body: "Your payment has been confirmed successfully.",
+  },
+  ORDER_REFUNDED: {
+    subject: "Payment Refunded - RH Healthcare",
+    heading: "Payment Refunded",
+    body: "Your payment refund has been processed successfully.",
+  },
+  ORDER_REFUND_FAILED: {
+    subject: "Refund Failed - RH Healthcare",
+    heading: "Refund Failed",
+    body: "We could not complete the refund for this payment. Our team will review this and assist you.",
+  },
 };
 
 export async function sendPaymentEventEmail({
-    toEmail,
-    name,
-    eventName,
-    orderId,
-    amount,
-    currency,
+  toEmail,
+  name,
+  eventName,
+  orderId,
+  amount,
+  currency,
 }: {
-    toEmail: string;
-    name?: string | null;
-    eventName: PaymentEventName;
-    orderId: string;
-    amount: number;
-    currency: string;
+  toEmail: string;
+  name?: string | null;
+  eventName: PaymentEventName;
+  orderId: string;
+  amount: number;
+  currency: string;
 }) {
-    const copy = paymentEventCopy[eventName];
-    const formattedAmount = new Intl.NumberFormat("en-IN", {
+  return runLoggedOperation(
+    "integration",
+    "lib/sesClient.ts:sendPaymentEventEmail",
+    async () => {
+      const copy = paymentEventCopy[eventName];
+      const formattedAmount = new Intl.NumberFormat("en-IN", {
         style: "currency",
         currency: currency || "INR",
         maximumFractionDigits: 2,
-    }).format(amount);
-    const html = `
+      }).format(amount);
+      const html = `
 <p>Dear ${name || "Participant"},</p>
 
 <p>Greetings from RH Healthcare Simulation Centre.</p>
@@ -227,32 +283,38 @@ Website: www.rhhealthcaresimulation.com
 </p>
 `;
 
-    const command = new SendEmailCommand({
+      const command = new SendEmailCommand({
         Source: "no-reply@rhhealthcaresimulation.com",
         Destination: {
-            ToAddresses: [toEmail],
+          ToAddresses: [toEmail],
         },
         Message: {
-            Subject: {
-                Data: copy.subject,
-            },
-            Body: {
-                Html: { Data: html },
-            },
+          Subject: {
+            Data: copy.subject,
+          },
+          Body: {
+            Html: { Data: html },
+          },
         },
-    });
+      });
 
-    await sendLoggedEmail(command);
+      await sendLoggedEmail(command);
+    },
+  );
 }
 
 export async function sendWorkshopEmail({
-    toEmail,
-    // name,
+  toEmail,
+  // name,
 }: {
-    toEmail: string;
-    // name: string;
+  toEmail: string;
+  // name: string;
 }) {
-const html = `
+  return runLoggedOperation(
+    "integration",
+    "lib/sesClient.ts:sendWorkshopEmail",
+    async () => {
+      const html = `
 <p>Dear Participant,</p>
 
 <p>Greetings from <strong>RH Healthcare Simulation Center</strong>.</p>
@@ -341,32 +403,38 @@ Warm Regards,<br/><br/>
 </p>
 `;
 
-    const command = new SendEmailCommand({
+      const command = new SendEmailCommand({
         Source: "no-reply@rhhealthcaresimulation.com",
         Destination: {
-            ToAddresses: [toEmail],
+          ToAddresses: [toEmail],
         },
         Message: {
-            Subject: {
-                Data: "Workshop Registration Confirmation - RH Healthcare",
-            },
-            Body: {
-                Html: { Data: html },
-            },
+          Subject: {
+            Data: "Workshop Registration Confirmation - RH Healthcare",
+          },
+          Body: {
+            Html: { Data: html },
+          },
         },
-    });
+      });
 
-    await sendLoggedEmail(command);
+      await sendLoggedEmail(command);
+    },
+  );
 }
 
 export async function sendSeminarEmail({
-    toEmail,
-    // name,
+  toEmail,
+  // name,
 }: {
-    toEmail: string;
-    // name: string;
+  toEmail: string;
+  // name: string;
 }) {
-    const html = `
+  return runLoggedOperation(
+    "integration",
+    "lib/sesClient.ts:sendSeminarEmail",
+    async () => {
+      const html = `
 <!doctype html>
 <html lang="en">
   <head>
@@ -920,34 +988,40 @@ export async function sendSeminarEmail({
 </html>
 `;
 
-    const command = new SendEmailCommand({
+      const command = new SendEmailCommand({
         Source: "no-reply@rhhealthcaresimulation.com",
         Destination: {
-            ToAddresses: [toEmail],
+          ToAddresses: [toEmail],
         },
         Message: {
-            Subject: {
-                Data: "Seminar Registration Confirmation - RH Healthcare",
-            },
-            Body: {
-                Html: { Data: html },
-            },
+          Subject: {
+            Data: "Seminar Registration Confirmation - RH Healthcare",
+          },
+          Body: {
+            Html: { Data: html },
+          },
         },
-    });
+      });
 
-    await sendLoggedEmail(command);
+      await sendLoggedEmail(command);
+    },
+  );
 }
 
 export async function sendCoursePurchaseEmail({
-    toEmail,
-    name,
-    courseTitle,
+  toEmail,
+  name,
+  courseTitle,
 }: {
-    toEmail: string;
-    name?: string | null;
-    courseTitle: string;
+  toEmail: string;
+  name?: string | null;
+  courseTitle: string;
 }) {
-    const html = `
+  return runLoggedOperation(
+    "integration",
+    "lib/sesClient.ts:sendCoursePurchaseEmail",
+    async () => {
+      const html = `
 <p>Dear ${name || "Participant"},</p>
 
 <p>Greetings from RH Healthcare Simulation Centre.</p>
@@ -973,20 +1047,22 @@ RH Healthcare Simulation Team<br/>
 </p>
 `;
 
-    const command = new SendEmailCommand({
+      const command = new SendEmailCommand({
         Source: "no-reply@rhhealthcaresimulation.com",
         Destination: {
-            ToAddresses: [toEmail],
+          ToAddresses: [toEmail],
         },
         Message: {
-            Subject: {
-                Data: "Course Purchase Confirmation - RH Healthcare",
-            },
-            Body: {
-                Html: { Data: html },
-            },
+          Subject: {
+            Data: "Course Purchase Confirmation - RH Healthcare",
+          },
+          Body: {
+            Html: { Data: html },
+          },
         },
-    });
+      });
 
-    await sendLoggedEmail(command);
+      await sendLoggedEmail(command);
+    },
+  );
 }

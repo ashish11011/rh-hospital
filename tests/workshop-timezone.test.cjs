@@ -12,6 +12,7 @@ function loadModule(filename) {
     compilerOptions: { module: ts.ModuleKind.CommonJS },
   }).outputText;
   new Function("require", "exports", source)((id) => {
+    if (id in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[id];
     if (id.startsWith(".")) {
       return loadModule(
         path.relative(

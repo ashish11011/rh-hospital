@@ -1,3 +1,6 @@
+import { instrumentAwsClient } from "@/lib/logging/aws";
+
+import { createLogger } from "@/lib/logging/logger";
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Cognito from "next-auth/providers/cognito";
 import Credentials from "next-auth/providers/credentials";
@@ -14,9 +17,12 @@ import {
 } from "@aws-sdk/client-cognito-identity-provider";
 import { resolveCognitoLoginError } from "@/lib/login-errors";
 
+const logger = createLogger("integration", "auth.ts");
+
 const cognitoClient = new CognitoIdentityProviderClient({
   region: AWS_COGNITO_REGION,
 });
+instrumentAwsClient(cognitoClient, "auth.ts");
 
 class CognitoLoginError extends CredentialsSignin {
   constructor(code: string) {
@@ -26,6 +32,17 @@ class CognitoLoginError extends CredentialsSignin {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  logger: {
+    error(error) {
+      logger.error("Authentication failed", { error });
+    },
+    warn(code) {
+      logger.warning("Authentication warning", { code });
+    },
+    debug(code) {
+      logger.diagnostic("Authentication diagnostic", { code });
+    },
+  },
   pages: {
     signIn: "/sign-in",
   },
@@ -71,7 +88,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
           return null;
         } catch (error: any) {
-          console.error("Cognito auth error", error.name);
+          logger.error("Cognito auth error", { error });
           const loginError = await resolveCognitoLoginError(error, email);
           throw new CognitoLoginError(loginError.code);
         }

@@ -29,6 +29,7 @@ function load(file, modules = {}, globals = {}) {
       console,
       ...globals,
       require: (name) => {
+      if (name in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[name];
         assert.ok(name in modules, `Unexpected import: ${name}`);
         return modules[name];
       },

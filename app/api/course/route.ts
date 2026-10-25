@@ -1,12 +1,16 @@
+import { withApiLogging } from "@/lib/logging/api";
 import { getPublicCourseCatalog } from "@/lib/publicCourseData";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export const GET = withApiLogging("/app/api/course", async function GET() {
   try {
     const courses = await getPublicCourseCatalog();
 
     return NextResponse.json({ success: true, courses }, { status: 200 });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to fetch courses" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to fetch courses" },
+      { status: 500 },
+    );
   }
-}
+});

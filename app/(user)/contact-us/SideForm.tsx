@@ -1,9 +1,16 @@
 "use client";
+import { createClientLogger } from "@/lib/logging/client";
+
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+
+const logger = createClientLogger(
+  "service",
+  "app/(user)/contact-us/SideForm.tsx",
+);
 
 const SideForm = () => {
   const [loading, setLoading] = useState(false);
@@ -52,7 +59,9 @@ const SideForm = () => {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong",
       );
-      console.log(error);
+      logger.error("app/(user)/contact-us/SideForm.tsx: diagnostic", {
+        details: [error],
+      });
     } finally {
       setLoading(false);
     }

@@ -1,3 +1,4 @@
+import { runLoggedOperation } from "@/lib/logging/operations";
 import "server-only";
 import { getSignedCookies, getSignedUrl } from "@aws-sdk/cloudfront-signer";
 import { createPrivateKey } from "node:crypto";
@@ -105,37 +106,43 @@ export async function grantCourseDocument(
   email: string,
   allowAdmin = false,
 ) {
-  const storedUrl = await getAuthorizedCourseMedia(
-    courseId,
-    itemId,
-    email,
-    allowAdmin,
+  return runLoggedOperation(
+    "service",
+    "lib/coursePlaybackAccess.ts:grantCourseDocument",
+    async () => {
+      const storedUrl = await getAuthorizedCourseMedia(
+        courseId,
+        itemId,
+        email,
+        allowAdmin,
+      );
+      if (isCourseVideoMedia(storedUrl))
+        throw new CoursePlaybackError(
+          410,
+          "Video playback requires a course access grant",
+        );
+      let url: string;
+      try {
+        url = courseDocumentLocation(storedUrl);
+      } catch {
+        throw new CoursePlaybackError(400, "Unsupported course media location");
+      }
+      const credentials = courseSigningCredentials();
+      const expiresAt = Math.floor(Date.now() / 1000) + 300;
+      try {
+        return {
+          mediaUrl: getSignedUrl({
+            url,
+            ...credentials,
+            dateLessThan: new Date(expiresAt * 1000).toISOString(),
+          }),
+          expiresAt,
+        };
+      } catch {
+        throw new CoursePlaybackError(503, "Course playback is not configured");
+      }
+    },
   );
-  if (isCourseVideoMedia(storedUrl))
-    throw new CoursePlaybackError(
-      410,
-      "Video playback requires a course access grant",
-    );
-  let url: string;
-  try {
-    url = courseDocumentLocation(storedUrl);
-  } catch {
-    throw new CoursePlaybackError(400, "Unsupported course media location");
-  }
-  const credentials = courseSigningCredentials();
-  const expiresAt = Math.floor(Date.now() / 1000) + 300;
-  try {
-    return {
-      mediaUrl: getSignedUrl({
-        url,
-        ...credentials,
-        dateLessThan: new Date(expiresAt * 1000).toISOString(),
-      }),
-      expiresAt,
-    };
-  } catch {
-    throw new CoursePlaybackError(503, "Course playback is not configured");
-  }
 }
 
 export async function grantCoursePlayback(
@@ -144,41 +151,47 @@ export async function grantCoursePlayback(
   email: string,
   allowAdmin = false,
 ) {
-  const mediaUrl = await getAuthorizedCourseMedia(
-    courseId,
-    itemId,
-    email,
-    allowAdmin,
+  return runLoggedOperation(
+    "service",
+    "lib/coursePlaybackAccess.ts:grantCoursePlayback",
+    async () => {
+      const mediaUrl = await getAuthorizedCourseMedia(
+        courseId,
+        itemId,
+        email,
+        allowAdmin,
+      );
+      let location: ReturnType<typeof coursePlaybackLocation>;
+      try {
+        location = coursePlaybackLocation(mediaUrl);
+      } catch {
+        throw new CoursePlaybackError(400, "Unsupported course media location");
+      }
+      const { keyPairId, privateKey } = courseSigningCredentials();
+      try {
+        const expiresAt = Math.floor(Date.now() / 1000) + COURSE_GRANT_SECONDS;
+        const cookies = getSignedCookies({
+          keyPairId,
+          privateKey,
+          policy: JSON.stringify({
+            Statement: [
+              {
+                Resource: location.resource,
+                Condition: { DateLessThan: { "AWS:EpochTime": expiresAt } },
+              },
+            ],
+          }),
+        });
+        return {
+          mediaUrl: location.mediaUrl,
+          mediaType: location.mediaType,
+          expiresAt,
+          cookies,
+          cookiePath: location.cookiePath,
+        };
+      } catch {
+        throw new CoursePlaybackError(503, "Course playback is not configured");
+      }
+    },
   );
-  let location: ReturnType<typeof coursePlaybackLocation>;
-  try {
-    location = coursePlaybackLocation(mediaUrl);
-  } catch {
-    throw new CoursePlaybackError(400, "Unsupported course media location");
-  }
-  const { keyPairId, privateKey } = courseSigningCredentials();
-  try {
-    const expiresAt = Math.floor(Date.now() / 1000) + COURSE_GRANT_SECONDS;
-    const cookies = getSignedCookies({
-      keyPairId,
-      privateKey,
-      policy: JSON.stringify({
-        Statement: [
-          {
-            Resource: location.resource,
-            Condition: { DateLessThan: { "AWS:EpochTime": expiresAt } },
-          },
-        ],
-      }),
-    });
-    return {
-      mediaUrl: location.mediaUrl,
-      mediaType: location.mediaType,
-      expiresAt,
-      cookies,
-      cookiePath: location.cookiePath,
-    };
-  } catch {
-    throw new CoursePlaybackError(503, "Course playback is not configured");
-  }
 }

@@ -1,4 +1,5 @@
 "use client";
+import { createClientLogger } from "@/lib/logging/client";
 
 import { useState } from "react";
 import {
@@ -23,6 +24,11 @@ import {
   type WorkshopAttendanceMode,
 } from "@/lib/workshopAttendance";
 
+const logger = createClientLogger(
+  "service",
+  "components/admin/WorkshopClient.tsx",
+);
+
 export function WorkshopClient({ workshops }: { workshops: any[] }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
@@ -38,7 +44,9 @@ export function WorkshopClient({ workshops }: { workshops: any[] }) {
       setLoadingId(id);
       await deleteWorkshop(id);
     } catch (error) {
-      console.error(error);
+      logger.error("components/admin/WorkshopClient.tsx: diagnostic", {
+        details: [error],
+      });
       alert("Failed to delete workshop");
     } finally {
       setLoadingId(null);

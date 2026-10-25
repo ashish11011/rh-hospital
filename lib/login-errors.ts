@@ -1,3 +1,7 @@
+import { instrumentAwsClient } from "@/lib/logging/aws";
+
+import { runLoggedOperation } from "@/lib/logging/operations";
+import { createLogger } from "@/lib/logging/logger";
 import {
   AdminGetUserCommand,
   CognitoIdentityProviderClient,
@@ -8,6 +12,8 @@ import {
   AWS_COGNITO_REGION,
   USER_POOL_ID,
 } from "@/env";
+
+const logger = createLogger("integration", "lib/login-errors.ts");
 
 const accountLookup = new CognitoIdentityProviderClient({
   region: AWS_COGNITO_REGION,
@@ -20,6 +26,7 @@ const accountLookup = new CognitoIdentityProviderClient({
       }
     : {}),
 });
+instrumentAwsClient(accountLookup, "lib/login-errors.ts");
 
 const loginErrors = {
   USER_NOT_FOUND: {
@@ -72,52 +79,63 @@ function getErrorDetails(error: unknown) {
 }
 
 export async function resolveCognitoLoginError(error: unknown, email: string) {
-  const { name, message } = getErrorDetails(error);
+  return runLoggedOperation(
+    "integration",
+    "lib/login-errors.ts:resolveCognitoLoginError",
+    async () => {
+      const { name, message } = getErrorDetails(error);
 
-  switch (name) {
-    case "UserNotFoundException":
-      return getLoginError("USER_NOT_FOUND");
-    case "UserNotConfirmedException":
-      return getLoginError("EMAIL_NOT_VERIFIED");
-    case "PasswordResetRequiredException":
-      return getLoginError("PASSWORD_RESET_REQUIRED");
-    case "TooManyRequestsException":
-    case "LimitExceededException":
-      return getLoginError("TOO_MANY_ATTEMPTS");
-    case "NotAuthorizedException": {
-      if (/password attempts exceeded|too many.*attempts/i.test(message)) {
-        return getLoginError("TOO_MANY_ATTEMPTS");
-      }
-      if (/user is disabled/i.test(message)) {
-        return getLoginError("ACCOUNT_DISABLED");
-      }
-      if (!/incorrect username or password|incorrect password/i.test(message)) {
-        // Configuration and token errors must not be described as a bad password.
-        return getLoginError("LOGIN_UNAVAILABLE");
-      }
-
-      // Cognito can mask missing users as an incorrect username/password error.
-      // Check the identity provider, since the local profile may be absent or stale.
-      try {
-        const account = await accountLookup.send(
-          new AdminGetUserCommand({
-            UserPoolId: USER_POOL_ID,
-            Username: email.trim().toLowerCase(),
-          }),
-        );
-        if (account.Enabled === false) return getLoginError("ACCOUNT_DISABLED");
-        return getLoginError("INCORRECT_PASSWORD");
-      } catch (lookupError) {
-        const lookupName = getErrorDetails(lookupError).name;
-        if (lookupName === "UserNotFoundException") {
+      switch (name) {
+        case "UserNotFoundException":
           return getLoginError("USER_NOT_FOUND");
+        case "UserNotConfirmedException":
+          return getLoginError("EMAIL_NOT_VERIFIED");
+        case "PasswordResetRequiredException":
+          return getLoginError("PASSWORD_RESET_REQUIRED");
+        case "TooManyRequestsException":
+        case "LimitExceededException":
+          return getLoginError("TOO_MANY_ATTEMPTS");
+        case "NotAuthorizedException": {
+          if (/password attempts exceeded|too many.*attempts/i.test(message)) {
+            return getLoginError("TOO_MANY_ATTEMPTS");
+          }
+          if (/user is disabled/i.test(message)) {
+            return getLoginError("ACCOUNT_DISABLED");
+          }
+          if (
+            !/incorrect username or password|incorrect password/i.test(message)
+          ) {
+            // Configuration and token errors must not be described as a bad password.
+            return getLoginError("LOGIN_UNAVAILABLE");
+          }
+
+          // Cognito can mask missing users as an incorrect username/password error.
+          // Check the identity provider, since the local profile may be absent or stale.
+          try {
+            const account = await accountLookup.send(
+              new AdminGetUserCommand({
+                UserPoolId: USER_POOL_ID,
+                Username: email.trim().toLowerCase(),
+              }),
+            );
+            if (account.Enabled === false)
+              return getLoginError("ACCOUNT_DISABLED");
+            return getLoginError("INCORRECT_PASSWORD");
+          } catch (lookupError) {
+            const lookupName = getErrorDetails(lookupError).name;
+            if (lookupName === "UserNotFoundException") {
+              return getLoginError("USER_NOT_FOUND");
+            }
+            logger.error("Login account lookup failed", {
+              details: [lookupName],
+            });
+            // Do not guess which credential is wrong when IAM or Cognito is unavailable.
+            return getLoginError("INVALID_CREDENTIALS");
+          }
         }
-        console.error("Login account lookup failed", lookupName);
-        // Do not guess which credential is wrong when IAM or Cognito is unavailable.
-        return getLoginError("INVALID_CREDENTIALS");
+        default:
+          return getLoginError("LOGIN_UNAVAILABLE");
       }
-    }
-    default:
-      return getLoginError("LOGIN_UNAVAILABLE");
-  }
+    },
+  );
 }

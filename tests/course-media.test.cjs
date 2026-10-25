@@ -23,7 +23,10 @@ function load(file, modules = {}, globals = {}) {
       Headers,
       console,
       ...globals,
-      require: (name) => modules[name],
+      require: (name) => {
+        if (name === "@/lib/logging/fetch") return { loggedFetch: (_source, ...args) => globals.fetch(...args) };
+        return require("./helpers/logging.cjs")[name] || modules[name];
+      },
     },
   );
   return exports;

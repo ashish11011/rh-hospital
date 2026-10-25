@@ -1,125 +1,186 @@
 "use server";
+import { runLoggedOperation } from "@/lib/logging/operations";
+import { createLogger } from "@/lib/logging/logger";
 
 import { db } from "@/lib/dbConfig";
 import { seminarRegistrations, seminar } from "@/db/index";
 import { eq, ilike, and, desc, count } from "drizzle-orm";
 import { requireAdmin } from "@/lib/adminAuth";
 
+const logger = createLogger("service", "actions/seminarAdminActions.ts");
+
 export async function getSeminarRegistrations({
   page = 1,
   limit = 20,
   emailFilter = "",
   seminarId = "",
-  paymentStatus = ""
+  paymentStatus = "",
 }) {
-  try {
-    await requireAdmin("full");
-    const conditions = [];
-    if (emailFilter) conditions.push(ilike(seminarRegistrations.email, `%${emailFilter}%`));
-    if (seminarId) conditions.push(eq(seminarRegistrations.seminarId, seminarId));
-    if (paymentStatus) conditions.push(eq(seminarRegistrations.paymentStatus, paymentStatus));
+  return runLoggedOperation(
+    "service",
+    "actions/seminarAdminActions.ts:getSeminarRegistrations",
+    async () => {
+      try {
+        await requireAdmin("full");
+        const conditions = [];
+        if (emailFilter)
+          conditions.push(
+            ilike(seminarRegistrations.email, `%${emailFilter}%`),
+          );
+        if (seminarId)
+          conditions.push(eq(seminarRegistrations.seminarId, seminarId));
+        if (paymentStatus)
+          conditions.push(
+            eq(seminarRegistrations.paymentStatus, paymentStatus),
+          );
 
-    const offset = (page - 1) * limit;
+        const offset = (page - 1) * limit;
 
-    const baseQuery = db.select({
-      id: seminarRegistrations.id,
-      name: seminarRegistrations.name,
-      email: seminarRegistrations.email,
-      mobileNumber: seminarRegistrations.mobileNumber,
-      designation: seminarRegistrations.designation,
-      instituteName: seminarRegistrations.instituteName,
-      city: seminarRegistrations.city,
-      registrationMode: seminarRegistrations.registrationMode,
-      seminarName: seminar.name,
-      paymentStatus: seminarRegistrations.paymentStatus,
-      amount: seminarRegistrations.amount,
-    })
-      .from(seminarRegistrations)
-      .leftJoin(seminar, eq(seminarRegistrations.seminarId, seminar.id));
+        const baseQuery = db
+          .select({
+            id: seminarRegistrations.id,
+            name: seminarRegistrations.name,
+            email: seminarRegistrations.email,
+            mobileNumber: seminarRegistrations.mobileNumber,
+            designation: seminarRegistrations.designation,
+            instituteName: seminarRegistrations.instituteName,
+            city: seminarRegistrations.city,
+            registrationMode: seminarRegistrations.registrationMode,
+            seminarName: seminar.name,
+            paymentStatus: seminarRegistrations.paymentStatus,
+            amount: seminarRegistrations.amount,
+          })
+          .from(seminarRegistrations)
+          .leftJoin(seminar, eq(seminarRegistrations.seminarId, seminar.id));
 
-    const query = conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery;
+        const query =
+          conditions.length > 0
+            ? baseQuery.where(and(...conditions))
+            : baseQuery;
 
-    const data = await query.limit(limit).offset(offset).orderBy(desc(seminarRegistrations.createdAt));
+        const data = await query
+          .limit(limit)
+          .offset(offset)
+          .orderBy(desc(seminarRegistrations.createdAt));
 
-    const countQuery = db.select({ value: count() }).from(seminarRegistrations);
-    const cQuery = conditions.length > 0 ? countQuery.where(and(...conditions)) : countQuery;
-    const totalResult = await cQuery;
-    const total = totalResult[0].value;
+        const countQuery = db
+          .select({ value: count() })
+          .from(seminarRegistrations);
+        const cQuery =
+          conditions.length > 0
+            ? countQuery.where(and(...conditions))
+            : countQuery;
+        const totalResult = await cQuery;
+        const total = totalResult[0].value;
 
-    return { data, total };
-  } catch (err) {
-    console.error(err);
-    return { data: [], total: 0 };
-  }
+        return { data, total };
+      } catch (err) {
+        logger.error("actions/seminarAdminActions.ts: diagnostic", {
+          details: [err],
+        });
+        return { data: [], total: 0 };
+      }
+    },
+    true,
+  );
 }
 
-export async function getAllSeminarRegistrations(seminarId?: string, paymentStatus?: string) {
-  try {
-    await requireAdmin("full");
-    const conditions = [];
-    if (seminarId) conditions.push(eq(seminarRegistrations.seminarId, seminarId));
-    if (paymentStatus) conditions.push(eq(seminarRegistrations.paymentStatus, paymentStatus));
-    const data = db.select({
-      id: seminarRegistrations.id,
-      name: seminarRegistrations.name,
-      email: seminarRegistrations.email,
-      mobileNumber: seminarRegistrations.mobileNumber,
-      gender: seminarRegistrations.gender,
-      designation: seminarRegistrations.designation,
-      qualification: seminarRegistrations.qualification,
-      instituteName: seminarRegistrations.instituteName,
-      addressLine1: seminarRegistrations.addressLine1,
-      addressLine2: seminarRegistrations.addressLine2,
-      city: seminarRegistrations.city,
-      state: seminarRegistrations.state,
-      country: seminarRegistrations.country,
-      pincode: seminarRegistrations.pincode,
-      paperPresentation: seminarRegistrations.paperPresentation,
-      presentationType: seminarRegistrations.presentationType,
-      presentationTitle: seminarRegistrations.presentationTitle,
-      authorName: seminarRegistrations.authorName,
-      paperInstitution: seminarRegistrations.paperInstitution,
-      additionalDetails: seminarRegistrations.additionalDetails,
-      referenceType: seminarRegistrations.referenceType,
-      referencePersonName: seminarRegistrations.referencePersonName,
-      referencePersonMobile: seminarRegistrations.referencePersonMobile,
-      socialMediaName: seminarRegistrations.socialMediaName,
-      registrationMode: seminarRegistrations.registrationMode,
-      offlineDuration: seminarRegistrations.offlineDuration,
-      isNaitMember: seminarRegistrations.isNaitMember,
-      naitRegistrationId: seminarRegistrations.naitRegistrationId,
-      amount: seminarRegistrations.amount,
-      paymentStatus: seminarRegistrations.paymentStatus,
-      paymentId: seminarRegistrations.paymentId,
-      orderId: seminarRegistrations.orderId,
-      createdAt: seminarRegistrations.createdAt,
-      updatedAt: seminarRegistrations.updatedAt,
-      utmSource: seminarRegistrations.utmSource,
-      utmMedium: seminarRegistrations.utmMedium,
-      utmCampaign: seminarRegistrations.utmCampaign,
-      utmContent: seminarRegistrations.utmContent,
-      certificateUrl: seminarRegistrations.certificateUrl,
-      seminarName: seminar.name,
-    })
-      .from(seminarRegistrations)
-      .leftJoin(seminar, eq(seminarRegistrations.seminarId, seminar.id));
+export async function getAllSeminarRegistrations(
+  seminarId?: string,
+  paymentStatus?: string,
+) {
+  return runLoggedOperation(
+    "service",
+    "actions/seminarAdminActions.ts:getAllSeminarRegistrations",
+    async () => {
+      try {
+        await requireAdmin("full");
+        const conditions = [];
+        if (seminarId)
+          conditions.push(eq(seminarRegistrations.seminarId, seminarId));
+        if (paymentStatus)
+          conditions.push(
+            eq(seminarRegistrations.paymentStatus, paymentStatus),
+          );
+        const data = db
+          .select({
+            id: seminarRegistrations.id,
+            name: seminarRegistrations.name,
+            email: seminarRegistrations.email,
+            mobileNumber: seminarRegistrations.mobileNumber,
+            gender: seminarRegistrations.gender,
+            designation: seminarRegistrations.designation,
+            qualification: seminarRegistrations.qualification,
+            instituteName: seminarRegistrations.instituteName,
+            addressLine1: seminarRegistrations.addressLine1,
+            addressLine2: seminarRegistrations.addressLine2,
+            city: seminarRegistrations.city,
+            state: seminarRegistrations.state,
+            country: seminarRegistrations.country,
+            pincode: seminarRegistrations.pincode,
+            paperPresentation: seminarRegistrations.paperPresentation,
+            presentationType: seminarRegistrations.presentationType,
+            presentationTitle: seminarRegistrations.presentationTitle,
+            authorName: seminarRegistrations.authorName,
+            paperInstitution: seminarRegistrations.paperInstitution,
+            additionalDetails: seminarRegistrations.additionalDetails,
+            referenceType: seminarRegistrations.referenceType,
+            referencePersonName: seminarRegistrations.referencePersonName,
+            referencePersonMobile: seminarRegistrations.referencePersonMobile,
+            socialMediaName: seminarRegistrations.socialMediaName,
+            registrationMode: seminarRegistrations.registrationMode,
+            offlineDuration: seminarRegistrations.offlineDuration,
+            isNaitMember: seminarRegistrations.isNaitMember,
+            naitRegistrationId: seminarRegistrations.naitRegistrationId,
+            amount: seminarRegistrations.amount,
+            paymentStatus: seminarRegistrations.paymentStatus,
+            paymentId: seminarRegistrations.paymentId,
+            orderId: seminarRegistrations.orderId,
+            createdAt: seminarRegistrations.createdAt,
+            updatedAt: seminarRegistrations.updatedAt,
+            utmSource: seminarRegistrations.utmSource,
+            utmMedium: seminarRegistrations.utmMedium,
+            utmCampaign: seminarRegistrations.utmCampaign,
+            utmContent: seminarRegistrations.utmContent,
+            certificateUrl: seminarRegistrations.certificateUrl,
+            seminarName: seminar.name,
+          })
+          .from(seminarRegistrations)
+          .leftJoin(seminar, eq(seminarRegistrations.seminarId, seminar.id));
 
-    const finalData = conditions.length > 0 ? data.where(and(...conditions)) : data;
-    const result = await finalData;
+        const finalData =
+          conditions.length > 0 ? data.where(and(...conditions)) : data;
+        const result = await finalData;
 
-    return result;
-  } catch (err) {
-    console.error(err);
-    return [];
-  }
+        return result;
+      } catch (err) {
+        logger.error("actions/seminarAdminActions.ts: diagnostic", {
+          details: [err],
+        });
+        return [];
+      }
+    },
+    true,
+  );
 }
 
 export async function getSeminarsList() {
-  try {
-    await requireAdmin("full");
-    return await db.select({ id: seminar.id, name: seminar.name }).from(seminar);
-  } catch (err) {
-    console.error(err);
-    return [];
-  }
+  return runLoggedOperation(
+    "service",
+    "actions/seminarAdminActions.ts:getSeminarsList",
+    async () => {
+      try {
+        await requireAdmin("full");
+        return await db
+          .select({ id: seminar.id, name: seminar.name })
+          .from(seminar);
+      } catch (err) {
+        logger.error("actions/seminarAdminActions.ts: diagnostic", {
+          details: [err],
+        });
+        return [];
+      }
+    },
+    true,
+  );
 }

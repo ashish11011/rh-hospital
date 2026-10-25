@@ -8,6 +8,7 @@ function load(file, modules) {
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText, { exports, require: name => {
+      if (name in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[name];
     if (!(name in modules)) throw new Error(name);
     return modules[name];
   }, console: { log() {}, error() {} }, process: { env: { SES_CONFIGURATION_SET: 'tracking' } } });

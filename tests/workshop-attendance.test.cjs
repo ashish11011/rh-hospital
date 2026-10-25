@@ -15,6 +15,7 @@ function load(filename, mocks = {}) {
     },
   }).outputText;
   new Function("require", "exports", source)((id) => {
+    if (id in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[id];
     if (id in mocks) return mocks[id];
     if (id.startsWith(".")) {
       return load(path.resolve(path.dirname(absolute), `${id}.ts`), mocks);

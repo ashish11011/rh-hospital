@@ -10,7 +10,11 @@ let fetched = 0;
 vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/sesWebhook.ts', 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText, {
-  exports: exportsObject, require, Buffer, URL, AbortSignal,
+  exports: exportsObject, Buffer, URL, AbortSignal,
+  require: id => {
+    if (id === '@/lib/logging/fetch') return { loggedFetch: async () => { fetched++; return { ok: true, text: async () => certificate }; } };
+    return require('./helpers/logging.cjs')[id] || require(id);
+  },
   fetch: async () => { fetched++; return { ok: true, text: async () => certificate }; },
 });
 const { signingString, verifySnsMessage, eventUpdate, sesEventSchema, statusPriority } = exportsObject;

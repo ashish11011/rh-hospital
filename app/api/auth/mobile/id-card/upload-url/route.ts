@@ -1,3 +1,6 @@
+import { instrumentAwsClient } from "@/lib/logging/aws";
+
+import { withApiLogging } from "@/lib/logging/api";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { eq } from "drizzle-orm";
@@ -18,6 +21,10 @@ const s3Client = new S3Client({
     secretAccessKey: AWS_SECRET_KEY,
   },
 });
+instrumentAwsClient(
+  s3Client,
+  "app/api/auth/mobile/id-card/upload-url/route.ts",
+);
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -49,49 +56,56 @@ async function getAuthenticatedUser(req: Request) {
   return account || null;
 }
 
-export async function POST(req: Request) {
-  try {
-    const account = await getAuthenticatedUser(req);
+export const POST = withApiLogging(
+  "/app/api/auth/mobile/id-card/upload-url",
+  async function POST(req: Request) {
+    try {
+      const account = await getAuthenticatedUser(req);
 
-    if (!account) {
+      if (!account) {
+        return NextResponse.json(
+          { error: "Unauthorized: Invalid token or session" },
+          { status: 401 },
+        );
+      }
+
+      const body = await req.json();
+      const filename = sanitizeFilename(cleanString(body.filename));
+      const fileType = cleanString(body.fileType).toLowerCase();
+
+      if (!ALLOWED_IMAGE_TYPES.has(fileType)) {
+        return NextResponse.json(
+          { error: "Only JPG, PNG, or WEBP images are allowed" },
+          { status: 400 },
+        );
+      }
+
+      const key = publicAssetKey(
+        `membership-cards/${account.id}/${Date.now()}-${filename}`,
+      );
+      const command = new PutObjectCommand({
+        Bucket: AWS_BUCKET,
+        Key: key,
+        ContentType: fileType,
+      });
+      const uploadUrl = await getSignedUrl(s3Client, command, {
+        expiresIn: 600,
+      });
+
       return NextResponse.json(
-        { error: "Unauthorized: Invalid token or session" },
-        { status: 401 },
+        {
+          success: true,
+          uploadUrl,
+          key,
+          cloudfrontUrl: publicAssetUrl(key),
+        },
+        { status: 200 },
+      );
+    } catch (error: any) {
+      return NextResponse.json(
+        { error: error.message || "Failed to create upload URL" },
+        { status: 500 },
       );
     }
-
-    const body = await req.json();
-    const filename = sanitizeFilename(cleanString(body.filename));
-    const fileType = cleanString(body.fileType).toLowerCase();
-
-    if (!ALLOWED_IMAGE_TYPES.has(fileType)) {
-      return NextResponse.json(
-        { error: "Only JPG, PNG, or WEBP images are allowed" },
-        { status: 400 },
-      );
-    }
-
-    const key = publicAssetKey(`membership-cards/${account.id}/${Date.now()}-${filename}`);
-    const command = new PutObjectCommand({
-      Bucket: AWS_BUCKET,
-      Key: key,
-      ContentType: fileType,
-    });
-    const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 600 });
-
-    return NextResponse.json(
-      {
-        success: true,
-        uploadUrl,
-        key,
-        cloudfrontUrl: publicAssetUrl(key),
-      },
-      { status: 200 },
-    );
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || "Failed to create upload URL" },
-      { status: 500 },
-    );
-  }
-}
+  },
+);

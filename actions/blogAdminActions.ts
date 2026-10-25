@@ -1,4 +1,5 @@
 "use server";
+import { runLoggedOperation } from "@/lib/logging/operations";
 
 import { blog } from "@/db";
 import { requireAdmin } from "@/lib/adminAuth";
@@ -72,7 +73,8 @@ function validateBlog(data: BlogInput) {
   if (!data.title.trim()) throw new Error("Title is required");
   if (!data.content.trim()) throw new Error("Content is required");
   if (!data.authorName.trim()) throw new Error("Author name is required");
-  if (!normalizeBlogSlug(data.slug || data.title)) throw new Error("Slug is required");
+  if (!normalizeBlogSlug(data.slug || data.title))
+    throw new Error("Slug is required");
 }
 
 function isPublishedForPublicCache(record?: PublicBlogCacheState | null) {
@@ -95,13 +97,17 @@ function invalidatePublicBlogCache({
     updateTag(BLOG_LIST_CACHE_TAG);
   }
 
-  if ((beforeIsPublic && before?.isFeatured) || (afterIsPublic && after?.isFeatured)) {
+  if (
+    (beforeIsPublic && before?.isFeatured) ||
+    (afterIsPublic && after?.isFeatured)
+  ) {
     updateTag(FEATURED_BLOGS_CACHE_TAG);
     revalidatePath("/");
   }
 
   for (const record of [before, after]) {
-    if (record && isPublishedForPublicCache(record)) updateTag(blogDetailCacheTag(record.slug));
+    if (record && isPublishedForPublicCache(record))
+      updateTag(blogDetailCacheTag(record.slug));
   }
 }
 
@@ -112,173 +118,228 @@ export async function getAdminBlogs({
   search?: string;
   status?: string;
 } = {}) {
-  await requireAdmin("blog");
+  return runLoggedOperation(
+    "service",
+    "actions/blogAdminActions.ts:getAdminBlogs",
+    async () => {
+      await requireAdmin("blog");
 
-  const conditions = [];
-  if (search) {
-    conditions.push(
-      or(
-        ilike(blog.title, `%${search}%`),
-        ilike(blog.slug, `%${search}%`),
-        ilike(blog.authorName, `%${search}%`),
-        ilike(blog.category, `%${search}%`),
-      ),
-    );
-  }
-  if (status && ["draft", "published", "archived"].includes(status)) {
-    conditions.push(eq(blog.status, status as BlogStatus));
-  }
+      const conditions = [];
+      if (search) {
+        conditions.push(
+          or(
+            ilike(blog.title, `%${search}%`),
+            ilike(blog.slug, `%${search}%`),
+            ilike(blog.authorName, `%${search}%`),
+            ilike(blog.category, `%${search}%`),
+          ),
+        );
+      }
+      if (status && ["draft", "published", "archived"].includes(status)) {
+        conditions.push(eq(blog.status, status as BlogStatus));
+      }
 
-  const query = db.select().from(blog);
-  const filteredQuery = conditions.length > 0 ? query.where(and(...conditions)) : query;
+      const query = db.select().from(blog);
+      const filteredQuery =
+        conditions.length > 0 ? query.where(and(...conditions)) : query;
 
-  return filteredQuery.orderBy(desc(blog.updatedAt), desc(blog.createdAt));
+      return filteredQuery.orderBy(desc(blog.updatedAt), desc(blog.createdAt));
+    },
+    true,
+  );
 }
 
 export async function getAdminBlog(id: string) {
-  await requireAdmin("blog");
+  return runLoggedOperation(
+    "service",
+    "actions/blogAdminActions.ts:getAdminBlog",
+    async () => {
+      await requireAdmin("blog");
 
-  const [record] = await db.select().from(blog).where(eq(blog.id, id)).limit(1);
-  return record ?? null;
+      const [record] = await db
+        .select()
+        .from(blog)
+        .where(eq(blog.id, id))
+        .limit(1);
+      return record ?? null;
+    },
+    true,
+  );
 }
 
 export async function createBlog(data: BlogInput) {
-  await requireAdmin("blog");
-  validateBlog(data);
-  const cleanData = cleanBlogInput(data);
+  return runLoggedOperation(
+    "service",
+    "actions/blogAdminActions.ts:createBlog",
+    async () => {
+      await requireAdmin("blog");
+      validateBlog(data);
+      const cleanData = cleanBlogInput(data);
 
-  const [created] = await db
-    .insert(blog)
-    .values(cleanData)
-    .returning({ id: blog.id, slug: blog.slug });
+      const [created] = await db
+        .insert(blog)
+        .values(cleanData)
+        .returning({ id: blog.id, slug: blog.slug });
 
-  revalidatePath("/admin/blog");
-  const createdState = {
-    slug: created.slug,
-    status: cleanData.status,
-    isFeatured: cleanData.isFeatured,
-    publishedAt: cleanData.publishedAt,
-  };
+      revalidatePath("/admin/blog");
+      const createdState = {
+        slug: created.slug,
+        status: cleanData.status,
+        isFeatured: cleanData.isFeatured,
+        publishedAt: cleanData.publishedAt,
+      };
 
-  if (isPublishedForPublicCache(createdState)) {
-    revalidatePath("/blog");
-    revalidatePath(blogPath(created.slug));
-  }
-  invalidatePublicBlogCache({ after: createdState });
+      if (isPublishedForPublicCache(createdState)) {
+        revalidatePath("/blog");
+        revalidatePath(blogPath(created.slug));
+      }
+      invalidatePublicBlogCache({ after: createdState });
 
-  return created;
+      return created;
+    },
+    true,
+  );
 }
 
 export async function updateBlog(id: string, data: BlogInput) {
-  await requireAdmin("blog");
-  validateBlog(data);
+  return runLoggedOperation(
+    "service",
+    "actions/blogAdminActions.ts:updateBlog",
+    async () => {
+      await requireAdmin("blog");
+      validateBlog(data);
 
-  const cleanData = cleanBlogInput(data);
-  const [existing] = await db
-    .select({
-      slug: blog.slug,
-      status: blog.status,
-      isFeatured: blog.isFeatured,
-      publishedAt: blog.publishedAt,
-    })
-    .from(blog)
-    .where(eq(blog.id, id))
-    .limit(1);
+      const cleanData = cleanBlogInput(data);
+      const [existing] = await db
+        .select({
+          slug: blog.slug,
+          status: blog.status,
+          isFeatured: blog.isFeatured,
+          publishedAt: blog.publishedAt,
+        })
+        .from(blog)
+        .where(eq(blog.id, id))
+        .limit(1);
 
-  await db.update(blog).set(cleanData).where(eq(blog.id, id));
+      await db.update(blog).set(cleanData).where(eq(blog.id, id));
 
-  revalidatePath("/admin/blog");
-  revalidatePath(`/admin/blog/${id}`);
-  const nextState = {
-    slug: cleanData.slug,
-    status: cleanData.status,
-    isFeatured: cleanData.isFeatured,
-    publishedAt: cleanData.publishedAt,
-  };
+      revalidatePath("/admin/blog");
+      revalidatePath(`/admin/blog/${id}`);
+      const nextState = {
+        slug: cleanData.slug,
+        status: cleanData.status,
+        isFeatured: cleanData.isFeatured,
+        publishedAt: cleanData.publishedAt,
+      };
 
-  if (isPublishedForPublicCache(existing) || isPublishedForPublicCache(nextState)) {
-    revalidatePath("/blog");
-  }
-  if (isPublishedForPublicCache(nextState)) {
-    revalidatePath(blogPath(cleanData.slug));
-  }
-  if (
-    existing?.slug &&
-    existing.slug !== cleanData.slug &&
-    isPublishedForPublicCache(existing)
-  ) {
-    revalidatePath(blogPath(existing.slug));
-  }
-  invalidatePublicBlogCache({ before: existing, after: nextState });
+      if (
+        isPublishedForPublicCache(existing) ||
+        isPublishedForPublicCache(nextState)
+      ) {
+        revalidatePath("/blog");
+      }
+      if (isPublishedForPublicCache(nextState)) {
+        revalidatePath(blogPath(cleanData.slug));
+      }
+      if (
+        existing?.slug &&
+        existing.slug !== cleanData.slug &&
+        isPublishedForPublicCache(existing)
+      ) {
+        revalidatePath(blogPath(existing.slug));
+      }
+      invalidatePublicBlogCache({ before: existing, after: nextState });
+    },
+    true,
+  );
 }
 
 export async function updateBlogStatus(id: string, status: BlogStatus) {
-  await requireAdmin("blog");
-  if (!["draft", "published", "archived"].includes(status)) throw new Error("Invalid blog status");
+  return runLoggedOperation(
+    "service",
+    "actions/blogAdminActions.ts:updateBlogStatus",
+    async () => {
+      await requireAdmin("blog");
+      if (!["draft", "published", "archived"].includes(status))
+        throw new Error("Invalid blog status");
 
-  const publishedAt = status === "published" ? new Date() : undefined;
+      const publishedAt = status === "published" ? new Date() : undefined;
 
-  const [existing] = await db
-    .select({
-      slug: blog.slug,
-      status: blog.status,
-      isFeatured: blog.isFeatured,
-      publishedAt: blog.publishedAt,
-    })
-    .from(blog)
-    .where(eq(blog.id, id))
-    .limit(1);
+      const [existing] = await db
+        .select({
+          slug: blog.slug,
+          status: blog.status,
+          isFeatured: blog.isFeatured,
+          publishedAt: blog.publishedAt,
+        })
+        .from(blog)
+        .where(eq(blog.id, id))
+        .limit(1);
 
-  await db
-    .update(blog)
-    .set({
-      status,
-      ...(publishedAt ? { publishedAt } : {}),
-      updatedAt: new Date(),
-    })
-    .where(eq(blog.id, id));
+      await db
+        .update(blog)
+        .set({
+          status,
+          ...(publishedAt ? { publishedAt } : {}),
+          updatedAt: new Date(),
+        })
+        .where(eq(blog.id, id));
 
-  revalidatePath("/admin/blog");
-  const nextState = existing
-    ? {
-        ...existing,
-        status,
-        publishedAt: publishedAt || existing.publishedAt,
+      revalidatePath("/admin/blog");
+      const nextState = existing
+        ? {
+            ...existing,
+            status,
+            publishedAt: publishedAt || existing.publishedAt,
+          }
+        : null;
+
+      if (
+        isPublishedForPublicCache(existing) ||
+        isPublishedForPublicCache(nextState)
+      ) {
+        revalidatePath("/blog");
       }
-    : null;
-
-  if (isPublishedForPublicCache(existing) || isPublishedForPublicCache(nextState)) {
-    revalidatePath("/blog");
-  }
-  if (
-    existing?.slug &&
-    (isPublishedForPublicCache(existing) || isPublishedForPublicCache(nextState))
-  ) {
-    revalidatePath(blogPath(existing.slug));
-  }
-  invalidatePublicBlogCache({ before: existing, after: nextState });
+      if (
+        existing?.slug &&
+        (isPublishedForPublicCache(existing) ||
+          isPublishedForPublicCache(nextState))
+      ) {
+        revalidatePath(blogPath(existing.slug));
+      }
+      invalidatePublicBlogCache({ before: existing, after: nextState });
+    },
+    true,
+  );
 }
 
 export async function deleteBlog(id: string) {
-  await requireAdmin("blog");
+  return runLoggedOperation(
+    "service",
+    "actions/blogAdminActions.ts:deleteBlog",
+    async () => {
+      await requireAdmin("blog");
 
-  const [existing] = await db
-    .select({
-      slug: blog.slug,
-      status: blog.status,
-      isFeatured: blog.isFeatured,
-      publishedAt: blog.publishedAt,
-    })
-    .from(blog)
-    .where(eq(blog.id, id))
-    .limit(1);
+      const [existing] = await db
+        .select({
+          slug: blog.slug,
+          status: blog.status,
+          isFeatured: blog.isFeatured,
+          publishedAt: blog.publishedAt,
+        })
+        .from(blog)
+        .where(eq(blog.id, id))
+        .limit(1);
 
-  await db.delete(blog).where(eq(blog.id, id));
-  revalidatePath("/admin/blog");
-  if (isPublishedForPublicCache(existing)) {
-    revalidatePath("/blog");
-    revalidatePath(blogPath(existing.slug));
-  }
-  invalidatePublicBlogCache({ before: existing });
-  redirect("/admin/blog");
+      await db.delete(blog).where(eq(blog.id, id));
+      revalidatePath("/admin/blog");
+      if (isPublishedForPublicCache(existing)) {
+        revalidatePath("/blog");
+        revalidatePath(blogPath(existing.slug));
+      }
+      invalidatePublicBlogCache({ before: existing });
+      redirect("/admin/blog");
+    },
+    true,
+  );
 }

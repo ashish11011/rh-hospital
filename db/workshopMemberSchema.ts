@@ -9,7 +9,7 @@ import {
 import { userCardSchema } from "./userSchema";
 import { workshopSchema } from "./workshopSchema";
 
-// One row per card keeps the rolling send limit shared across all workshops.
+// One active challenge/session per card. Rate counters now live in Redis.
 export const workshopMemberVerification = pgTable(
   "workshop_member_verification",
   {
@@ -23,6 +23,7 @@ export const workshopMemberVerification = pgTable(
     email: varchar("email").notNull(),
     codeHash: varchar("code_hash"),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    // Legacy counters retained for schema compatibility; no longer read or updated.
     attempts: integer("attempts").notNull().default(0),
     sentAt: jsonb("sent_at").$type<number[]>().notNull().default([]),
     sessionHash: varchar("session_hash"),

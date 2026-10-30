@@ -1,3 +1,5 @@
+import { cachedRedis } from "@/lib/redisCache";
+import { REDIS_CACHE_TTL_SECONDS } from "@/lib/constants";
 import { runLoggedOperation } from "@/lib/logging/operations";
 import { course, courseReviews, user } from "@/db";
 import { db } from "@/lib/dbConfig";
@@ -23,28 +25,34 @@ export async function getApprovedCourseReviews(courseId: string) {
   return runLoggedOperation(
     "resources",
     "lib/courseReviewData.ts:getApprovedCourseReviews",
-    async () => {
-      return db
-        .select({
-          id: courseReviews.id,
-          rating: courseReviews.rating,
-          feedback: courseReviews.feedback,
-          createdAt: courseReviews.createdAt,
-          userName: user.name,
-          userDesignation: user.designation,
-          userInstituteName: user.instituteName,
-          userCity: user.city,
-        })
-        .from(courseReviews)
-        .innerJoin(user, eq(user.id, courseReviews.userId))
-        .where(
-          and(
-            eq(courseReviews.courseId, courseId),
-            eq(courseReviews.isApproved, true),
-          ),
-        )
-        .orderBy(desc(courseReviews.createdAt));
-    },
+    async () =>
+      cachedRedis(
+        "reviews",
+        courseId,
+        REDIS_CACHE_TTL_SECONDS.reviews,
+        async () => {
+          return db
+            .select({
+              id: courseReviews.id,
+              rating: courseReviews.rating,
+              feedback: courseReviews.feedback,
+              createdAt: courseReviews.createdAt,
+              userName: user.name,
+              userDesignation: user.designation,
+              userInstituteName: user.instituteName,
+              userCity: user.city,
+            })
+            .from(courseReviews)
+            .innerJoin(user, eq(user.id, courseReviews.userId))
+            .where(
+              and(
+                eq(courseReviews.courseId, courseId),
+                eq(courseReviews.isApproved, true),
+              ),
+            )
+            .orderBy(desc(courseReviews.createdAt));
+        },
+      ),
   );
 }
 

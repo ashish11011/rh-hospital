@@ -1,3 +1,4 @@
+import { enforceAuthRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { instrumentAwsClient } from "@/lib/logging/aws";
 
 import { withApiLogging } from "@/lib/logging/api";
@@ -40,6 +41,7 @@ export const POST = withApiLogging(
       }
 
       const cognitoUsername = data.email.trim().toLowerCase();
+      await enforceAuthRateLimit("confirmEmail", cognitoUsername, req.headers);
       const normalizedEmail = cognitoUsername;
       const existingUser = await db
         .select()
@@ -74,6 +76,8 @@ export const POST = withApiLogging(
 
       return NextResponse.json({ success: true }, { status: 200 });
     } catch (error: any) {
+      const limited = rateLimitResponse(error);
+      if (limited) return limited;
       return NextResponse.json(
         { error: error.message || "Failed to verify email" },
         { status: 400 },

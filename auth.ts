@@ -16,6 +16,8 @@ import {
   InitiateAuthCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { resolveCognitoLoginError } from "@/lib/login-errors";
+import { enforceAuthRateLimit, RateLimitError } from "@/lib/rateLimit";
+import { RedisUnavailableError } from "@/lib/redis";
 
 const logger = createLogger("integration", "auth.ts");
 
@@ -58,11 +60,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         if (!credentials?.email || !credentials?.password) return null;
         const email = (credentials.email as string).trim().toLowerCase();
 
         try {
+          await enforceAuthRateLimit("login", email, request.headers);
           const secretHash = crypto
             .createHmac("sha256", USER_POOL_CLIENT_SECRET)
             .update(email + USER_POOL_CLIENT_ID)
@@ -88,6 +91,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
           return null;
         } catch (error: any) {
+          if (error instanceof RateLimitError)
+            throw new CognitoLoginError("TOO_MANY_ATTEMPTS");
+          if (error instanceof RedisUnavailableError)
+            throw new CognitoLoginError("LOGIN_UNAVAILABLE");
           logger.error("Cognito auth error", { error });
           const loginError = await resolveCognitoLoginError(error, email);
           throw new CognitoLoginError(loginError.code);

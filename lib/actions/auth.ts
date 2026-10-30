@@ -5,6 +5,7 @@ import { runLoggedOperation } from "@/lib/logging/operations";
 
 import { logCognitoEmail } from "@/lib/emailLogging";
 import { signIn } from "@/auth";
+import { enforceAuthActionRateLimit } from "@/lib/authRateLimit";
 import {
   CognitoIdentityProviderClient,
   SignUpCommand,
@@ -78,6 +79,7 @@ export async function signupWithCognito(
     "lib/actions/auth.ts:signupWithCognito",
     async () => {
       try {
+        await enforceAuthActionRateLimit("signup", data.email);
         const email = data.email.trim().toLowerCase();
         const secretHash = crypto
           .createHmac("sha256", USER_POOL_CLIENT_SECRET)
@@ -140,6 +142,7 @@ export async function confirmWithCognito(data: {
     "lib/actions/auth.ts:confirmWithCognito",
     async () => {
       try {
+        await enforceAuthActionRateLimit("confirmEmail", data.email);
         const email = data.email.trim().toLowerCase();
         const existingUser = await db
           .select()
@@ -184,6 +187,7 @@ export async function forgotPasswordWithCognito(email: string) {
     "lib/actions/auth.ts:forgotPasswordWithCognito",
     async () => {
       try {
+        await enforceAuthActionRateLimit("forgotPassword", email);
         email = email.trim().toLowerCase();
         const secretHash = crypto
           .createHmac("sha256", USER_POOL_CLIENT_SECRET)
@@ -214,6 +218,7 @@ export async function resetPasswordWithCognito(data: any) {
     "lib/actions/auth.ts:resetPasswordWithCognito",
     async () => {
       try {
+        await enforceAuthActionRateLimit("resetPassword", data.email);
         const email = data.email.trim().toLowerCase();
         const secretHash = crypto
           .createHmac("sha256", USER_POOL_CLIENT_SECRET)
@@ -244,6 +249,7 @@ export async function resendVerificationCode(email: string) {
     "lib/actions/auth.ts:resendVerificationCode",
     async () => {
       try {
+        await enforceAuthActionRateLimit("resendCode", email);
         email = email.trim().toLowerCase();
         const secretHash = crypto
           .createHmac("sha256", USER_POOL_CLIENT_SECRET)

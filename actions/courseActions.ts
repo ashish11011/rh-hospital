@@ -1,6 +1,8 @@
 "use server";
 import { runLoggedOperation } from "@/lib/logging/operations";
 
+import { cachedRedis } from "@/lib/redisCache";
+import { REDIS_CACHE_TTL_SECONDS } from "@/lib/constants";
 import { auth } from "@/auth";
 import { course, courseEnrolment, courseItem, user } from "@/db";
 import { db } from "@/lib/dbConfig";
@@ -24,23 +26,29 @@ export async function getPublicCourseBySlug(slug: string) {
   return runLoggedOperation(
     "service",
     "actions/courseActions.ts:getPublicCourseBySlug",
-    async () => {
-      const candidates = [slug, `/courses/${slug}`];
-      const [record] = await db
-        .select()
-        .from(course)
-        .where(inArray(course.slug, candidates))
-        .limit(1);
-      if (!record || record.isActive === false) return null;
+    async () =>
+      cachedRedis(
+        "courses",
+        `detail:${slug}`,
+        REDIS_CACHE_TTL_SECONDS.courses,
+        async () => {
+          const candidates = [slug, `/courses/${slug}`];
+          const [record] = await db
+            .select()
+            .from(course)
+            .where(inArray(course.slug, candidates))
+            .limit(1);
+          if (!record || record.isActive === false) return null;
 
-      const items = await db
-        .select()
-        .from(courseItem)
-        .where(eq(courseItem.courseId, record.id))
-        .orderBy(asc(courseItem.priority), asc(courseItem.createdAt));
+          const items = await db
+            .select()
+            .from(courseItem)
+            .where(eq(courseItem.courseId, record.id))
+            .orderBy(asc(courseItem.priority), asc(courseItem.createdAt));
 
-      return { ...record, items };
-    },
+          return { ...record, items };
+        },
+      ),
     true,
   );
 }

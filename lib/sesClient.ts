@@ -1,3 +1,4 @@
+import { RATE_LIMITS } from "@/lib/constants";
 import { runLoggedOperation } from "@/lib/logging/operations";
 import { SendEmailCommand } from "@aws-sdk/client-ses";
 import { sendLoggedEmail } from "@/lib/sendLoggedEmail";
@@ -26,7 +27,7 @@ export async function sendWorkshopMemberOtpEmail({
             },
             Body: {
               Text: {
-                Data: `Your RH Healthcare workshop verification code is ${otp}. It expires in 5 minutes. Use the latest code if you requested another OTP. Do not share this code. If you did not request it, you can ignore this email.`,
+                Data: `Your RH Healthcare workshop verification code is ${otp}. It expires in ${RATE_LIMITS.workshopMember.otpValidityMs / 60_000} minutes. Use the latest code if you requested another OTP. Do not share this code. If you did not request it, you can ignore this email.`,
               },
             },
           },

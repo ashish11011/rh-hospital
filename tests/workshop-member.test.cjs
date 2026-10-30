@@ -28,7 +28,7 @@ function setup() {
     card: { id: cardId, userId: "owner-1", memberShipId: "RH-NUR-2026-0001", email: "owner@example.com",
       fullName: "Card Owner", mobileNumber: "9876543210", profession: "nursing_officer", organizationName: "Hospital", city: "Jaipur",
       isActive: true, membershipPurchaseType: "paid", activationDate: new Date(Date.now() - 1000), validityDate: new Date(Date.now() + 86400000) },
-    active: true, event: { id: workshopId, isCompleted: false }, challenge: null, emails: [], failEmail: false, locks: [],
+    redisSentAt: [], redisAttempts: new Map(), redisUnavailable: false, active: true, event: { id: workshopId, isCompleted: false }, challenge: null, emails: [], failEmail: false, locks: [],
   };
   const table = (name, fields) => Object.assign({ table: name }, Object.fromEntries(fields.map((key) => [key, key])));
   const userCard = table("card", ["id", "userId", "memberShipId"]);
@@ -74,6 +74,21 @@ function setup() {
   };
   const service = load("lib/workshopMember.ts", {
     "server-only": {},
+    "@/lib/workshopMemberRateLimit": {
+      enforceWorkshopMemberSendLimit: async () => {
+        if (state.redisUnavailable) throw new Error("Redis unavailable");
+        const now = Date.now();
+        state.redisSentAt = state.redisSentAt.filter((time) => time > now - otp.OTP_WINDOW_MS);
+        if (state.redisSentAt.length >= 3) throw new (require('./helpers/logging.cjs')["@/lib/rateLimit"].RateLimitError)(300);
+        state.redisSentAt.push(now);
+      },
+      initializeWorkshopOtpAttempts: async (id) => state.redisAttempts.set(id, 0),
+      getWorkshopOtpAttempts: async (id) => {
+        if (state.redisUnavailable) throw new Error("Redis unavailable");
+        return state.redisAttempts.get(id) || 0;
+      },
+      recordWorkshopOtpFailure: async (id) => state.redisAttempts.set(id, (state.redisAttempts.get(id) || 0) + 1),
+    },
     "@/db": { userCard, user, workshop, workshopMemberVerification: verification },
     "@/lib/dbConfig": { db },
     "drizzle-orm": { eq: (key, value) => (row) => row[key] === value,
@@ -115,7 +130,7 @@ test("three concurrent sends succeed and a fourth is rate limited for the same c
   assert.equal(app.state.emails.length, 3);
   await assert.rejects(app.send(), (error) => error.status === 429 && error.retryAfter > 0);
   assert.equal(app.state.emails.length, 3);
-  app.state.challenge.sentAt[0] = Date.now() - otp.OTP_WINDOW_MS;
+  app.state.redisSentAt[0] = Date.now() - otp.OTP_WINDOW_MS;
   await app.send();
   assert.equal(app.state.emails.length, 4);
 });
@@ -141,7 +156,7 @@ test("incorrect OTP attempts persist and the correct code is rejected after five
   await app.send();
   const wrong = app.state.emails[0].otp === "000000" ? "111111" : "000000";
   for (let i = 0; i < 5; i++) await assert.rejects(app.verify(undefined, wrong), /Incorrect/);
-  assert.equal(app.state.challenge.attempts, 5);
+  assert.equal(app.state.redisAttempts.get(app.state.challenge.challengeId), 5);
   await assert.rejects(app.verify(), /Too many/);
 });
 
@@ -195,7 +210,7 @@ test("SES failures invalidate OTPs and still count toward the send limit", async
   app.state.failEmail = true;
   await assert.rejects(app.send(), (error) => error.status === 503);
   assert.equal(app.state.challenge.codeHash, null);
-  assert.equal(app.state.challenge.sentAt.length, 1);
+  assert.equal(app.state.redisSentAt.length, 1);
 });
 
 test("membership changes between send and verification deny access", async () => {
@@ -271,4 +286,17 @@ test("member OTP email uses the configured SES sender and contains the expiry", 
   assert.match(message.Message.Body.Text.Data, /123456/);
   assert.match(message.Message.Body.Text.Data, /5 minutes/);
   assert.doesNotMatch(message.Message.Subject.Data, /123456/);
+});
+
+
+test("Redis outages block OTP sends and verification without sending mail or granting sessions", async () => {
+  const app = setup();
+  app.state.redisUnavailable = true;
+  await assert.rejects(app.send(), (error) => error.status === 503);
+  assert.equal(app.state.emails.length, 0);
+  app.state.redisUnavailable = false;
+  await app.send();
+  app.state.redisUnavailable = true;
+  await assert.rejects(app.verify(), (error) => error.status === 503);
+  assert.equal(app.state.challenge.sessionHash, null);
 });

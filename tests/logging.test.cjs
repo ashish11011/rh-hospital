@@ -23,6 +23,7 @@ function harness(environment = "development", options = {}) {
   const store = new AsyncLocalStorage();
   let headerReads = 0;
   const mocks = {
+    "@/lib/rateLimit": { checkPublicApiRateLimit: async () => {}, rateLimitResponse: () => null },
     "server-only": {},
     "node:async_hooks": { AsyncLocalStorage },
     "node:crypto": crypto,

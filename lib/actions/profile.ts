@@ -1,4 +1,5 @@
 "use server";
+import { invalidateRedisCache } from "@/lib/redisCache";
 import { runLoggedOperation } from "@/lib/logging/operations";
 import { createLogger } from "@/lib/logging/logger";
 
@@ -74,6 +75,7 @@ export async function updateUserProfile(email: string, data: any) {
             .where(eq(user.email, sessionEmail));
         }
 
+        await invalidateRedisCache("reviews");
         revalidatePath("/dashboard/profile");
         return { success: true };
       } catch (error: any) {

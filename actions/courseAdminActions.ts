@@ -1,4 +1,5 @@
 "use server";
+import { invalidateRedisCache } from "@/lib/redisCache";
 import { runLoggedOperation } from "@/lib/logging/operations";
 
 import { course, courseEnrolment, courseItem, courseReviews, user } from "@/db";
@@ -95,6 +96,9 @@ export async function createCourse(data: CourseInput) {
         .insert(course)
         .values(cleanCourse(data))
         .returning({ id: course.id });
+      await invalidateRedisCache("courses");
+      revalidatePath("/");
+      revalidatePath("/courses/[slug]", "page");
       revalidatePath("/admin/course");
       revalidatePath("/courses");
       return created;
@@ -115,6 +119,9 @@ export async function updateCourse(id: string, data: CourseInput) {
       )
         throw new Error("Title, slug and banner image key are required");
       await db.update(course).set(cleanCourse(data)).where(eq(course.id, id));
+      await invalidateRedisCache("courses");
+      revalidatePath("/");
+      revalidatePath("/courses/[slug]", "page");
       revalidatePath("/admin/course");
       revalidatePath(`/admin/course/${id}`);
       revalidatePath("/courses");
@@ -136,6 +143,9 @@ export async function deleteCourse(id: string) {
         await tx.delete(courseItem).where(eq(courseItem.courseId, id));
         await tx.delete(course).where(eq(course.id, id));
       });
+      await invalidateRedisCache("courses");
+      revalidatePath("/");
+      revalidatePath("/courses/[slug]", "page");
       revalidatePath("/admin/course");
       revalidatePath("/courses");
     },
@@ -208,9 +218,11 @@ export async function reorderCourseItems(courseId: string, itemIds: string[]) {
           .where(eq(courseItem.courseId, courseId));
       });
 
+      await invalidateRedisCache("courses");
+      revalidatePath("/");
+      revalidatePath("/courses/[slug]", "page");
       revalidatePath(`/admin/course/${courseId}`);
       revalidatePath("/courses");
-      revalidatePath("/courses/[slug]", "page");
       revalidatePath(`/dashboard/courses/${courseId}`);
     },
     true,
@@ -230,8 +242,11 @@ export async function createCourseItem(data: CourseItemInput) {
         accessType: parseCourseItemAccessType(data.accessType),
         mediaUrl: courseAssetKey(data.mediaUrl, data.mediaType),
       });
-      revalidatePath(`/admin/course/${data.courseId}`);
+      await invalidateRedisCache("courses");
+      revalidatePath("/courses");
+      revalidatePath("/");
       revalidatePath("/courses/[slug]", "page");
+      revalidatePath(`/admin/course/${data.courseId}`);
     },
     true,
   );
@@ -252,8 +267,11 @@ export async function updateCourseItem(id: string, data: CourseItemInput) {
           updatedAt: new Date(),
         })
         .where(eq(courseItem.id, id));
-      revalidatePath(`/admin/course/${data.courseId}`);
+      await invalidateRedisCache("courses");
+      revalidatePath("/courses");
+      revalidatePath("/");
       revalidatePath("/courses/[slug]", "page");
+      revalidatePath(`/admin/course/${data.courseId}`);
     },
     true,
   );
@@ -265,6 +283,10 @@ export async function deleteCourseItem(id: string, courseId: string) {
     "actions/courseAdminActions.ts:deleteCourseItem",
     async () => {
       await db.delete(courseItem).where(eq(courseItem.id, id));
+      await invalidateRedisCache("courses");
+      revalidatePath("/courses");
+      revalidatePath("/");
+      revalidatePath("/courses/[slug]", "page");
       revalidatePath(`/admin/course/${courseId}`);
     },
     true,
@@ -365,6 +387,7 @@ export async function updateCourseReviewApproval(
         .update(courseReviews)
         .set({ isApproved })
         .where(eq(courseReviews.id, id));
+      await invalidateRedisCache("reviews");
       revalidatePath("/admin/course-reviews");
       revalidatePath("/courses");
       if (reviewCourse?.slug)
@@ -387,6 +410,7 @@ export async function deleteCourseReview(id: string) {
         .limit(1);
 
       await db.delete(courseReviews).where(eq(courseReviews.id, id));
+      await invalidateRedisCache("reviews");
       revalidatePath("/admin/course-reviews");
       revalidatePath("/courses");
       if (reviewCourse?.slug)

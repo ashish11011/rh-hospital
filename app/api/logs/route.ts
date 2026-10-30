@@ -4,9 +4,6 @@ import { createLogger } from "@/lib/logging/logger";
 import type { LogLevel } from "@/lib/logging/shared";
 import { diagnosticsEnabled } from "@/lib/logging/policy";
 
-let windowStart = 0;
-let accepted = 0;
-
 export const POST = withApiLogging(
   "/api/logs",
   async function POST(request: Request) {
@@ -14,13 +11,6 @@ export const POST = withApiLogging(
       return new Response(null, { status: 403 });
     if (!request.headers.get("content-type")?.startsWith("application/json"))
       return new Response(null, { status: 415 });
-    const now = Date.now();
-    if (now - windowStart >= 60_000) {
-      windowStart = now;
-      accepted = 0;
-    }
-    // Best-effort per-instance ingestion bound. This route never accepts arbitrary log text/data.
-    if (accepted >= 500) return new Response(null, { status: 429 });
     const reader = request.body?.getReader();
     if (!reader) return new Response(null, { status: 400 });
     const chunks: Uint8Array[] = [];
@@ -52,7 +42,6 @@ export const POST = withApiLogging(
       return new Response(null, { status: 400 });
     if (event.level === "info" && !diagnosticsEnabled())
       return new Response(null, { status: 204 });
-    accepted++;
     createLogger("service", `browser/${event.source}`)[event.level as LogLevel](
       event.message,
       { browser: true },

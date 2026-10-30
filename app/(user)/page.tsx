@@ -35,7 +35,7 @@ import { getFeaturedPublishedBlogs } from "@/lib/blogData";
 import { blogPath } from "@/lib/blogUtils";
 import { getS3AssetUrl } from "@/lib/s3Asset";
 import { getPublicCourses } from "@/actions/courseActions";
-import { getWorkshops } from "@/actions/workshopActions";
+import { getPublicWorkshops } from "@/lib/publicWorkshopData";
 import { WorkshowListCard } from "@/components/workshop/WorkshowListCard";
 import { formatDate } from "@/helper/formatDate";
 import SideForm from "@/app/(user)/contact-us/SideForm";
@@ -95,7 +95,7 @@ export default async function Home() {
   const [featuredBlogs, courses, workshops] = await Promise.all([
     getFeaturedPublishedBlogs(3),
     getPublicCourses(),
-    getWorkshops(),
+    getPublicWorkshops(),
   ]);
 
   const pastWorkshops = workshops.filter((ws) => ws.isCompleted);
@@ -263,7 +263,7 @@ function FeaturedBlogs({ blogs }: { blogs: FeaturedBlog[] }) {
   );
 }
 
-type HomeWorkshop = Awaited<ReturnType<typeof getWorkshops>>[number];
+type HomeWorkshop = Awaited<ReturnType<typeof getPublicWorkshops>>[number];
 
 function PastWorkshops({ workshops }: { workshops: HomeWorkshop[] }) {
   if (workshops.length === 0) return null;

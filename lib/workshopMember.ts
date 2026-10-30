@@ -13,7 +13,14 @@ import { isRhCardDiscountEligible } from "@/lib/rhCardDiscount";
 import { sendWorkshopMemberOtpEmail } from "@/lib/sesClient";
 import type { UserCard } from "@/lib/rhIdCard";
 import {
-  getOtpSendLimit,
+  enforceWorkshopMemberSendLimit,
+  getWorkshopOtpAttempts,
+  initializeWorkshopOtpAttempts,
+  recordWorkshopOtpFailure,
+} from "@/lib/workshopMemberRateLimit";
+import { RateLimitError } from "@/lib/rateLimit";
+import { RedisUnavailableError } from "@/lib/redis";
+import {
   hashMemberSession,
   hashOtp,
   maskMemberEmail,
@@ -107,23 +114,27 @@ export async function requestWorkshopMemberOtp(
           throw new WorkshopMemberError(
             "This card is inactive, expired, or not eligible for the membership discount.",
           );
-        const [previous] = await tx
-          .select()
-          .from(verification)
-          .where(eq(verification.cardId, card.id));
         const now = Date.now();
-        const { recent, retryAfter } = getOtpSendLimit(
-          previous?.sentAt || [],
-          now,
-        );
-        if (retryAfter)
+        try {
+          await enforceWorkshopMemberSendLimit(card.id);
+        } catch (error) {
+          if (error instanceof RateLimitError)
+            throw new WorkshopMemberError(error.message, 429, error.retryAfter);
           throw new WorkshopMemberError(
-            "You can request only 3 OTPs in 5 minutes. Please try again later.",
-            429,
-            retryAfter,
+            "Unable to verify request limits. Please try again shortly.",
+            503,
           );
+        }
         const challengeId = randomUUID();
         const code = String(randomInt(100000, 1000000));
+        try {
+          await initializeWorkshopOtpAttempts(challengeId, OTP_WINDOW_MS);
+        } catch {
+          throw new WorkshopMemberError(
+            "Verification is temporarily unavailable. Please try again shortly.",
+            503,
+          );
+        }
         const values = {
           cardId: card.id,
           workshopId,
@@ -131,8 +142,6 @@ export async function requestWorkshopMemberOtp(
           email: card.email.trim().toLowerCase(),
           codeHash: hashOtp(challengeId, code),
           expiresAt: new Date(now + OTP_WINDOW_MS),
-          attempts: 0,
-          sentAt: [...recent, now],
           sessionHash: null,
           sessionExpiresAt: null,
         };
@@ -194,14 +203,32 @@ export async function verifyWorkshopMemberOtp(
             error:
               "This OTP has expired or has already been used. Request a new OTP.",
           };
-        if (challenge.attempts >= OTP_ATTEMPT_LIMIT)
+        let attempts: number;
+        try {
+          attempts = await getWorkshopOtpAttempts(challengeId);
+        } catch {
+          throw new WorkshopMemberError(
+            "Verification is temporarily unavailable. Please try again shortly.",
+            503,
+          );
+        }
+        if (attempts >= OTP_ATTEMPT_LIMIT)
           return { error: "Too many incorrect attempts. Request a new OTP." };
         // Return errors out of the transaction so failed-attempt increments are committed.
         if (!matchesHash(challenge.codeHash, hashOtp(challengeId, code))) {
-          await tx
-            .update(verification)
-            .set({ attempts: challenge.attempts + 1 })
-            .where(eq(verification.cardId, challenge.cardId));
+          try {
+            await recordWorkshopOtpFailure(
+              challengeId,
+              challenge.expiresAt.getTime() - Date.now(),
+            );
+          } catch (error) {
+            if (error instanceof RedisUnavailableError)
+              throw new WorkshopMemberError(
+                "Verification is temporarily unavailable. Please try again shortly.",
+                503,
+              );
+            throw error;
+          }
           return { error: "Incorrect OTP. Please try again." };
         }
         const card = await eligibleCard(challenge.cardId, tx);
@@ -263,13 +290,16 @@ export async function getVerifiedWorkshopMember(
           ),
         )
         .limit(1);
-      // console.log(JSON.stringify(session.expiresAt.getTime()));
-      // console.log(Date.now());
-      // if (!session.expiresAt || session.expiresAt.getTime() <= Date.now())
-      //   throw new WorkshopMemberError(
-      //     "Your membership verification has expired. Please verify again.",
-      //     401,
-      //   );
+      if (
+        !session?.sessionHash ||
+        !session.sessionExpiresAt ||
+        session.sessionExpiresAt.getTime() <= Date.now() ||
+        !matchesHash(session.sessionHash, hashMemberSession(token))
+      )
+        throw new WorkshopMemberError(
+          "Your membership verification has expired. Please verify again.",
+          401,
+        );
       const card = await eligibleCard(cardId);
       if (!card || card.email.trim().toLowerCase() !== session.email)
         throw new WorkshopMemberError(
@@ -280,4 +310,3 @@ export async function getVerifiedWorkshopMember(
     },
   );
 }
-2;

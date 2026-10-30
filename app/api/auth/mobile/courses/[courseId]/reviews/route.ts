@@ -1,3 +1,4 @@
+import { invalidateRedisCache } from "@/lib/redisCache";
 import { withApiLogging } from "@/lib/logging/api";
 import { course, courseEnrolment, courseReviews, user } from "@/db";
 import { db } from "@/lib/dbConfig";
@@ -132,6 +133,7 @@ export const POST = withApiLogging(
             createdAt: courseReviews.createdAt,
           });
 
+        await invalidateRedisCache("reviews");
         return NextResponse.json(
           { success: true, review: updated },
           { status: 200 },

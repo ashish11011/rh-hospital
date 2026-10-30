@@ -1,4 +1,4 @@
-import { getWorkshops } from "@/actions/workshopActions";
+import { getPublicWorkshops } from "@/lib/publicWorkshopData";
 import { MobileAppCTA } from "@/components/MobileAppCTA";
 import WorkshopFAQ from "@/components/ui/AccordionStudio";
 import { WorkshowListCard } from "@/components/workshop/WorkshowListCard";
@@ -16,7 +16,7 @@ export const revalidate = 3600; // Revalidate every hour
 export const dynamic = "force-static";
 
 export default async function WorkshopsPage() {
-  const workshops = await getWorkshops();
+  const workshops = await getPublicWorkshops();
 
   const upcommingWorkshop = workshops.filter(
     (workshop) => !workshop.isCompleted,

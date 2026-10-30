@@ -1,3 +1,4 @@
+import { enforceAuthRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { instrumentAwsClient } from "@/lib/logging/aws";
 
 import { withApiLogging } from "@/lib/logging/api";
@@ -45,6 +46,7 @@ export const POST = withApiLogging(
       }
 
       cognitoUsername = email.trim().toLowerCase();
+      await enforceAuthRateLimit("login", cognitoUsername, req.headers);
       const normalizedEmail = cognitoUsername;
 
       const secretHash = crypto
@@ -119,6 +121,8 @@ export const POST = withApiLogging(
         { status: loginError.status },
       );
     } catch (error: any) {
+      const limited = rateLimitResponse(error);
+      if (limited) return limited;
       logger.error("Cognito auth error", { error });
       const loginError = await resolveCognitoLoginError(error, cognitoUsername);
       return NextResponse.json(

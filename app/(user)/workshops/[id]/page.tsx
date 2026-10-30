@@ -2,9 +2,7 @@ import { runLoggedOperation } from "@/lib/logging/operations";
 import { publicMediaHtml } from "@/lib/publicAsset";
 import { notFound } from "next/navigation";
 import { Calendar, Clock, IndianRupee, MapPin, Video } from "lucide-react";
-import { db } from "@/lib/dbConfig";
-import { workshop, workshopImage } from "@/db";
-import { asc, eq } from "drizzle-orm";
+import { getPublicWorkshopById, getPublicWorkshopImages } from "@/lib/publicWorkshopData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WorkshopRegistration } from "@/components/workshop/takeRegistratoinDialog";
 import { Suspense } from "react";
@@ -34,10 +32,7 @@ export default async function WorkshopDetailsPage({
     async () => {
       const { id } = await params;
 
-      const [ws]: any = await db
-        .select()
-        .from(workshop)
-        .where(eq(workshop.id, id));
+      const ws = await getPublicWorkshopById(id);
 
       if (!ws) {
         notFound();
@@ -217,11 +212,7 @@ async function WorkshopImages({ workshopId }: any) {
     "service",
     "app/(user)/workshops/[id]/page.tsx:WorkshopImages",
     async () => {
-      const workshopImages = await db
-        .select()
-        .from(workshopImage)
-        .where(eq(workshopImage.workshopId, workshopId))
-        .orderBy(asc(workshopImage.displayOrder));
+      const workshopImages = await getPublicWorkshopImages(workshopId);
       return (
         <div className="mt-12">
           {workshopImages.length > 0 && (

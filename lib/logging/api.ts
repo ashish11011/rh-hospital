@@ -8,6 +8,7 @@ import {
 import { createLogger } from "./logger";
 import { diagnosticsEnabled } from "./policy";
 import { statusLevel } from "./shared";
+import { checkPublicApiRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 
 /** Preserve Next's exact handler signature, including promised dynamic params. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,7 +28,14 @@ export function withApiLogging<T extends (...args: any[]) => Promise<Response>>(
       const started = performance.now();
       if (options.logStart !== false) logger.diagnostic("Request started");
       try {
-        const response = await handler(...args);
+        let blocked: Response | null = null;
+        try {
+          await checkPublicApiRateLimit(route, request);
+        } catch (error) {
+          blocked = rateLimitResponse(error);
+          if (!blocked) throw error;
+        }
+        const response = blocked || (await handler(...args));
         if (
           response.status >= 400 ||
           options.logSuccess !== false ||

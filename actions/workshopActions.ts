@@ -1,4 +1,5 @@
 "use server";
+import { invalidateRedisCache } from "@/lib/redisCache";
 import { runLoggedOperation } from "@/lib/logging/operations";
 import { createLogger } from "@/lib/logging/logger";
 
@@ -75,6 +76,9 @@ export async function createWorkshop(data: WorkshopInput) {
         await requireAdmin("workshop");
         validateWorkshopAttendance(data);
         await db.insert(workshop).values(data);
+        await invalidateRedisCache("workshops");
+        revalidatePath("/");
+        revalidatePath("/workshops/[id]", "page");
         revalidatePath("/admin/workshop");
         revalidatePath("/workshops");
         return { success: true };
@@ -104,6 +108,9 @@ export async function updateWorkshop(id: string, data: Partial<WorkshopInput>) {
         validateWorkshopAttendance({ ...existing, ...updateData });
 
         await db.update(workshop).set(updateData).where(eq(workshop.id, id));
+        await invalidateRedisCache("workshops");
+        revalidatePath("/");
+        revalidatePath("/workshops/[id]", "page");
         revalidatePath("/admin/workshop");
         revalidatePath("/workshops");
         revalidatePath(`/workshops/${id}`);
@@ -125,6 +132,9 @@ export async function deleteWorkshop(id: string) {
       try {
         await requireAdmin("workshop");
         await db.delete(workshop).where(eq(workshop.id, id));
+        await invalidateRedisCache("workshops");
+        revalidatePath("/");
+        revalidatePath("/workshops/[id]", "page");
         revalidatePath("/admin/workshop");
         revalidatePath("/workshops");
         return { success: true };
@@ -169,6 +179,9 @@ export async function addWorkshopImage(data: {
       try {
         await requireAdmin("workshop");
         await db.insert(workshopImage).values(data);
+        await invalidateRedisCache("workshops");
+        revalidatePath("/");
+        revalidatePath("/workshops/[id]", "page");
         revalidatePath("/admin/workshop");
         revalidatePath("/workshops");
         return { success: true };
@@ -189,6 +202,9 @@ export async function deleteWorkshopImage(id: string) {
       try {
         await requireAdmin("workshop");
         await db.delete(workshopImage).where(eq(workshopImage.id, id));
+        await invalidateRedisCache("workshops");
+        revalidatePath("/");
+        revalidatePath("/workshops/[id]", "page");
         revalidatePath("/admin/workshop");
         revalidatePath("/workshops");
         return { success: true };

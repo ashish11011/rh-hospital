@@ -1,3 +1,4 @@
+import { enforceAuthRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { instrumentAwsClient } from "@/lib/logging/aws";
 
 import { withApiLogging } from "@/lib/logging/api";
@@ -43,6 +44,7 @@ export const POST = withApiLogging(
       }
 
       const email = data.email.trim().toLowerCase();
+      await enforceAuthRateLimit("signup", email, req.headers);
       signupEmail = email;
       const secretHash = crypto
         .createHmac("sha256", USER_POOL_CLIENT_SECRET)
@@ -82,6 +84,8 @@ export const POST = withApiLogging(
 
       return NextResponse.json({ success: true }, { status: 200 });
     } catch (error: any) {
+      const limited = rateLimitResponse(error);
+      if (limited) return limited;
       if (error.name === "UsernameExistsException") {
         return NextResponse.json(
           await resolveExistingCognitoSignup(signupEmail),

@@ -1,3 +1,4 @@
+import { invalidateRedisCache } from "@/lib/redisCache";
 import { withApiLogging } from "@/lib/logging/api";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/dbConfig";
@@ -106,6 +107,7 @@ export const PUT = withApiLogging(
         .set(updateData)
         .where(eq(user.email, email.toLowerCase()));
 
+      await invalidateRedisCache("reviews");
       return NextResponse.json(
         { success: true, message: "User updated successfully" },
         { status: 200 },

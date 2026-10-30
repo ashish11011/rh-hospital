@@ -112,7 +112,7 @@ function setup({
       async signIn(provider, credentials) {
         if (signInFailure) throw signInFailure;
         try {
-          await authorize(credentials);
+          await authorize(credentials, new Request("https://example.com/api/auth/callback/credentials"));
         } catch (err) {
           if (err instanceof AuthError) throw err;
           throw new CallbackRouteError(err);

@@ -1,3 +1,4 @@
+import { enforceAuthRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { instrumentAwsClient } from "@/lib/logging/aws";
 
 import { withApiLogging } from "@/lib/logging/api";
@@ -40,6 +41,7 @@ export const POST = withApiLogging(
       }
 
       const email = data.email.trim().toLowerCase();
+      await enforceAuthRateLimit("resetPassword", email, req.headers);
       const secretHash = crypto
         .createHmac("sha256", USER_POOL_CLIENT_SECRET)
         .update(email + USER_POOL_CLIENT_ID)
@@ -57,6 +59,8 @@ export const POST = withApiLogging(
 
       return NextResponse.json({ success: true }, { status: 200 });
     } catch (error: any) {
+      const limited = rateLimitResponse(error);
+      if (limited) return limited;
       return NextResponse.json(
         { error: error.message || "Failed to reset password" },
         { status: 400 },

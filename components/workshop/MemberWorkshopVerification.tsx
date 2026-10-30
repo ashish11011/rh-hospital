@@ -1,5 +1,7 @@
 "use client";
 
+import { RATE_LIMITS } from "@/lib/constants";
+
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
@@ -139,12 +141,13 @@ export function MemberWorkshopVerification({
               : "Send OTP"}
       </Button>
       {/* <p className="text-xs text-gray-500">
-        Maximum 3 OTP emails per 5 minutes, including resends.
+        Maximum {RATE_LIMITS.workshopMember.send.limit} OTP emails per {RATE_LIMITS.workshopMember.send.windowMs / 60_000} minutes, including resends.
       </p> */}
       {challenge && (
         <div className="space-y-3">
           <p role="status" className="text-sm text-gray-600">
-            OTP sent to {challenge.maskedEmail}. It expires in 5 minutes. Enter
+            OTP sent to {challenge.maskedEmail}. It expires in{" "}
+            {RATE_LIMITS.workshopMember.otpValidityMs / 60_000} minutes. Enter
             the latest code.
           </p>
           <Label htmlFor="workshop-member-otp">Email OTP</Label>

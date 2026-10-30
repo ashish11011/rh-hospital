@@ -1,3 +1,4 @@
+import { invalidateRedisCache } from "@/lib/redisCache";
 import { instrumentAwsClient } from "@/lib/logging/aws";
 
 import { withApiLogging } from "@/lib/logging/api";
@@ -123,6 +124,7 @@ export const DELETE = withApiLogging(
           }),
         );
       });
+      await invalidateRedisCache("reviews");
       return NextResponse.json({ success: true });
     } catch (error) {
       if (

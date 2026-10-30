@@ -1,0 +1,2 @@
+CREATE TYPE "public"."course_item_access_type" AS ENUM('free', 'paid', 'free_for_members');--> statement-breakpoint
+ALTER TABLE "course_item" ADD COLUMN "access_type" "course_item_access_type" DEFAULT 'paid' NOT NULL;

@@ -8,6 +8,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { userSchema } from "./userSchema";
+import { COURSE_ITEM_ACCESS_TYPES } from "../lib/courseItemAccess";
 
 export const courseSchema = pgTable("course", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -30,6 +31,11 @@ export const courseSchema = pgTable("course", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const courseItemAccessType = pgEnum(
+  "course_item_access_type",
+  COURSE_ITEM_ACCESS_TYPES,
+);
+
 export const courseItemSchema = pgTable("course_item", {
   id: uuid("id").defaultRandom().primaryKey(),
   courseId: uuid("course_id")
@@ -37,6 +43,7 @@ export const courseItemSchema = pgTable("course_item", {
     .notNull(),
   mediaUrl: varchar("media_url").notNull(),
   mediaType: varchar("media_type").notNull(),
+  accessType: courseItemAccessType("access_type").notNull().default("paid"),
   title: varchar("title"),
   duration: varchar("duration"),
   priority: integer("priority").notNull().default(0),

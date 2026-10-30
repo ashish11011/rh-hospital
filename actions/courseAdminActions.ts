@@ -3,10 +3,16 @@ import { runLoggedOperation } from "@/lib/logging/operations";
 
 import { course, courseEnrolment, courseItem, courseReviews, user } from "@/db";
 import { db } from "@/lib/dbConfig";
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, sql } from "drizzle-orm";
+import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { publicAssetKey, courseAssetKey } from "@/lib/publicAsset";
 import { publicCoursePath } from "@/lib/course";
+import { requireAdmin } from "@/lib/adminAuth";
+import {
+  parseCourseItemAccessType,
+  type CourseItemAccessType,
+} from "@/lib/courseItemAccess";
 
 export type CourseInput = {
   title: string;
@@ -32,6 +38,7 @@ export type CourseItemInput = {
   title?: string | null;
   duration?: string | null;
   priority: number;
+  accessType?: CourseItemAccessType;
 };
 
 const cleanCourse = (data: CourseInput) => ({
@@ -145,7 +152,66 @@ export async function getCourseItems(courseId: string) {
         .select()
         .from(courseItem)
         .where(eq(courseItem.courseId, courseId))
-        .orderBy(asc(courseItem.priority));
+        .orderBy(
+          asc(courseItem.priority),
+          asc(courseItem.createdAt),
+          asc(courseItem.id),
+        );
+    },
+    true,
+  );
+}
+
+export async function reorderCourseItems(courseId: string, itemIds: string[]) {
+  return runLoggedOperation(
+    "service",
+    "actions/courseAdminActions.ts:reorderCourseItems",
+    async () => {
+      await requireAdmin("full");
+      z.string().uuid().parse(courseId);
+      const orderedIds = z.array(z.string().uuid()).min(1).parse(itemIds);
+      const requestedIds = new Set(orderedIds);
+      if (requestedIds.size !== orderedIds.length)
+        throw new Error("Duplicate course items in order");
+
+      await db.transaction(async (tx) => {
+        // Lock the parent before its items so concurrent additions cannot be missed.
+        const [record] = await tx
+          .select({ id: course.id })
+          .from(course)
+          .where(eq(course.id, courseId))
+          .for("update");
+        if (!record) throw new Error("Course not found");
+        const currentItems = await tx
+          .select({ id: courseItem.id })
+          .from(courseItem)
+          .where(eq(courseItem.courseId, courseId))
+          .orderBy(asc(courseItem.id))
+          .for("update");
+        if (
+          currentItems.length !== orderedIds.length ||
+          currentItems.some((item) => !requestedIds.has(item.id))
+        ) {
+          throw new Error(
+            "Course items have changed. Refresh the page and try again.",
+          );
+        }
+        const priorities = orderedIds.map(
+          (id, index) => sql`when ${courseItem.id} = ${id} then ${index + 1}`,
+        );
+        await tx
+          .update(courseItem)
+          .set({
+            priority: sql`case ${sql.join(priorities, sql` `)} else ${courseItem.priority} end`,
+            updatedAt: new Date(),
+          })
+          .where(eq(courseItem.courseId, courseId));
+      });
+
+      revalidatePath(`/admin/course/${courseId}`);
+      revalidatePath("/courses");
+      revalidatePath("/courses/[slug]", "page");
+      revalidatePath(`/dashboard/courses/${courseId}`);
     },
     true,
   );
@@ -156,15 +222,16 @@ export async function createCourseItem(data: CourseItemInput) {
     "service",
     "actions/courseAdminActions.ts:createCourseItem",
     async () => {
+      await requireAdmin();
       if (!data.mediaUrl.trim() || !data.mediaType.trim())
         throw new Error("Media key and type are required");
-      await db
-        .insert(courseItem)
-        .values({
-          ...data,
-          mediaUrl: courseAssetKey(data.mediaUrl, data.mediaType),
-        });
+      await db.insert(courseItem).values({
+        ...data,
+        accessType: parseCourseItemAccessType(data.accessType),
+        mediaUrl: courseAssetKey(data.mediaUrl, data.mediaType),
+      });
       revalidatePath(`/admin/course/${data.courseId}`);
+      revalidatePath("/courses/[slug]", "page");
     },
     true,
   );
@@ -175,15 +242,18 @@ export async function updateCourseItem(id: string, data: CourseItemInput) {
     "service",
     "actions/courseAdminActions.ts:updateCourseItem",
     async () => {
+      await requireAdmin();
       await db
         .update(courseItem)
         .set({
           ...data,
+          accessType: parseCourseItemAccessType(data.accessType),
           mediaUrl: courseAssetKey(data.mediaUrl, data.mediaType),
           updatedAt: new Date(),
         })
         .where(eq(courseItem.id, id));
       revalidatePath(`/admin/course/${data.courseId}`);
+      revalidatePath("/courses/[slug]", "page");
     },
     true,
   );

@@ -63,6 +63,7 @@ export const GET = withApiLogging(
         itemId,
         email.toLowerCase(),
         true,
+        true,
       );
       const upstream = await loggedFetch(
         "app/api/course/media/[itemId]/route.ts",

@@ -1,23 +1,14 @@
-import {
-  Clock3,
-  FileText,
-  Presentation,
-  Video,
-  Headphones,
-  Link2,
-} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import CourseCurriculum, { type CurriculumItem } from "./CourseCurriculum";
 
 export interface CourseOverviewProps {
   courseOverview: string;
   whatYoullLearn: string[];
   skillsAcquired: string[];
-  courseCurriculum: {
-    moduleNumber: number;
-    lectureName: string;
-    duration: string;
-    mediaType: string;
-  }[];
+  courseCurriculum: CurriculumItem[];
+  courseId: string;
+  coursePath: string;
+  email: string;
   certificate?: {
     type: string;
     description: string;
@@ -26,6 +17,9 @@ export interface CourseOverviewProps {
 
 export default function CourseOverviewSection({
   courseOverview,
+  courseId,
+  coursePath,
+  email,
   skillsAcquired,
   courseCurriculum,
   certificate,
@@ -72,41 +66,12 @@ export default function CourseOverviewSection({
             </span>
           </div>
 
-          <ol className="divide-border bg-card divide-y overflow-hidden rounded-2xl border">
-            {courseCurriculum.map((chapter) => {
-              const media = getMediaPresentation(chapter.mediaType);
-              const Icon = media.icon;
-              return (
-                <li
-                  key={chapter.moduleNumber}
-                  className="flex items-start gap-4 p-5 sm:items-center sm:p-6"
-                >
-                  <div className="bg-primary/10 text-primary flex size-11 shrink-0 items-center justify-center rounded-xl">
-                    <Icon className="size-5" aria-hidden="true" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-muted-foreground mb-1 text-xs font-medium tracking-wide uppercase">
-                      {String(chapter.moduleNumber).padStart(2, "0")} ·{" "}
-                      {media.label}
-                    </p>
-                    <h4 className="text-foreground text-base leading-6 font-medium break-words">
-                      {chapter.lectureName}
-                    </h4>
-                    <div className="text-muted-foreground mt-2 flex items-center gap-1.5 text-sm">
-                      <Clock3
-                        className="size-3.5 shrink-0"
-                        aria-hidden="true"
-                      />
-                      <span>
-                        <span className="sr-only">Duration: </span>
-                        {chapter.duration}
-                      </span>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
+          <CourseCurriculum
+            items={courseCurriculum}
+            courseId={courseId}
+            coursePath={coursePath}
+            email={email}
+          />
           {courseCurriculum.length === 0 && (
             <p className="text-muted-foreground mt-4 text-sm">
               Curriculum details will be available soon.
@@ -128,16 +93,4 @@ export default function CourseOverviewSection({
       </div>
     </section>
   );
-}
-
-function getMediaPresentation(mediaType: string) {
-  const type = mediaType.toLowerCase().trim();
-  if (type.includes("pdf")) return { label: "PDF document", icon: FileText };
-  if (/ppt|powerpoint|presentation/.test(type))
-    return { label: "Presentation", icon: Presentation };
-  if (/video|mp4|webm|mov|m4v/.test(type))
-    return { label: "Video", icon: Video };
-  if (/audio|mp3|wav/.test(type)) return { label: "Audio", icon: Headphones };
-  if (type === "link") return { label: "Link", icon: Link2 };
-  return { label: "Document", icon: FileText };
 }

@@ -16,9 +16,11 @@ import { useForm } from "react-hook-form";
 import { signupSchema, SignupValues } from "@/lib/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PasswordRequirements } from "./password-requirements";
+import { usePendingCredentials } from "./pending-credentials";
 
 export default function SignupForm() {
   const router = useRouter();
+  const { setCredentials } = usePendingCredentials();
   const [error, setError] = useState<string | null>(null);
   const [existingAccount, setExistingAccount] = useState<{
     email: string;
@@ -32,10 +34,15 @@ export default function SignupForm() {
   const onSubmit = async (data: SignupValues) => {
     setError(null);
     setExistingAccount(null);
+    setCredentials(null);
     try {
       const res = await signupWithCognito(data);
       const emailQuery = `email=${encodeURIComponent(data.email)}`;
       if ("nextStep" in res && res.nextStep === "verify_email") {
+        setCredentials({
+          email: data.email.trim().toLowerCase(),
+          password: data.password,
+        });
         router.push(`/verify-email?${emailQuery}`);
       } else if ("nextStep" in res && res.nextStep === "reset_password") {
         router.push(`/forgot-password?${emailQuery}`);
@@ -52,6 +59,10 @@ export default function SignupForm() {
           });
         }
       } else if (res.success) {
+        setCredentials({
+          email: data.email.trim().toLowerCase(),
+          password: data.password,
+        });
         router.push(`/verify-email?${emailQuery}`);
       }
     } catch {

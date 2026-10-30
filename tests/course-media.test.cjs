@@ -157,8 +157,10 @@ function route(
       },
       "@/lib/coursePlaybackAccess": {
         CoursePlaybackError,
-        grantCourseDocument: async () => {
-          if (!access)
+        grantCourseDocument: async (_courseId, _itemId, email) => {
+          if (!email)
+            throw new CoursePlaybackError(401, "Authentication required");
+          if (!access && item.accessType !== "free")
             throw new CoursePlaybackError(403, "Course access required");
           try {
             return {
@@ -240,6 +242,18 @@ test("anonymous document requests never fetch the CDN", async () => {
   });
   assert.equal((await harness.get()).status, 401);
   assert.equal(harness.calls(), 0);
+});
+
+test("free website documents require login before fetching the signed media", async () => {
+  const item = {
+    mediaType: "pdf", mediaUrl: "course/resources/notes.pdf", accessType: "free",
+  };
+  const guest = route("anonymous", async () => new Response("pdf"), item);
+  assert.equal((await guest.get()).status, 401);
+  assert.equal(guest.calls(), 0);
+  const harness = route({}, async () => new Response("pdf"), item);
+  assert.equal((await harness.get()).status, 200);
+  assert.equal(harness.calls(), 1);
 });
 
 test("private PDF range responses retain partial-content headers without leaking the signed URL", async () => {

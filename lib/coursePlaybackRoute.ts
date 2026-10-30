@@ -62,6 +62,7 @@ export async function coursePlaybackResponse(
           itemId,
           email.toLowerCase(),
           !mobile,
+          !mobile,
         );
         const { mediaUrl, mediaType, expiresAt } = grant;
         const response = NextResponse.json(

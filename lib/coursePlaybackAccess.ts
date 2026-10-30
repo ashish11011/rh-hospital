@@ -12,6 +12,7 @@ import {
 import { isCourseVideoMedia } from "@/lib/publicAsset";
 import { isCourseId } from "@/lib/courseAccess";
 import { getAdminAccessForEmail } from "@/lib/adminAccess";
+import { getWebsiteCourseItemMedia } from "@/lib/websiteCourseItemAccess";
 
 export class CoursePlaybackError extends Error {
   constructor(
@@ -30,10 +31,20 @@ async function getAuthorizedCourseMedia(
   itemId: string,
   email: string,
   allowAdmin = false,
+  allowItemAccess = false,
 ) {
   if (!isCourseId(courseId) || !isCourseId(itemId))
     throw new CoursePlaybackError(400, "Invalid course or lesson ID");
   const admin = allowAdmin && getAdminAccessForEmail(email) === "full";
+  if (allowItemAccess && !admin) {
+    const mediaUrl = await getWebsiteCourseItemMedia(courseId, itemId, email);
+    if (!mediaUrl)
+      throw new CoursePlaybackError(
+        email ? 403 : 401,
+        email ? "Course item access required" : "Authentication required",
+      );
+    return mediaUrl;
+  }
   let mediaUrl: string;
   if (admin) {
     const [item] = await db
@@ -105,6 +116,7 @@ export async function grantCourseDocument(
   itemId: string,
   email: string,
   allowAdmin = false,
+  allowItemAccess = false,
 ) {
   return runLoggedOperation(
     "service",
@@ -115,6 +127,7 @@ export async function grantCourseDocument(
         itemId,
         email,
         allowAdmin,
+        allowItemAccess,
       );
       if (isCourseVideoMedia(storedUrl))
         throw new CoursePlaybackError(
@@ -150,6 +163,7 @@ export async function grantCoursePlayback(
   itemId: string,
   email: string,
   allowAdmin = false,
+  allowItemAccess = false,
 ) {
   return runLoggedOperation(
     "service",
@@ -160,6 +174,7 @@ export async function grantCoursePlayback(
         itemId,
         email,
         allowAdmin,
+        allowItemAccess,
       );
       let location: ReturnType<typeof coursePlaybackLocation>;
       try {

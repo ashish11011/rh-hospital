@@ -1,7 +1,9 @@
+import { PendingCredentialsProvider } from "@/components/auth/pending-credentials";
+
 export default function AuthLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    return children;
+  return <PendingCredentialsProvider>{children}</PendingCredentialsProvider>;
 }

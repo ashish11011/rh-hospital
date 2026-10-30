@@ -57,6 +57,13 @@
       "when": 1792523242818,
       "tag": "0007_giant_toad",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793170237566,
+      "tag": "0008_nasty_spyke",
+      "breakpoints": true
     }
   ]
 }

@@ -12,7 +12,7 @@ import { IconCertificate } from "@tabler/icons-react";
 import { Clock3, FileText, ShieldCheck, Star } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { publicAssetUrl } from "@/lib/publicAsset";
+import { publicAssetUrl, isCourseVideoMedia } from "@/lib/publicAsset";
 import { publicCoursePath } from "@/lib/course";
 import { getS3AssetUrl } from "@/lib/s3Asset";
 import Link from "next/link";
@@ -20,9 +20,14 @@ import { CoursePrice } from "@/components/course/CoursePrice";
 import { RH_CARD_DISCOUNT_PERCENT } from "@/lib/constants";
 import {
   getRhCardCoursePricing,
+  isRhCardDiscountEligible,
   type CoursePricing,
 } from "@/lib/rhCardDiscount";
-import { getRhCardDiscountCard } from "@/lib/rhCardMembership";
+import { getLatestUserCard } from "@/lib/rhIdCard";
+import {
+  canAccessCourseItem,
+  hasActiveRhMembership,
+} from "@/lib/courseItemAccess";
 
 export default async function Page({
   params,
@@ -39,8 +44,14 @@ export default async function Page({
 
   const session = await auth();
   const currentUser = await getCurrentCourseUser();
-  const discountCard = await getRhCardDiscountCard(currentUser?.id);
-  const pricing = getRhCardCoursePricing(course.price, Boolean(discountCard));
+  const memberCard = currentUser?.isActive
+    ? await getLatestUserCard(currentUser.id)
+    : null;
+  const pricing = getRhCardCoursePricing(
+    course.price,
+    isRhCardDiscountEligible(memberCard),
+  );
+  const isMember = hasActiveRhMembership(memberCard);
   const enrolmentStatus = await getCourseEnrolmentStatus(course.id);
   const coursePath = publicCoursePath(course.slug);
   const reviews = await getApprovedCourseReviews(course.id);
@@ -50,10 +61,23 @@ export default async function Page({
       <Header bannerImage={publicAssetUrl(course.bannerImageUrl)} />
       <div className="container flex w-full flex-col-reverse gap-8 lg:flex-row lg:gap-12">
         <CourseOverviewSection
+          courseId={course.id}
+          coursePath={coursePath}
+          email={session?.user?.email || ""}
           courseOverview={course.courseOverview || course.description}
           whatYoullLearn={course.whatYouWillLearn || []}
           skillsAcquired={course.skillsAcquired || []}
           courseCurriculum={course.items.map((item, index) => ({
+            id: item.id,
+            accessType: item.accessType,
+            canAccess: canAccessCourseItem(item.accessType, {
+              isLoggedIn: Boolean(session?.user?.email && currentUser?.isActive),
+              isMember,
+              isEnrolled: Boolean(
+                currentUser?.isActive && enrolmentStatus === "enrolled",
+              ),
+            }),
+            isVideo: isCourseVideoMedia(item.mediaUrl, item.mediaType),
             moduleNumber: index + 1,
             lectureName: item.title?.trim() || `Lesson ${index + 1}`,
             duration: item.duration?.trim() || "Duration not specified",
@@ -171,8 +195,8 @@ function CoursePurchase({
           pricing.originalAmount > 0 &&
           pricing.discountPercent === 0 && (
             <p className="mt-4 text-sm leading-6 text-slate-600">
-              Purchase an RH Membership Card to get {RH_CARD_DISCOUNT_PERCENT}% off courses
-              while your card is active.{" "}
+              Purchase an RH Membership Card to get {RH_CARD_DISCOUNT_PERCENT}%
+              off courses while your card is active.{" "}
               <Link
                 href={
                   isLoggedIn
@@ -182,8 +206,7 @@ function CoursePurchase({
                 className="text-primary font-medium underline underline-offset-4"
               >
                 Get your RH Membership Card
-              </Link>
-              {" "}
+              </Link>{" "}
               <Link
                 href="/#membership-benefits"
                 className="text-primary font-medium underline underline-offset-4"

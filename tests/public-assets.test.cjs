@@ -195,7 +195,9 @@ test("admin workshop and blog uploads use public object keys", async () => {
     "public/workshops/gallery",
   );
   await actions.getBlogImagePresignedUrl("photo.png", "image/png");
+  await actions.getPresignedUrl("banner.png", "image/png", "courses/banners");
   assert.match(commands[0].Key, /^public\/workshops\/banner\/\d+-photo\.png$/);
   assert.match(commands[1].Key, /^public\/workshops\/gallery\/\d+-photo\.png$/);
   assert.match(commands[2].Key, /^public\/blogs\/\d+-photo\.png$/);
+  assert.match(commands[3].Key, /^public\/courses\/banners\/\d+-banner\.png$/);
 });

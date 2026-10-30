@@ -9,6 +9,7 @@ function signupForm(result) {
   const states = [],
     routes = [];
   let cursor = 0;
+  let credentials = null;
   const values = {
     name: "Member",
     email: "member@example.com",
@@ -33,6 +34,14 @@ function signupForm(result) {
       useRouter: () => ({ push: (href) => routes.push(href) }),
     },
     "@/lib/actions/auth": { signupWithCognito: async () => result },
+    "./pending-credentials": {
+      usePendingCredentials: () => ({
+        credentials,
+        setCredentials: (value) => {
+          credentials = value;
+        },
+      }),
+    },
     "react-hook-form": {
       useForm: () => ({
         register: (name) => ({ name }),
@@ -83,7 +92,13 @@ function signupForm(result) {
     visit(render());
     return found;
   };
-  return { routes, render, elements, submit: () => render().props.onSubmit() };
+  return {
+    routes,
+    render,
+    elements,
+    getCredentials: () => credentials,
+    submit: () => render().props.onSubmit(),
+  };
 }
 
 test("website existing unconfirmed accounts open verification", async () => {
@@ -94,6 +109,10 @@ test("website existing unconfirmed accounts open verification", async () => {
   });
   await app.submit();
   assert.deepEqual(app.routes, ["/verify-email?email=member%40example.com"]);
+  assert.deepEqual(app.getCredentials(), {
+    email: "member@example.com",
+    password: "ValidPass1!",
+  });
 });
 
 test("website confirmed accounts stay on the form with sign-in/reset links and no verification redirect", async () => {
@@ -104,6 +123,7 @@ test("website confirmed accounts stay on the form with sign-in/reset links and n
   });
   await app.submit();
   assert.equal(app.routes.length, 0);
+  assert.equal(app.getCredentials(), null);
   const hrefs = app.elements("AuthLink").map((node) => node.props.href);
   assert.ok(hrefs.includes("/sign-in?email=member%40example.com"));
   assert.ok(hrefs.includes("/forgot-password?email=member%40example.com"));
@@ -141,4 +161,8 @@ test("website new signup retains email verification and shows the current passwo
   );
   await app.submit();
   assert.deepEqual(app.routes, ["/verify-email?email=member%40example.com"]);
+  assert.deepEqual(app.getCredentials(), {
+    email: "member@example.com",
+    password: "ValidPass1!",
+  });
 });

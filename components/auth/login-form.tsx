@@ -9,7 +9,6 @@ import { AuthLink } from "./auth-link";
 import { Mail } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -17,9 +16,11 @@ import { Separator } from "@/components/ui/separator";
 import PasswordInput from "./password-input";
 import GoogleButton from "./google-button";
 import { useForm } from "react-hook-form";
+import { usePendingCredentials } from "./pending-credentials";
 
 export default function LoginForm() {
   const router = useRouter();
+  const { setCredentials } = usePendingCredentials();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const callbackUrl = getSafeCallbackUrl(searchParams.get("callbackUrl"));
@@ -34,10 +35,15 @@ export default function LoginForm() {
 
   const onSubmit = async (data: LoginValues) => {
     setError(null);
+    setCredentials(null);
     try {
       const res = await loginWithCredentials(data);
 
       if (res?.error === "unconfirmed") {
+        setCredentials({
+          email: data.email.trim().toLowerCase(),
+          password: data.password,
+        });
         router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
       } else if (res?.error) {
         setError(res.error);
@@ -96,12 +102,7 @@ export default function LoginForm() {
         </p>
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Checkbox id="remember" />
-          <Label htmlFor="remember">Remember me</Label>
-        </div>
-
+      <div className="flex justify-end">
         <AuthLink href="/forgot-password" className="text-sm">
           Forgot password?
         </AuthLink>

@@ -1,6 +1,7 @@
 import {
   boolean,
   integer,
+  numeric,
   pgEnum,
   pgTable,
   timestamp,
@@ -17,6 +18,8 @@ export const courseSchema = pgTable("course", {
   content: varchar("content"),
   currency: varchar("currency").default("INR"),
   price: integer("price").notNull().default(0),
+  iosPrice: numeric("ios_price", { precision: 10, scale: 2 }),
+  iosProductId: varchar("ios_product_id", { length: 255 }).unique(),
   isActive: boolean("is_active").default(true),
   bannerImageUrl: varchar("banner_image_url").notNull(),
   // certificate:

@@ -34,7 +34,13 @@ export function appleConfiguration() {
       503,
     );
   }
-  return { key, keyId, issuerId, appAppleId, bundleId: "com.rh.healthcare" };
+  return {
+    key,
+    keyId,
+    issuerId,
+    appAppleId,
+    bundleId: process.env.APPLE_BUNDLE_ID || "com.rhhealthcare.app",
+  };
 }
 
 export async function verifyAppleTransaction(transactionId: string) {

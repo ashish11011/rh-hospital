@@ -24,6 +24,7 @@ function load(file, mocks) {
     if (name in require("./helpers/logging.cjs"))
       return require("./helpers/logging.cjs")[name];
     if (name in mocks) return mocks[name];
+    if (name.startsWith("@/")) return load(`${name.slice(2)}.ts`, mocks);
     return require(name);
   }, exports);
   return exports;

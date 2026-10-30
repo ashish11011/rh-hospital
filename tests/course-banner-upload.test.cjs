@@ -150,6 +150,29 @@ test("failed replacement uploads retain the existing course banner", async () =>
   assert.equal(app.saves[0].bannerImageUrl, "public/courses/original.png");
 });
 
+test("admin course editing loads and saves the separate iOS price and product ID", async () => {
+  const app = setup({
+    initialData: {
+      id: "course",
+      bannerImageUrl: "public/banner.png",
+      iosPrice: "1499.50",
+      iosProductId: "com.rh.nrp",
+    },
+  });
+  const price = app
+    .elements("Input")
+    .find((node) => node.props.placeholder === "1499.00");
+  assert.equal(price.props.value, "1499.50");
+  price.props.onChange({ target: { value: "1599.99" } });
+  app
+    .elements("Input")
+    .find((node) => node.props.placeholder === "com.rhhealthcare.course.nrp")
+    .props.onChange({ target: { value: "com.rh.course.updated" } });
+  await app.submit();
+  assert.equal(app.saves[0].iosPrice, 1599.99);
+  assert.equal(app.saves[0].iosProductId, "com.rh.course.updated");
+});
+
 test("course creation is blocked while a banner upload is in progress", async () => {
   let finishUpload;
   const app = setup({

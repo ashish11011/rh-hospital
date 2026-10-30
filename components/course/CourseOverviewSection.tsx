@@ -25,7 +25,7 @@ export default function CourseOverviewSection({
   certificate,
 }: CourseOverviewProps) {
   return (
-    <section className="min-w-0 flex-1 py-10 lg:py-16">
+    <section className="min-w-0 flex-1 pt-10 lg:pt-16">
       <div className="space-y-12">
         {/* <Button className=" h-12 px-4">Buy now</Button> */}
         {/* Overview */}
@@ -85,7 +85,7 @@ export default function CourseOverviewSection({
             Earn a Verified Certificate
           </h3>
 
-          <p className="text-muted-foreground mb-6 max-w-3xl">
+          <p className="text-muted-foreground max-w-3xl">
             {certificate?.description ||
               "Validate your expertise with a professional certificate recognized by global healthcare institutions. Share it on LinkedIn or add it to your clinical portfolio."}
           </p>

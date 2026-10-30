@@ -118,7 +118,7 @@ export const POST = withApiLogging(
       }
 
       const [item] = await db
-        .select({ id: courseItem.id })
+        .select({ id: courseItem.id, accessType: courseItem.accessType })
         .from(courseItem)
         .where(
           and(
@@ -132,6 +132,14 @@ export const POST = withApiLogging(
         return NextResponse.json(
           { error: "Course item not found" },
           { status: 404 },
+        );
+      }
+
+      // Free/member previews never create or update progress, including for buyers.
+      if (item.accessType !== "paid") {
+        return NextResponse.json(
+          { success: true, tracked: false, progress: null },
+          { status: 200 },
         );
       }
 

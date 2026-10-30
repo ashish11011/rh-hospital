@@ -59,7 +59,7 @@ export default async function Page({
   return (
     <>
       <Header bannerImage={publicAssetUrl(course.bannerImageUrl)} />
-      <div className="container flex w-full flex-col-reverse gap-8 lg:flex-row lg:gap-12">
+      <div className="container flex w-full flex-col-reverse gap-8 pb-6 lg:flex-row lg:gap-12 lg:pb-12">
         <CourseOverviewSection
           courseId={course.id}
           coursePath={coursePath}
@@ -71,7 +71,9 @@ export default async function Page({
             id: item.id,
             accessType: item.accessType,
             canAccess: canAccessCourseItem(item.accessType, {
-              isLoggedIn: Boolean(session?.user?.email && currentUser?.isActive),
+              isLoggedIn: Boolean(
+                session?.user?.email && currentUser?.isActive,
+              ),
               isMember,
               isEnrolled: Boolean(
                 currentUser?.isActive && enrolmentStatus === "enrolled",

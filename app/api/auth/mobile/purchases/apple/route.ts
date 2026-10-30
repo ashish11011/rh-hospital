@@ -1,14 +1,11 @@
 import { withApiLogging } from "@/lib/logging/api";
 import { createLogger } from "@/lib/logging/logger";
 import { NextResponse } from "next/server";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { course, courseEnrolment, payment, user } from "@/db";
 import { db } from "@/lib/dbConfig";
 import { getAuthenticatedApiEmail } from "@/lib/mobileApiAuth";
-import {
-  appleProductForSlug,
-  courseSlugsForAppleProduct,
-} from "@/lib/apple/products";
+import { enqueuePaymentInvoice } from "@/lib/invoiceQueue";
 import {
   appleConfiguration,
   ApplePurchaseError,
@@ -30,7 +27,7 @@ async function getBuyer(request: Request) {
   const [buyer] = await db
     .select()
     .from(user)
-    .where(eq(user.email, email))
+    .where(and(eq(user.email, email), eq(user.isActive, true)))
     .limit(1);
   if (!buyer)
     throw new ApplePurchaseError(
@@ -73,8 +70,12 @@ export const GET = withApiLogging(
         .from(course)
         .where(and(eq(course.id, courseId), eq(course.isActive, true)))
         .limit(1);
-      const productId = record && appleProductForSlug(record.slug);
-      if (!productId)
+      const productId = record?.iosProductId?.trim();
+      if (
+        !productId ||
+        record.iosPrice === null ||
+        Number(record.iosPrice) <= 0
+      )
         throw new ApplePurchaseError(
           "This course is not available in the App Store.",
           404,
@@ -96,7 +97,12 @@ export const GET = withApiLogging(
           409,
         );
       return NextResponse.json(
-        { productId, appAccountToken: buyer.id },
+        {
+          productId,
+          iosPrice: Number(record.iosPrice),
+          currency: record.currency || "INR",
+          appAccountToken: buyer.id,
+        },
         { headers: { "Cache-Control": "private, no-store" } },
       );
     } catch (error) {
@@ -138,9 +144,8 @@ export const POST = withApiLogging(
           403,
         );
       }
-      const slugs = courseSlugsForAppleProduct(transaction.productId || "");
       if (
-        !slugs.length ||
+        !transaction.productId ||
         !transaction.originalTransactionId ||
         !transaction.environment
       ) {
@@ -149,7 +154,7 @@ export const POST = withApiLogging(
       const [record] = await db
         .select()
         .from(course)
-        .where(inArray(course.slug, slugs))
+        .where(eq(course.iosProductId, transaction.productId))
         .limit(1);
       if (!record)
         throw new ApplePurchaseError(
@@ -195,7 +200,11 @@ export const POST = withApiLogging(
             .update(courseEnrolment)
             .set({ enrolmentStatus: "enrolled", updatedAt: new Date() })
             .where(eq(courseEnrolment.id, enrolment.id));
-          return { courseId: record.id, enrolmentId: enrolment.id };
+          return {
+            courseId: record.id,
+            enrolmentId: enrolment.id,
+            paymentId: existing.id,
+          };
         }
         const [active] = await tx
           .select()
@@ -224,32 +233,56 @@ export const POST = withApiLogging(
           )[0];
         // Existing payment columns store whole currency units; retain Apple's exact milliunit price in responseObject.
         const amount = Math.round((transaction.price || 0) / 1000);
-        await tx.insert(payment).values({
-          orderType: "course",
-          orderId: enrolment.id,
-          gatewayOrderId: orderId,
-          appleOriginalTransactionId: transaction.originalTransactionId,
-          appleEnvironment: transaction.environment,
-          appleProductId: transaction.productId,
-          appleAccountToken: transaction.appAccountToken,
-          applePriceMilliunits: transaction.price,
-          transactionId: transaction.transactionId,
-          getewayPaymentId: transaction.transactionId,
-          modeOfPayment: "Apple In-App Purchase",
-          currency: transaction.currency || "INR",
-          amount,
-          amountPaid: amount,
-          amountDue: 0,
-          status: "completed",
-          email: buyer.email,
-          transactionDate: transaction.purchaseDate
-            ? new Date(transaction.purchaseDate)
-            : new Date(),
-          description: `App Store: ${record.title}`,
-          responseObject: transaction,
-        });
-        return { courseId: record.id, enrolmentId: enrolment.id };
+        const [savedPayment] = await tx
+          .insert(payment)
+          .values({
+            orderType: "course",
+            orderId: enrolment.id,
+            gatewayOrderId: orderId,
+            appleOriginalTransactionId: transaction.originalTransactionId,
+            appleEnvironment: transaction.environment,
+            appleProductId: transaction.productId,
+            appleAccountToken: transaction.appAccountToken,
+            applePriceMilliunits: transaction.price,
+            transactionId: transaction.transactionId,
+            getewayPaymentId: transaction.transactionId,
+            modeOfPayment: "Apple In-App Purchase",
+            currency: transaction.currency || "INR",
+            amount,
+            amountPaid: amount,
+            amountDue: 0,
+            status: "completed",
+            email: buyer.email,
+            transactionDate: transaction.purchaseDate
+              ? new Date(transaction.purchaseDate)
+              : new Date(),
+            description: `App Store: ${record.title}`,
+            responseObject: transaction,
+          })
+          .returning({ id: payment.id });
+        return {
+          courseId: record.id,
+          enrolmentId: enrolment.id,
+          paymentId: savedPayment.id,
+        };
       });
+      logger.info("Apple payment verified", {
+        paymentId: result.paymentId,
+        courseId: result.courseId,
+        gatewayOrderId: orderId,
+        status: "completed",
+      });
+      // Payment and enrolment must be committed before the invoice worker can read them.
+      // Restore/retry also queues an invoice if a previous SQS attempt failed.
+      try {
+        await enqueuePaymentInvoice(result.paymentId);
+      } catch (error) {
+        logger.error("Apple invoice queueing failed", {
+          paymentId: result.paymentId,
+          error,
+        });
+        throw error;
+      }
       return NextResponse.json({ success: true, ...result });
     } catch (error) {
       return errorResponse(error);

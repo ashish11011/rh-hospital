@@ -2,7 +2,7 @@ import { cachedRedis } from "@/lib/redisCache";
 import { REDIS_CACHE_TTL_SECONDS } from "@/lib/constants";
 import { runLoggedOperation } from "@/lib/logging/operations";
 import { course, courseItem } from "@/db";
-import { publicAssetUrl } from "@/lib/publicAsset";
+import { publicAssetUrl, isCourseVideoMedia } from "@/lib/publicAsset";
 import { publicCoursePath } from "@/lib/course";
 import { db } from "@/lib/dbConfig";
 import { asc, desc, eq, inArray } from "drizzle-orm";
@@ -14,7 +14,7 @@ export async function getPublicCourseCatalog() {
     async () =>
       cachedRedis(
         "courses",
-        "catalog",
+        "catalog:v2",
         REDIS_CACHE_TTL_SECONDS.courses,
         async () => {
           const courses = await db
@@ -24,6 +24,8 @@ export async function getPublicCourseCatalog() {
               description: course.description,
               content: course.content,
               price: course.price,
+              iosPrice: course.iosPrice,
+              iosProductId: course.iosProductId,
               currency: course.currency,
               bannerImageUrl: course.bannerImageUrl,
               courseHours: course.courseHours,
@@ -48,6 +50,8 @@ export async function getPublicCourseCatalog() {
                     id: courseItem.id,
                     courseId: courseItem.courseId,
                     mediaType: courseItem.mediaType,
+                    mediaUrl: courseItem.mediaUrl,
+                    accessType: courseItem.accessType,
                     title: courseItem.title,
                     duration: courseItem.duration,
                     priority: courseItem.priority,
@@ -68,12 +72,16 @@ export async function getPublicCourseCatalog() {
 
           return courses.map((item) => ({
             ...item,
+            iosPrice: item.iosPrice == null ? null : Number(item.iosPrice),
             path: publicCoursePath(item.slug),
             bannerImageKey: item.bannerImageUrl,
             bannerImageUrl: publicAssetUrl(item.bannerImageUrl),
-            items: (itemsByCourseId.get(item.id) || []).map((courseItem) => ({
-              ...courseItem,
-            })),
+            items: (itemsByCourseId.get(item.id) || []).map(
+              ({ mediaUrl, ...courseItem }) => ({
+                ...courseItem,
+                isVideo: isCourseVideoMedia(mediaUrl, courseItem.mediaType),
+              }),
+            ),
           }));
         },
       ),

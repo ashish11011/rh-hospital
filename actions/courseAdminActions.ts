@@ -10,6 +10,7 @@ import { revalidatePath } from "next/cache";
 import { publicAssetKey, courseAssetKey } from "@/lib/publicAsset";
 import { publicCoursePath } from "@/lib/course";
 import { requireAdmin } from "@/lib/adminAuth";
+import { normalizeCourseIosPurchase } from "@/lib/courseIosPurchase";
 import {
   parseCourseItemAccessType,
   type CourseItemAccessType,
@@ -21,6 +22,8 @@ export type CourseInput = {
   content?: string | null;
   currency?: string;
   price: number;
+  iosPrice?: number | null;
+  iosProductId?: string | null;
   isActive: boolean;
   bannerImageUrl: string;
   courseHours: number;
@@ -44,6 +47,7 @@ export type CourseItemInput = {
 
 const cleanCourse = (data: CourseInput) => ({
   ...data,
+  ...normalizeCourseIosPurchase(data),
   title: data.title.trim(),
   description: data.description.trim(),
   slug: data.slug.trim(),
@@ -86,6 +90,7 @@ export async function createCourse(data: CourseInput) {
     "service",
     "actions/courseAdminActions.ts:createCourse",
     async () => {
+      await requireAdmin("full");
       if (
         !data.title.trim() ||
         !data.slug.trim() ||
@@ -112,6 +117,7 @@ export async function updateCourse(id: string, data: CourseInput) {
     "service",
     "actions/courseAdminActions.ts:updateCourse",
     async () => {
+      await requireAdmin("full");
       if (
         !data.title.trim() ||
         !data.slug.trim() ||

@@ -39,6 +39,8 @@ export function CourseForm({
     content: initialData?.content ?? "",
     currency: initialData?.currency ?? "INR",
     price: initialData?.price ?? 0,
+    iosPrice: initialData?.iosPrice ?? "",
+    iosProductId: initialData?.iosProductId ?? "",
     isActive: initialData?.isActive ?? true,
     bannerImageUrl: publicAssetKey(initialData?.bannerImageUrl ?? ""),
     courseHours: initialData?.courseHours ?? 0,
@@ -104,6 +106,9 @@ export function CourseForm({
       const data: CourseInput = {
         ...form,
         price: Number(form.price),
+        iosPrice:
+          String(form.iosPrice).trim() === "" ? null : Number(form.iosPrice),
+        iosProductId: form.iosProductId.trim() || null,
         courseHours: Number(form.courseHours),
         totalLectures: Number(form.totalLectures),
         whatYouWillLearn: list(form.whatYouWillLearn),
@@ -198,6 +203,38 @@ export function CourseForm({
           />
         </Field>
       </div>
+      <fieldset className="space-y-3 rounded-lg border p-4">
+        <legend className="px-1 text-sm font-medium">
+          iOS App Store purchase
+        </legend>
+        <p className="text-muted-foreground text-sm">
+          Leave both fields empty to disable new iOS purchases. Set the matching
+          price and non-consumable product in App Store Connect too; saving here
+          does not change Apple's price.
+        </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label={`iOS price (${form.currency || "INR"})`}>
+            <Input
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={form.iosPrice}
+              onChange={(e) => set("iosPrice", e.target.value)}
+              placeholder="1499.00"
+            />
+          </Field>
+          <Field label="iOS product ID">
+            <Input
+              value={form.iosProductId}
+              maxLength={255}
+              autoCapitalize="none"
+              spellCheck={false}
+              onChange={(e) => set("iosProductId", e.target.value)}
+              placeholder="com.rhhealthcare.course.nrp"
+            />
+          </Field>
+        </div>
+      </fieldset>
       <Field label="Course overview">
         <Textarea
           value={form.courseOverview}

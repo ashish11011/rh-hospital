@@ -32,7 +32,13 @@ export const POST = withApiLogging(
           { status: 401, headers },
         );
       const { courseId, itemId } = await params;
-      const grant = await grantCourseDocument(courseId, itemId, email);
+      const grant = await grantCourseDocument(
+        courseId,
+        itemId,
+        email,
+        false,
+        true,
+      );
       return NextResponse.json(grant, { headers });
     } catch (error) {
       if (error instanceof CoursePlaybackError)

@@ -4,6 +4,8 @@ import { and, eq, ne, sql } from "drizzle-orm";
 import { decodeJwt } from "jose";
 import { courseEnrolment, payment } from "@/db";
 import { db } from "@/lib/dbConfig";
+import { enqueuePaymentInvoice } from "@/lib/invoiceQueue";
+import { createLogger } from "@/lib/logging/logger";
 import {
   ApplePurchaseError,
   verifyAppleNotification,
@@ -11,6 +13,7 @@ import {
 } from "@/lib/apple/verification";
 
 export const runtime = "nodejs";
+const logger = createLogger("api", "app/api/apple/notifications/route.ts");
 
 export const POST = withApiLogging(
   "/app/api/apple/notifications",
@@ -47,7 +50,7 @@ export const POST = withApiLogging(
       }
       const transaction = await verifyAppleTransaction(hint.transactionId);
       const orderId = `apple:${transaction.environment}:${transaction.originalTransactionId}`;
-      await db.transaction(async (tx) => {
+      const result = await db.transaction(async (tx) => {
         await tx.execute(
           sql`select pg_advisory_xact_lock(hashtextextended(${orderId}, 0))`,
         );
@@ -83,7 +86,7 @@ export const POST = withApiLogging(
           .from(courseEnrolment)
           .where(eq(courseEnrolment.id, stored.orderId))
           .limit(1);
-        if (!enrolment) return;
+        if (!enrolment) return { paymentId: stored.id, revoked };
         const [otherPayment] = await tx
           .select({ id: payment.id })
           .from(payment)
@@ -104,7 +107,27 @@ export const POST = withApiLogging(
             })
             .where(eq(courseEnrolment.id, enrolment.id));
         }
+        return { paymentId: stored.id, revoked };
       });
+      if (result) {
+        logger.info("Apple payment status updated", {
+          paymentId: result.paymentId,
+          status: result.revoked ? "refunded" : "completed",
+          notificationType: notification.notificationType,
+        });
+        // A reversal can also recover an invoice that was never queued. Refunds cannot.
+        if (!result.revoked) {
+          try {
+            await enqueuePaymentInvoice(result.paymentId);
+          } catch (error) {
+            logger.error("Apple invoice queueing failed", {
+              paymentId: result.paymentId,
+              error,
+            });
+            throw error;
+          }
+        }
+      }
       return NextResponse.json({ received: true });
     } catch (error) {
       return NextResponse.json(

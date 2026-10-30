@@ -56,11 +56,14 @@ export async function getUserEnrolledCoursesByEmail(email: string) {
           id: courseItem.id,
           courseId: courseItem.courseId,
           mediaType: courseItem.mediaType,
+          accessType: courseItem.accessType,
         })
         .from(courseItem)
         .where(inArray(courseItem.courseId, courseIds));
 
-      const itemIds = items.map((item) => item.id);
+      const itemIds = items
+        .filter((item) => item.accessType === "paid")
+        .map((item) => item.id);
       const progressRows =
         itemIds.length > 0
           ? await db
@@ -88,7 +91,11 @@ export async function getUserEnrolledCoursesByEmail(email: string) {
       >();
 
       for (const item of items) {
-        if (item.mediaType?.toLowerCase() === "pdf") continue;
+        if (
+          item.accessType !== "paid" ||
+          item.mediaType?.toLowerCase() === "pdf"
+        )
+          continue;
 
         const current = progressByCourseId.get(item.courseId) || {
           completed: 0,
@@ -229,6 +236,7 @@ export async function getPurchasedCourseDetailByEmail(
           courseId: courseItem.courseId,
           mediaUrl: courseItem.mediaUrl,
           mediaType: courseItem.mediaType,
+          accessType: courseItem.accessType,
           title: courseItem.title,
           duration: courseItem.duration,
           priority: courseItem.priority,
@@ -239,8 +247,9 @@ export async function getPurchasedCourseDetailByEmail(
         .where(eq(courseItem.courseId, courseRecord.id))
         .orderBy(asc(courseItem.priority), asc(courseItem.createdAt));
 
+      const trackedItems = items.filter((item) => item.accessType === "paid");
       const progressRows =
-        items.length > 0
+        trackedItems.length > 0
           ? await db
               .select({
                 courseItemId: lessonProgress.courseItemId,
@@ -254,7 +263,7 @@ export async function getPurchasedCourseDetailByEmail(
                   eq(lessonProgress.userId, enrolment.userId),
                   inArray(
                     lessonProgress.courseItemId,
-                    items.map((item) => item.id),
+                    trackedItems.map((item) => item.id),
                   ),
                 ),
               )
@@ -263,7 +272,7 @@ export async function getPurchasedCourseDetailByEmail(
       const progressByItemId = new Map(
         progressRows.map((row) => [row.courseItemId, row]),
       );
-      const trackableItems = items.filter(
+      const trackableItems = trackedItems.filter(
         (item) => item.mediaType?.toLowerCase() !== "pdf",
       );
       const completedLessons = trackableItems.filter(
@@ -293,7 +302,10 @@ export async function getPurchasedCourseDetailByEmail(
               : 0,
           reviews,
           items: items.map((item) => {
-            const progress = progressByItemId.get(item.id);
+            const progress =
+              item.accessType === "paid"
+                ? progressByItemId.get(item.id)
+                : undefined;
 
             return {
               ...item,

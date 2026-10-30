@@ -29,7 +29,8 @@ function load(file, modules = {}, globals = {}) {
       console,
       ...globals,
       require: (name) => {
-      if (name in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[name];
+        if (name in require("./helpers/logging.cjs"))
+          return require("./helpers/logging.cjs")[name];
         assert.ok(name in modules, `Unexpected import: ${name}`);
         return modules[name];
       },
@@ -589,67 +590,226 @@ test("free website videos require login but do not require enrollment", async ()
   const guest = route({ session: false, rows });
   assert.equal((await guest.response(request(), ids.course)).status, 401);
   assert.equal(guest.signed(), 0);
-  await assert.rejects(service(rows).grantCoursePlayback(ids.course, ids.item, "", true, true), (error) => error.status === 401);
+  await assert.rejects(
+    service(rows).grantCoursePlayback(ids.course, ids.item, "", true, true),
+    (error) => error.status === 401,
+  );
   const response = await route({ rows }).response(request(), ids.course);
   assert.equal(response.status, 200);
   assert.equal(response.headers.getSetCookie().length, 3);
   assert.equal((await response.json()).mediaUrl.endsWith("index.m3u8"), true);
-  await assert.rejects(service(rows).grantCoursePlayback(ids.course, ids.item, email), (error) => error.status === 403);
-  assert.equal((await route({ rows: [row(null, { "courseItem.accessType": "free", "user.isActive": false })] }).response(request(), ids.course)).status, 403);
+  await assert.rejects(
+    service(rows).grantCoursePlayback(ids.course, ids.item, email),
+    (error) => error.status === 403,
+  );
+  assert.equal(
+    (
+      await route({
+        rows: [
+          row(null, {
+            "courseItem.accessType": "free",
+            "user.isActive": false,
+          }),
+        ],
+      }).response(request(), ids.course)
+    ).status,
+    403,
+  );
+});
+
+test("mobile free and member video grants follow website rules without enrollment", async () => {
+  for (const [accessType, card] of [
+    ["free", null],
+    ["free_for_members", activeCard()],
+  ]) {
+    const response = await route({
+      rows: [row(null, { "courseItem.accessType": accessType })],
+      card,
+    }).response(request({ authorization: "Bearer valid" }), ids.course, true);
+    assert.equal(response.status, 200);
+    const grant = await response.json();
+    assert.ok(grant.cookies["CloudFront-Policy"]);
+    assert.equal(response.headers.getSetCookie().length, 0);
+  }
+  for (const [accessType, card] of [
+    ["paid", activeCard()],
+    ["free_for_members", null],
+    ["free_for_members", { ...activeCard(), validityDate: new Date(0) }],
+  ]) {
+    const response = await route({
+      rows: [row(null, { "courseItem.accessType": accessType })],
+      card,
+    }).response(request({ authorization: "Bearer valid" }), ids.course, true);
+    assert.equal(response.status, 403);
+  }
+});
+
+test("mobile free document grants require login but no paid enrollment", async () => {
+  const handler = mobileDocumentRoute([
+    row(null, {
+      "courseItem.accessType": "free",
+      "courseItem.mediaUrl": "course/free.pdf",
+    }),
+  ]);
+  const params = {
+    params: Promise.resolve({ courseId: ids.course, itemId: ids.item }),
+  };
+  assert.equal((await handler(request(), params)).status, 401);
+  const response = await handler(
+    request({ authorization: "Bearer valid" }),
+    params,
+  );
+  assert.equal(response.status, 200);
+  assert.match((await response.json()).mediaUrl, /course\/free.pdf/);
 });
 
 test("enrolled users can access every website item type without a membership card", async () => {
   for (const accessType of ["free", "free_for_members", "paid"]) {
     const rows = [row("enrolled", { "courseItem.accessType": accessType })];
-    assert.equal((await route({ rows }).response(request(), ids.course)).status, 200);
-    const documents = service([row("enrolled", { "courseItem.accessType": accessType, "courseItem.mediaUrl": "course/resources/notes.pdf" })]);
-    assert.ok(await documents.grantCourseDocument(ids.course, ids.item, email, true, true));
+    assert.equal(
+      (await route({ rows }).response(request(), ids.course)).status,
+      200,
+    );
+    const documents = service([
+      row("enrolled", {
+        "courseItem.accessType": accessType,
+        "courseItem.mediaUrl": "course/resources/notes.pdf",
+      }),
+    ]);
+    assert.ok(
+      await documents.grantCourseDocument(
+        ids.course,
+        ids.item,
+        email,
+        true,
+        true,
+      ),
+    );
   }
 });
 
 test("member website lessons work without enrollment and keep paid lessons locked", async () => {
   const rows = [row(null, { "courseItem.accessType": "free_for_members" })];
-  const response = await route({ rows, card: activeCard() }).response(request(), ids.course);
+  const response = await route({ rows, card: activeCard() }).response(
+    request(),
+    ids.course,
+  );
   assert.equal(response.status, 200);
   assert.equal((await response.json()).cookies, undefined);
-  const paid = await route({ rows: [row(null)], card: activeCard() }).response(request(), ids.course);
+  const paid = await route({ rows: [row(null)], card: activeCard() }).response(
+    request(),
+    ids.course,
+  );
   assert.equal(paid.status, 403);
   // The same membership does not change mobile's enrollment requirement.
-  await assert.rejects(service(rows, env, activeCard()).grantCoursePlayback(ids.course, ids.item, email), (error) => error.status === 403);
+  await assert.rejects(
+    service(rows, env, activeCard()).grantCoursePlayback(
+      ids.course,
+      ids.item,
+      email,
+    ),
+    (error) => error.status === 403,
+  );
 });
 
 test("website member grants reject guests and absent, inactive, future, or expired memberships", async () => {
   const rows = [row(null, { "courseItem.accessType": "free_for_members" })];
-  assert.equal((await route({ session: false, rows, card: activeCard() }).response(request(), ids.course)).status, 401);
-  for (const card of [null,
+  assert.equal(
+    (
+      await route({ session: false, rows, card: activeCard() }).response(
+        request(),
+        ids.course,
+      )
+    ).status,
+    401,
+  );
+  for (const card of [
+    null,
     { ...activeCard(), isActive: false },
     { ...activeCard(), activationDate: new Date(Date.now() + 60000) },
     { ...activeCard(), validityDate: new Date(Date.now() - 1) },
     { ...activeCard(), activationDate: null },
   ]) {
-    assert.equal((await route({ rows, card }).response(request(), ids.course)).status, 403);
+    assert.equal(
+      (await route({ rows, card }).response(request(), ids.course)).status,
+      403,
+    );
   }
-  assert.equal((await route({ rows: [row(null, { "courseItem.accessType": "free_for_members", "user.isActive": false })], card: activeCard() }).response(request(), ids.course)).status, 403);
+  assert.equal(
+    (
+      await route({
+        rows: [
+          row(null, {
+            "courseItem.accessType": "free_for_members",
+            "user.isActive": false,
+          }),
+        ],
+        card: activeCard(),
+      }).response(request(), ids.course)
+    ).status,
+    403,
+  );
 });
 
 test("website item grants cannot cross courses or open inactive courses", async () => {
-  for (const changes of [{ "course.id": "other" }, { "courseItem.id": "other" }, { "course.isActive": false }]) {
+  for (const changes of [
+    { "course.id": "other" },
+    { "courseItem.id": "other" },
+    { "course.isActive": false },
+  ]) {
     const rows = [row(null, { "courseItem.accessType": "free", ...changes })];
-    assert.equal((await route({ rows }).response(request(), ids.course)).status, 403);
+    assert.equal(
+      (await route({ rows }).response(request(), ids.course)).status,
+      403,
+    );
   }
 });
 
 test("free and member document grants remain file scoped and require no enrollment writes", async () => {
-  for (const [accessType, accountEmail, card] of [["free", email, null], ["free_for_members", email, activeCard()]]) {
-    const api = service([row(null, { "courseItem.accessType": accessType, "courseItem.mediaUrl": "course/resources/notes.pdf" })], env, card);
-    const grant = await api.grantCourseDocument(ids.course, ids.item, accountEmail, true, true);
-    assert.equal(new URL(grant.mediaUrl).pathname, "/course/resources/notes.pdf");
-    assert.equal(new URL(grant.mediaUrl).searchParams.get("Key-Pair-Id"), "TESTKEY");
-    await assert.rejects(api.grantCourseDocument(ids.course, ids.item, "", true, true), (error) => error.status === 401);
+  for (const [accessType, accountEmail, card] of [
+    ["free", email, null],
+    ["free_for_members", email, activeCard()],
+  ]) {
+    const api = service(
+      [
+        row(null, {
+          "courseItem.accessType": accessType,
+          "courseItem.mediaUrl": "course/resources/notes.pdf",
+        }),
+      ],
+      env,
+      card,
+    );
+    const grant = await api.grantCourseDocument(
+      ids.course,
+      ids.item,
+      accountEmail,
+      true,
+      true,
+    );
+    assert.equal(
+      new URL(grant.mediaUrl).pathname,
+      "/course/resources/notes.pdf",
+    );
+    assert.equal(
+      new URL(grant.mediaUrl).searchParams.get("Key-Pair-Id"),
+      "TESTKEY",
+    );
+    await assert.rejects(
+      api.grantCourseDocument(ids.course, ids.item, "", true, true),
+      (error) => error.status === 401,
+    );
   }
 });
 
 test("the latest refunded enrollment cannot unlock a paid website item", async () => {
-  const rows = [row("enrolled"), row("refunded", { "courseEnrolment.createdAt": 2 })];
-  assert.equal((await route({ rows, card: activeCard() }).response(request(), ids.course)).status, 403);
+  const rows = [
+    row("enrolled"),
+    row("refunded", { "courseEnrolment.createdAt": 2 }),
+  ];
+  assert.equal(
+    (await route({ rows, card: activeCard() }).response(request(), ids.course))
+      .status,
+    403,
+  );
 });

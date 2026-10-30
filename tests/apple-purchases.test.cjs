@@ -25,7 +25,9 @@ function load(file, modules, globals = {}) {
       console,
       ...globals,
       require: (name) => {
-      if (name in require('./helpers/logging.cjs')) return require('./helpers/logging.cjs')[name];
+        if (name in modules) return modules[name];
+        if (name in require("./helpers/logging.cjs"))
+          return require("./helpers/logging.cjs")[name];
         if (!(name in modules))
           throw new Error(`Unexpected dependency ${name}`);
         return modules[name];
@@ -35,7 +37,6 @@ function load(file, modules, globals = {}) {
   );
   return exports;
 }
-const products = load("lib/apple/products.ts", {});
 const buyerId = "10000000-0000-4000-8000-000000000001";
 const courseId = "20000000-0000-4000-8000-000000000001";
 class ApplePurchaseError extends Error {
@@ -45,6 +46,13 @@ class ApplePurchaseError extends Error {
   }
 }
 function harness(options = {}) {
+  const controls = {
+    failQueue: false,
+    failPaymentCommit: false,
+    queueAttempts: 0,
+    sends: [],
+    logs: [],
+  };
   const tables = Object.fromEntries(
     ["user", "course", "courseEnrolment", "payment"].map((name) => [
       name,
@@ -55,13 +63,22 @@ function harness(options = {}) {
     ]),
   );
   let rows = {
-    user: [{ id: buyerId, email: "buyer@example.com" }],
+    user: [{ id: buyerId, email: "buyer@example.com", isActive: true }],
     course: [
-      { id: courseId, slug: "nrpfornurses", title: "NRP", isActive: true },
+      {
+        id: courseId,
+        slug: "nrpfornurses",
+        title: "NRP",
+        isActive: true,
+        iosPrice: "1599.00",
+        iosProductId: "nrpfornurses",
+        ...options.course,
+      },
     ],
     courseEnrolment: options.enrolments || [],
     payment: [],
   };
+  let committedRows = structuredClone(rows);
   let serial = Promise.resolve();
   const db = {
     select: () => ({
@@ -78,6 +95,9 @@ function harness(options = {}) {
           },
           limit(value) {
             limit = value;
+            return query;
+          },
+          for() {
             return query;
           },
           then(resolve, reject) {
@@ -116,7 +136,14 @@ function harness(options = {}) {
       const run = serial.then(async () => {
         const snapshot = structuredClone(rows);
         try {
-          return await fn(db);
+          const result = await fn(db);
+          if (
+            controls.failPaymentCommit &&
+            rows.payment.length > snapshot.payment.length
+          )
+            throw new Error("Payment commit failed");
+          committedRows = structuredClone(rows);
+          return result;
         } catch (error) {
           rows = snapshot;
           throw error;
@@ -141,6 +168,45 @@ function harness(options = {}) {
   };
   let verifications = 0;
   const modules = {
+    "server-only": {},
+    "@/lib/logging/logger": {
+      createLogger: () => ({
+        info: (message, metadata) =>
+          controls.logs.push({ level: "info", message, ...metadata }),
+        error: (message, metadata) =>
+          controls.logs.push({ level: "error", message, ...metadata }),
+      }),
+    },
+    "@aws-sdk/client-sqs": {
+      SendMessageCommand: class {
+        constructor(input) {
+          this.input = input;
+        }
+      },
+      SQSClient: class {
+        async send(command) {
+          controls.queueAttempts++;
+          const { paymentId } = JSON.parse(command.input.MessageBody);
+          const saved = committedRows.payment.find(
+            (row) => row.id === paymentId,
+          );
+          assert.equal(
+            saved?.status,
+            "completed",
+            "SQS must read a committed completed payment",
+          );
+          assert.ok(
+            committedRows.courseEnrolment.some(
+              (row) =>
+                row.id === saved.orderId && row.enrolmentStatus === "enrolled",
+            ),
+          );
+          if (controls.failQueue) throw new Error("SQS unavailable");
+          controls.sends.push(command.input);
+          return { MessageId: `sqs-${controls.sends.length}` };
+        }
+      },
+    },
     "next/server": {
       NextResponse: {
         json: (data, init = {}) => ({ status: init.status || 200, data }),
@@ -163,7 +229,6 @@ function harness(options = {}) {
       getAuthenticatedApiEmail: async () =>
         options.unauthenticated ? null : "buyer@example.com",
     },
-    "@/lib/apple/products": products,
     "@/lib/apple/verification": {
       ApplePurchaseError,
       appleConfiguration: () => {
@@ -178,8 +243,12 @@ function harness(options = {}) {
       },
     },
   };
+  modules["@/lib/invoiceQueue"] = load("lib/invoiceQueue.ts", modules, {
+    process: { env: {} },
+  });
   const route = load("app/api/auth/mobile/purchases/apple/route.ts", modules);
   return {
+    controls,
     route,
     modules,
     transaction,
@@ -196,21 +265,30 @@ function harness(options = {}) {
   };
 }
 
-test("catalog maps all three current slugs and older URLs", () => {
-  for (const id of [
-    "nrpfornurses",
-    "palsfornurses",
-    "triageemergenciesfornurses",
-  ]) {
-    assert.equal(products.appleProductForSlug(id), id);
-    assert.ok(products.courseSlugsForAppleProduct(id).includes(id));
-  }
+test("App Store product IDs come from the course record independently of its slug", async () => {
+  const h = harness({
+    course: { slug: "new-course-slug", iosProductId: "com.rh.course.custom" },
+    transaction: { productId: "com.rh.course.custom" },
+  });
   assert.equal(
-    products.appleProductForSlug("/courses/nrp-for-nurses"),
-    "nrpfornurses",
+    (await h.route.GET(h.request())).data.productId,
+    "com.rh.course.custom",
   );
-  assert.equal(products.appleProductForSlug("unknown"), undefined);
+  assert.equal((await h.route.POST(h.request())).status, 200);
+  assert.equal(h.rows.payment[0].appleProductId, "com.rh.course.custom");
 });
+
+test("incomplete iOS configuration disables new checkout", async () => {
+  for (const course of [
+    { iosProductId: null },
+    { iosPrice: null },
+    { iosPrice: "0" },
+  ]) {
+    const h = harness({ course });
+    assert.equal((await h.route.GET(h.request())).status, 404);
+  }
+});
+
 test("checkout preparation uses server account UUID and rejects missing config", async () => {
   const h = harness();
   const response = await h.route.GET(h.request());
@@ -261,6 +339,70 @@ test("concurrent retry and later restore produce one payment and enrolment", asy
   assert.equal((await h.route.POST(h.request())).status, 200);
   assert.equal(h.rows.payment.length, 1);
   assert.equal(h.rows.courseEnrolment.length, 1);
+  assert.equal(h.controls.sends.length, 1);
+});
+test("Apple invoices queue the database payment ID only after payment and access commit", async () => {
+  const h = harness();
+  const result = await h.route.POST(h.request());
+  assert.equal(result.status, 200);
+  const saved = h.rows.payment[0];
+  assert.equal(result.data.paymentId, saved.id);
+  assert.equal(h.controls.sends.length, 1);
+  assert.deepEqual(JSON.parse(h.controls.sends[0].MessageBody), {
+    paymentId: saved.id,
+  });
+  assert.notEqual(saved.id, h.transaction.transactionId);
+  assert.match(h.controls.sends[0].QueueUrl, /RH_payment_Invoice_mail$/);
+  assert.ok(JSON.parse(saved.notes).invoiceQueuedAt);
+  assert.ok(
+    h.controls.logs.some(
+      (entry) =>
+        entry.message === "Apple payment verified" &&
+        entry.paymentId === saved.id,
+    ),
+  );
+  assert.ok(
+    h.controls.logs.some(
+      (entry) =>
+        entry.message === "Invoice queued" &&
+        entry.paymentId === saved.id &&
+        entry.sqsId,
+    ),
+  );
+});
+test("failed SQS submission preserves committed access and retries the same payment on restore", async () => {
+  const h = harness();
+  h.controls.failQueue = true;
+  assert.equal((await h.route.POST(h.request())).status, 500);
+  assert.equal(h.rows.payment[0].status, "completed");
+  assert.equal(h.rows.courseEnrolment[0].enrolmentStatus, "enrolled");
+  assert.equal(h.rows.payment[0].notes, undefined);
+  assert.equal(h.controls.sends.length, 0);
+  const id = h.rows.payment[0].id;
+  assert.ok(
+    h.controls.logs.some(
+      (entry) =>
+        entry.message === "Apple invoice queueing failed" &&
+        entry.paymentId === id,
+    ),
+  );
+  h.controls.failQueue = false;
+  assert.equal((await h.route.POST(h.request())).status, 200);
+  assert.equal((await h.route.POST(h.request())).status, 200);
+  assert.equal(h.rows.payment.length, 1);
+  assert.equal(h.rows.courseEnrolment.length, 1);
+  assert.equal(h.rows.payment[0].id, id);
+  assert.equal(h.controls.queueAttempts, 2);
+  assert.equal(h.controls.sends.length, 1);
+  assert.ok(JSON.parse(h.rows.payment[0].notes).invoiceQueuedAt);
+});
+test("a rolled back Apple payment never queues an invoice", async () => {
+  const h = harness();
+  h.controls.failPaymentCommit = true;
+  assert.equal((await h.route.POST(h.request())).status, 500);
+  assert.equal(h.rows.payment.length, 0);
+  assert.equal(h.rows.courseEnrolment.length, 0);
+  assert.equal(h.controls.queueAttempts, 0);
 });
 test("ownership, revocation, product type, family sharing and unknown SKU fail closed", async () => {
   for (const transaction of [
@@ -275,6 +417,7 @@ test("ownership, revocation, product type, family sharing and unknown SKU fail c
     assert.ok((await h.route.POST(h.request())).status >= 400);
     assert.equal(h.rows.payment.length, 0);
     assert.equal(h.rows.courseEnrolment.length, 0);
+    assert.equal(h.controls.queueAttempts, 0);
   }
 });
 test("Apple outage grants no access and leaves the purchase retryable", async () => {
@@ -350,11 +493,47 @@ test("signed refund/reversal notifications update access idempotently", async ()
   assert.equal(h.rows.payment.length, 1);
   assert.equal(h.rows.payment[0].status, "refunded");
   assert.equal(h.rows.courseEnrolment[0].enrolmentStatus, "refunded");
+  assert.equal(h.controls.queueAttempts, 1);
   type = "REFUND_REVERSED";
   delete h.transaction.revocationDate;
   await route.POST(request());
   assert.equal(h.rows.payment[0].status, "completed");
   assert.equal(h.rows.courseEnrolment[0].enrolmentStatus, "enrolled");
+  assert.equal(h.controls.sends.length, 1);
+});
+
+test("refund reversal retries an unqueued invoice after committing completion", async () => {
+  const h = harness();
+  h.controls.failQueue = true;
+  assert.equal((await h.route.POST(h.request())).status, 500);
+  let type = "REFUND";
+  const route = load("app/api/apple/notifications/route.ts", {
+    ...h.modules,
+    jose: { decodeJwt: () => ({ transactionId: "12345" }) },
+    "@/lib/apple/verification": {
+      ...h.modules["@/lib/apple/verification"],
+      verifyAppleNotification: async () => ({
+        notificationType: type,
+        data: { signedTransactionInfo: "signed" },
+      }),
+    },
+  });
+  const request = () => ({ json: async () => ({ signedPayload: "signed" }) });
+  h.transaction.revocationDate = 123;
+  assert.equal((await route.POST(request())).status, 200);
+  assert.equal(h.controls.queueAttempts, 1);
+  type = "REFUND_REVERSED";
+  delete h.transaction.revocationDate;
+  assert.equal((await route.POST(request())).status, 500);
+  assert.equal(h.rows.payment[0].status, "completed");
+  assert.equal(h.rows.courseEnrolment[0].enrolmentStatus, "enrolled");
+  h.controls.failQueue = false;
+  assert.equal((await route.POST(request())).status, 200);
+  assert.equal((await route.POST(request())).status, 200);
+  assert.equal(h.controls.sends.length, 1);
+  assert.deepEqual(JSON.parse(h.controls.sends[0].MessageBody), {
+    paymentId: h.rows.payment[0].id,
+  });
 });
 
 test("unverified notifications cannot change course access", async () => {

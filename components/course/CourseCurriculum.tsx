@@ -72,8 +72,24 @@ export default function CourseCurriculum({
           return (
             <li
               key={chapter.id}
-              className="flex flex-wrap items-start gap-4 p-5 sm:items-center sm:p-6"
+              className="relative flex flex-wrap items-start gap-4 p-5 sm:items-center sm:p-6"
             >
+              {chapter.canAccess && !chapter.isVideo ? (
+                <a
+                  href={`/api/course/media/${chapter.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={chapter.lectureName}
+                  className="focus-visible:ring-primary absolute inset-0 z-10 hover:bg-black/5 focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-none"
+                />
+              ) : chapter.canAccess || chapter.accessType !== "paid" ? (
+                <button
+                  type="button"
+                  aria-label={chapter.lectureName}
+                  className="focus-visible:ring-primary absolute inset-0 z-10 w-full cursor-pointer hover:bg-black/5 focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-none"
+                  onClick={() => openItem(chapter)}
+                />
+              ) : null}
               <div className="bg-primary/10 text-primary flex size-11 shrink-0 items-center justify-center rounded-xl">
                 <Icon className="size-5" aria-hidden="true" />
               </div>
@@ -82,34 +98,10 @@ export default function CourseCurriculum({
                   {String(chapter.moduleNumber).padStart(2, "0")} ·{" "}
                   {media.label}
                 </p>
-                <h4 className="text-foreground text-base leading-6 font-medium break-words">
-                  {chapter.canAccess && !chapter.isVideo ? (
-                    <a
-                      href={`/api/course/media/${chapter.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-primary focus-visible:outline-primary rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
-                    >
-                      {chapter.lectureName}
-                    </a>
-                  ) : chapter.canAccess || chapter.accessType !== "paid" ? (
-                    <button
-                      type="button"
-                      className="hover:text-primary focus-visible:outline-primary cursor-pointer rounded-sm text-left focus-visible:outline-2 focus-visible:outline-offset-4"
-                      onClick={() => openItem(chapter)}
-                    >
-                      {chapter.lectureName}
-                    </button>
-                  ) : (
-                    chapter.lectureName
-                  )}
-                </h4>
-                <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-2 text-sm">
-                  <Clock3 className="size-3.5 shrink-0" aria-hidden="true" />
-                  <span>
-                    <span className="sr-only">Duration: </span>
-                    {chapter.duration}
-                  </span>
+                <div className="flex flex-col justify-between gap-2 md:flex-row">
+                  <h4 className="text-foreground text-base leading-6 font-medium break-words">
+                    {chapter.lectureName}
+                  </h4>
                   {chapter.accessType !== "paid" && (
                     <Badge
                       variant="secondary"
@@ -122,6 +114,13 @@ export default function CourseCurriculum({
                       {COURSE_ITEM_ACCESS_LABELS[chapter.accessType]}
                     </Badge>
                   )}
+                </div>
+                <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-2 text-sm">
+                  <Clock3 className="size-3.5 shrink-0" aria-hidden="true" />
+                  <span>
+                    <span className="sr-only">Duration: </span>
+                    {chapter.duration}
+                  </span>
                 </div>
               </div>
             </li>

@@ -424,6 +424,7 @@ test("Apple outage grants no access and leaves the purchase retryable", async ()
   const h = harness({ verificationFailure: true });
   assert.equal((await h.route.POST(h.request())).status, 502);
   assert.equal(h.rows.payment.length, 0);
+  assert.equal(h.rows.courseEnrolment.length, 0);
 });
 test("a pending website enrolment is not reused by Apple", async () => {
   const h = harness({
@@ -558,35 +559,40 @@ test("unverified notifications cannot change course access", async () => {
   assert.equal(h.rows.courseEnrolment[0].enrolmentStatus, "enrolled");
 });
 
-test("sandbox fallback is explicit and limited to transaction-not-found errors", async () => {
+test("pre-release Apple API 401 falls back to a verified sandbox purchase and enrols once", async () => {
+  const apple = require("@apple/app-store-server-library");
+  const h = harness({ transaction: { environment: apple.Environment.SANDBOX } });
   const environments = [];
-  let responseError = 4040010;
-  class APIException extends Error {
-    constructor(code) {
-      super("API error");
-      this.apiError = code;
-    }
-  }
+  let productionError = new apple.APIException(401);
+  let sandboxError;
+  let validSignature = true;
   const modules = {
     "server-only": {},
     "./rootCertificate": { appleRootCertificates: [] },
     "@apple/app-store-server-library": {
-      APIException,
-      Environment: { PRODUCTION: "Production", SANDBOX: "Sandbox" },
+      ...apple,
       AppStoreServerAPIClient: class {
         constructor(key, keyId, issuer, bundle, environment) {
           this.environment = environment;
         }
         async getTransactionInfo() {
           environments.push(this.environment);
-          if (this.environment === "Production")
-            throw new APIException(responseError);
+          if (this.environment === apple.Environment.PRODUCTION && productionError)
+            throw productionError;
+          if (this.environment === apple.Environment.SANDBOX && sandboxError)
+            throw sandboxError;
           return { signedTransactionInfo: "signed" };
         }
       },
       SignedDataVerifier: class {
-        async verifyAndDecodeTransaction() {
-          return { transactionId: "12345" };
+        constructor(roots, onlineChecks, environment, bundleId) {
+          this.environment = environment;
+          assert.equal(bundleId, "com.rhhealthcare.app");
+        }
+        async verifyAndDecodeTransaction(signed) {
+          assert.equal(signed, "signed");
+          if (!validSignature) throw new Error("Invalid signature");
+          return { ...h.transaction, environment: this.environment };
         }
       },
     },
@@ -600,15 +606,48 @@ test("sandbox fallback is explicit and limited to transaction-not-found errors",
   const verifier = load("lib/apple/verification.ts", modules, {
     process: { env },
   });
-  await verifier.verifyAppleTransaction("12345");
+  const route = load("app/api/auth/mobile/purchases/apple/route.ts", {
+    ...h.modules,
+    "@/lib/apple/verification": verifier,
+  });
+  validSignature = false;
+  assert.equal((await route.POST(h.request())).status, 422);
+  assert.equal(h.rows.courseEnrolment.length, 0);
   assert.deepEqual(environments, ["Production", "Sandbox"]);
+  validSignature = true;
   environments.length = 0;
-  responseError = 4010000;
-  await assert.rejects(verifier.verifyAppleTransaction("12345"));
+  const purchased = await route.POST(h.request());
+  assert.equal(purchased.status, 200);
+  assert.equal(h.rows.payment[0].appleEnvironment, "Sandbox");
+  assert.equal(h.rows.courseEnrolment[0].enrolmentStatus, "enrolled");
+  assert.deepEqual(environments, ["Production", "Sandbox"]);
+  const restored = await route.POST(h.request());
+  assert.equal(restored.status, 200);
+  assert.equal(restored.data.enrolmentId, purchased.data.enrolmentId);
+  assert.equal(restored.data.paymentId, purchased.data.paymentId);
+  assert.equal(h.rows.courseEnrolment.length, 1);
+  assert.equal(h.rows.payment.length, 1);
+
+  // A production auth error is still a verification failure if sandbox has no transaction.
+  environments.length = 0;
+  sandboxError = new apple.APIException(404, apple.APIError.TRANSACTION_ID_NOT_FOUND);
+  await assert.rejects(verifier.verifyAppleTransaction("12345"), { status: 502 });
+  assert.deepEqual(environments, ["Production", "Sandbox"]);
+  sandboxError = undefined;
+
+  environments.length = 0;
+  productionError = new apple.APIException(404, apple.APIError.TRANSACTION_ID_NOT_FOUND);
+  assert.equal((await verifier.verifyAppleTransaction("12345")).environment, "Sandbox");
+  assert.deepEqual(environments, ["Production", "Sandbox"]);
+
+  environments.length = 0;
+  productionError = new apple.APIException(500);
+  await assert.rejects(verifier.verifyAppleTransaction("12345"), { status: 502 });
   assert.deepEqual(environments, ["Production"]);
+
   environments.length = 0;
-  responseError = 4040010;
+  productionError = new apple.APIException(401);
   env.APPLE_IAP_ALLOW_SANDBOX = "false";
-  await assert.rejects(verifier.verifyAppleTransaction("12345"));
+  await assert.rejects(verifier.verifyAppleTransaction("12345"), { status: 502 });
   assert.deepEqual(environments, ["Production"]);
 });

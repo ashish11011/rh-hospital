@@ -1,12 +1,17 @@
 import { runLoggedOperation } from "@/lib/logging/operations";
+import { createLogger } from "@/lib/logging/logger";
 import "server-only";
 import {
+  APIError,
+  APIException,
   AppStoreServerAPIClient,
   Environment,
   SignedDataVerifier,
-  APIException,
 } from "@apple/app-store-server-library";
 import { appleRootCertificates } from "./rootCertificate";
+
+const transactionSource = "lib/apple/verification.ts:verifyAppleTransaction";
+const logger = createLogger("integration", transactionSource);
 
 export class ApplePurchaseError extends Error {
   constructor(
@@ -46,13 +51,14 @@ export function appleConfiguration() {
 export async function verifyAppleTransaction(transactionId: string) {
   return runLoggedOperation(
     "integration",
-    "lib/apple/verification.ts:verifyAppleTransaction",
+    transactionSource,
     async () => {
       const config = appleConfiguration();
-      const environments =
-        process.env.APPLE_IAP_ALLOW_SANDBOX === "true"
-          ? [Environment.PRODUCTION, Environment.SANDBOX]
-          : [Environment.PRODUCTION];
+      const allowSandbox = process.env.APPLE_IAP_ALLOW_SANDBOX === "true";
+      const environments = allowSandbox
+        ? [Environment.PRODUCTION, Environment.SANDBOX]
+        : [Environment.PRODUCTION];
+      let productionUnauthorized = false;
       for (const environment of environments) {
         const client = new AppStoreServerAPIClient(
           config.key,
@@ -66,19 +72,51 @@ export async function verifyAppleTransaction(transactionId: string) {
           signedTransaction = (await client.getTransactionInfo(transactionId))
             .signedTransactionInfo;
         } catch (error) {
-          // Sandbox/TestFlight IDs are not found in production. Never retry auth failures as sandbox.
-          if (error instanceof APIException && error.apiError === 4040010)
+          const appleError = error instanceof APIException ? error : undefined;
+          const metadata = {
+            environment,
+            appleHttpStatus: appleError?.httpStatusCode,
+            appleErrorCode: appleError?.apiError,
+          };
+          // Before first release Apple can reject production API access with 401.
+          // Sandbox still requires a valid Apple-signed transaction for this app.
+          if (
+            allowSandbox &&
+            environment === Environment.PRODUCTION &&
+            appleError?.httpStatusCode === 401
+          ) {
+            productionUnauthorized = true;
+            logger.warning(
+              "Apple production lookup unauthorized; trying sandbox",
+              metadata,
+            );
             continue;
+          }
+          if (
+            appleError?.apiError === APIError.TRANSACTION_ID_NOT_FOUND &&
+            !productionUnauthorized
+          ) {
+            logger.diagnostic(
+              "Apple transaction not found in environment",
+              metadata,
+            );
+            continue;
+          }
+          logger.warning("Apple transaction lookup failed", metadata);
           throw new ApplePurchaseError(
             "Unable to verify with the App Store. Please restore your purchase shortly.",
             502,
           );
         }
-        if (!signedTransaction)
+        if (!signedTransaction) {
+          logger.warning("Apple transaction lookup returned no signed transaction", {
+            environment,
+          });
           throw new ApplePurchaseError(
             "The App Store did not return a transaction.",
             502,
           );
+        }
         const verifier = new SignedDataVerifier(
           appleRootCertificates,
           true,
@@ -93,6 +131,9 @@ export async function verifyAppleTransaction(transactionId: string) {
             throw new Error("Transaction mismatch");
           return transaction;
         } catch {
+          logger.warning("Apple transaction failed signature or ID validation", {
+            environment,
+          });
           throw new ApplePurchaseError(
             "The App Store transaction could not be verified.",
             422,
